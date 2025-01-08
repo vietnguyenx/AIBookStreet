@@ -15,5 +15,6 @@ namespace AIBookStreet.Repositories.Data.Entities
 
         public Guid? StreetId { get; set; }
         public virtual Street? Street { get; set; }
+        public virtual ICollection<Image>? Images { get; set; }
     }
 }

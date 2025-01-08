@@ -19,6 +19,6 @@ namespace AIBookStreet.Repositories.Data.Entities
         public virtual User? Manager { get; set; } 
 
         public virtual ICollection<Book>? Books { get; set; }
-
+        public virtual ICollection<Image>? Images { get; set; }
     }
 }
