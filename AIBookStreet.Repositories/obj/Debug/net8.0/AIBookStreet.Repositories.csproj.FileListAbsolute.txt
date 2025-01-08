@@ -1,0 +1,14 @@
+D:\LearningMaterials\College\SEP490\AIBookStreet\AIBookStreet.Repositories\bin\Debug\net8.0\AIBookStreet.Repositories.deps.json
+D:\LearningMaterials\College\SEP490\AIBookStreet\AIBookStreet.Repositories\bin\Debug\net8.0\AIBookStreet.Repositories.runtimeconfig.json
+D:\LearningMaterials\College\SEP490\AIBookStreet\AIBookStreet.Repositories\bin\Debug\net8.0\AIBookStreet.Repositories.dll
+D:\LearningMaterials\College\SEP490\AIBookStreet\AIBookStreet.Repositories\bin\Debug\net8.0\AIBookStreet.Repositories.pdb
+D:\LearningMaterials\College\SEP490\AIBookStreet\AIBookStreet.Repositories\obj\Debug\net8.0\AIBookStreet.Repositories.csproj.AssemblyReference.cache
+D:\LearningMaterials\College\SEP490\AIBookStreet\AIBookStreet.Repositories\obj\Debug\net8.0\AIBookStreet.Repositories.GeneratedMSBuildEditorConfig.editorconfig
+D:\LearningMaterials\College\SEP490\AIBookStreet\AIBookStreet.Repositories\obj\Debug\net8.0\AIBookStreet.Repositories.AssemblyInfoInputs.cache
+D:\LearningMaterials\College\SEP490\AIBookStreet\AIBookStreet.Repositories\obj\Debug\net8.0\AIBookStreet.Repositories.AssemblyInfo.cs
+D:\LearningMaterials\College\SEP490\AIBookStreet\AIBookStreet.Repositories\obj\Debug\net8.0\AIBookStreet.Repositories.csproj.CoreCompileInputs.cache
+D:\LearningMaterials\College\SEP490\AIBookStreet\AIBookStreet.Repositories\obj\Debug\net8.0\AIBookStreet.Repositories.dll
+D:\LearningMaterials\College\SEP490\AIBookStreet\AIBookStreet.Repositories\obj\Debug\net8.0\refint\AIBookStreet.Repositories.dll
+D:\LearningMaterials\College\SEP490\AIBookStreet\AIBookStreet.Repositories\obj\Debug\net8.0\AIBookStreet.Repositories.pdb
+D:\LearningMaterials\College\SEP490\AIBookStreet\AIBookStreet.Repositories\obj\Debug\net8.0\AIBookStreet.Repositories.genruntimeconfig.cache
+D:\LearningMaterials\College\SEP490\AIBookStreet\AIBookStreet.Repositories\obj\Debug\net8.0\ref\AIBookStreet.Repositories.dll
