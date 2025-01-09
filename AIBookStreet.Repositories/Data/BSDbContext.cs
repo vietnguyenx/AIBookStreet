@@ -47,6 +47,7 @@ namespace AIBookStreet.Repositories.Data
         public virtual DbSet<Role> Roles { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
         public virtual DbSet<Zone> Zones { get; set; } = null!;
+        public virtual DbSet<Image> Images { get; set; } = null!;
 
         public virtual DbSet<BookAuthor> BookAuthors { get; set; } = null!;
         public virtual DbSet<BookCategory> BookCategories { get; set; } = null!;
@@ -82,6 +83,12 @@ namespace AIBookStreet.Repositories.Data
                     .WithOne(x => x.Author)
                     .HasForeignKey(x => x.AuthorId)
                     .OnDelete(DeleteBehavior.Cascade); // cascade: neu author bi xoa, lien ket bookAuthor cung bi xoa
+
+                // 1-n voi image
+                e.HasMany(at => at.Images)
+                    .WithOne(i => i.Author)
+                    .HasForeignKey(i => i.EntityId)
+                    .OnDelete(DeleteBehavior.Cascade); // neu author bi xoa, image lien quan cung bi xoa
             });
 
             modelBuilder.Entity<Book>(e =>
@@ -107,6 +114,12 @@ namespace AIBookStreet.Repositories.Data
                  .WithOne(x => x.Book)
                  .HasForeignKey(x => x.BookId)
                  .OnDelete(DeleteBehavior.Cascade); // cascade: neu book bi xoa, lien ket bookAuthor cung bi xoa
+
+                // 1-n voi image
+                e.HasMany(b => b.Images)
+                    .WithOne(i => i.Book)
+                    .HasForeignKey(i => i.EntityId)
+                    .OnDelete(DeleteBehavior.Cascade); // neu book bi xoa, image lien quan cung bi xoa
             });
 
             modelBuilder.Entity<BookAuthor>(e =>
@@ -172,6 +185,12 @@ namespace AIBookStreet.Repositories.Data
                  .WithOne(x => x.BookStore)
                  .HasForeignKey(x => x.BookStoreId)
                  .OnDelete(DeleteBehavior.Cascade); // neu bookStore bi xoa, inventory lien quan bi xoa
+
+                // 1-n voi image
+                e.HasMany(bs => bs.Images)
+                    .WithOne(i => i.BookStore)
+                    .HasForeignKey(i => i.EntityId)
+                    .OnDelete(DeleteBehavior.Cascade); // neu bookStore bi xoa, image lien quan cung bi xoa
             });
 
             modelBuilder.Entity<Category>(e =>
@@ -200,6 +219,12 @@ namespace AIBookStreet.Repositories.Data
                     .WithMany(s => s.Events)
                     .HasForeignKey(x => x.StreetId)
                     .OnDelete(DeleteBehavior.SetNull); // neu street bi xoa, streetId cua event = null
+
+                // 1-n voi image
+                e.HasMany(e => e.Images)
+                    .WithOne(i => i.Event)
+                    .HasForeignKey(i => i.EntityId)
+                    .OnDelete(DeleteBehavior.Cascade); // neu event bi xoa, image lien quan cung bi xoa
             });
 
             modelBuilder.Entity<Inventory>(e =>
@@ -242,6 +267,12 @@ namespace AIBookStreet.Repositories.Data
                  .WithOne(b => b.Publisher)
                  .HasForeignKey(b => b.PublisherId)
                  .OnDelete(DeleteBehavior.SetNull); // khi publisher bi xoa, publisherId cua book = null
+
+                // 1-n voi image
+                e.HasMany(p => p.Images)
+                    .WithOne(i => i.Publisher)
+                    .HasForeignKey(i => i.EntityId)
+                    .OnDelete(DeleteBehavior.Cascade); // neu publisher bi xoa, image lien quan cung bi xoa
             });
 
             modelBuilder.Entity<Role>(e =>
@@ -274,6 +305,12 @@ namespace AIBookStreet.Repositories.Data
                  .WithOne(ev => ev.Street)
                  .HasForeignKey(ev => ev.StreetId)
                  .OnDelete(DeleteBehavior.SetNull); // neu xoa street, cac event khong bi xoa (SetNull)
+
+                // 1-n voi image
+                e.HasMany(s => s.Images)
+                    .WithOne(i => i.Street)
+                    .HasForeignKey(i => i.EntityId)
+                    .OnDelete(DeleteBehavior.Cascade); // neu street bi xoa, image lien quan cung bi xoa
             });
 
             modelBuilder.Entity<User>(e =>
@@ -304,6 +341,12 @@ namespace AIBookStreet.Repositories.Data
                     .WithOne(ur => ur.User)
                     .HasForeignKey(ur => ur.UserId)
                     .OnDelete(DeleteBehavior.Cascade); // neu xoa user, userRole lien quan cung se xoa
+
+                // 1-n voi image
+                e.HasMany(u => u.Images)
+                    .WithOne(i => i.User)
+                    .HasForeignKey(i => i.EntityId)
+                    .OnDelete(DeleteBehavior.Cascade); // neu user bi xoa, image lien quan cung bi xoa
             });
 
             modelBuilder.Entity<UserRole>(e =>
@@ -341,6 +384,56 @@ namespace AIBookStreet.Repositories.Data
                     .WithOne(x => x.Zone)
                     .HasForeignKey(x => x.ZoneId)
                     .OnDelete(DeleteBehavior.SetNull); // khi zone bi xoa, BookStore co ZoneId = null
+            });
+
+            modelBuilder.Entity<Image>(e =>
+            {
+                e.ToTable("Images");
+                e.Property(x => x.Url).HasMaxLength(1000).IsRequired(true);
+                e.Property(x => x.Type).HasMaxLength(200).IsRequired(false);
+                e.Property(x => x.AltText).HasMaxLength(200).IsRequired(true);
+
+                //n-1 voi Author
+                e.HasOne(i => i.Author)
+                 .WithMany(at => at.Images)
+                 .HasForeignKey(bc => bc.EntityId)
+                 .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, author khong bi gi
+
+                //n-1 voi Event
+                e.HasOne(i => i.Event)
+                 .WithMany(at => at.Images)
+                 .HasForeignKey(bc => bc.EntityId)
+                 .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, event khong bi gi
+
+                //n-1 voi publisher
+                e.HasOne(i => i.Publisher)
+                 .WithMany(at => at.Images)
+                 .HasForeignKey(bc => bc.EntityId)
+                 .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, Publisher khong bi gi
+
+                //n-1 voi bookStore
+                e.HasOne(i => i.BookStore)
+                 .WithMany(at => at.Images)
+                 .HasForeignKey(bc => bc.EntityId)
+                 .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, bookStore khong bi gi
+
+                //n-1 voi street
+                e.HasOne(i => i.Street)
+                 .WithMany(at => at.Images)
+                 .HasForeignKey(bc => bc.EntityId)
+                 .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, street khong bi gi
+
+                //n-1 voi user
+                e.HasOne(i => i.User)
+                 .WithMany(at => at.Images)
+                 .HasForeignKey(bc => bc.EntityId)
+                 .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, user khong bi gi
+
+                //n-1 voi book
+                e.HasOne(i => i.Book)
+                 .WithMany(at => at.Images)
+                 .HasForeignKey(bc => bc.EntityId)
+                 .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, book khong bi gi
             });
 
         }

@@ -21,5 +21,6 @@ namespace AIBookStreet.Repositories.Data.Entities
         public virtual Publisher? Publisher { get; set; }
 
         public virtual ICollection<UserRole> UserRoles { get; set; }
+        public virtual ICollection<Image>? Images { get; set; }
     }
 }

@@ -23,6 +23,6 @@ namespace AIBookStreet.Repositories.Data.Entities
         public virtual ICollection<BookAuthor>? BookAuthors { get; set; }
         public virtual ICollection<Inventory>? Inventories { get; set; }
         public virtual ICollection<BookCategory>? BookCategories { get; set; }
-
+        public virtual ICollection<Image>? Images { get; set; }
     }
 }

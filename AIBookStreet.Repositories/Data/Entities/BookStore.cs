@@ -22,6 +22,6 @@ namespace AIBookStreet.Repositories.Data.Entities
         public virtual Zone? Zone { get; set; }
 
         public virtual ICollection<Inventory>? Inventories { get; set; }
-
+        public virtual ICollection<Image>? Images { get; set; }
     }
 }
