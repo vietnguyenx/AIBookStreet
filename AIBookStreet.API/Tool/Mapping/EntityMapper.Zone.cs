@@ -13,6 +13,7 @@ namespace AIBookStreet.API.Tool.Mapping
             CreateMap<Zone, ZoneModel>().ReverseMap();
             CreateMap<ZoneModel, ZoneRequest>().ReverseMap();
             CreateMap<ZoneModel, ZoneSearchRequest>().ReverseMap();
+            CreateMap<Zone, ZoneRequest>().ReverseMap();
         }
     }
 }
