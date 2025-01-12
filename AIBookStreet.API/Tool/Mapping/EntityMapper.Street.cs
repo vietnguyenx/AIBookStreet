@@ -13,6 +13,7 @@ namespace AIBookStreet.API.Tool.Mapping
             CreateMap<Street, StreetModel>().ReverseMap();
             CreateMap<StreetModel, StreetRequest>().ReverseMap();
             CreateMap<StreetModel, StreetSearchRequest>().ReverseMap();
+            CreateMap<Street, StreetRequest>().ReverseMap();
         }
     }
 }
