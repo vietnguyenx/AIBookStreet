@@ -23,6 +23,6 @@ namespace AIBookStreet.Repositories.Repositories.UnitOfWork.Interface
         IUserRepository UserRepository { get; }
         IUserRoleRepository UserRoleRepository { get; }
         IZoneRepository ZoneRepository { get; }
-
+        IImageRepository ImageRepository { get; }
     }
 }

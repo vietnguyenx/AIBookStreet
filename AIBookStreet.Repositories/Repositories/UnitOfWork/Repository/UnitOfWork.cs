@@ -29,5 +29,6 @@ namespace AIBookStreet.Repositories.Repositories.UnitOfWork.Repository
         public IUserRepository UserRepository => GetRepository<IUserRepository>();
         public IUserRoleRepository UserRoleRepository => GetRepository<IUserRoleRepository>();
         public IZoneRepository ZoneRepository => GetRepository<IZoneRepository>();
+        public IImageRepository ImageRepository => GetRepository<IImageRepository>();
     }
 }

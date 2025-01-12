@@ -1,10 +1,15 @@
-﻿namespace AIBookStreet.API.RequestModel
+﻿using AIBookStreet.Repositories.Data.Entities;
+
+namespace AIBookStreet.API.RequestModel
 {
-    public class AuthorRequest : BaseRequest
+    public class AuthorRequest
     {
-        public string AuthorName { get; set; }
+        public Guid Id { get; set; }
+        public string AuthorName { get; set; } = null!;
         public DateTime? DOB { get; set; }
         public string? Nationality { get; set; }
         public string? Biography { get; set; }
+        public bool IsDeleted { get; set; }
+        public virtual ICollection<Image>? Images { get; set; }
     }
 }
