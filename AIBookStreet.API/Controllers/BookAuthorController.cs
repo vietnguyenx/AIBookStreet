@@ -27,9 +27,9 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var result = await _service.AddABookAuthor(model);
-                return result.Item2 == 1 ? Ok(new BaseResponse(false, "Đã tồn tại!")) : 
-                       result.Item2 == 2 ? Ok(new BaseResponse(true, "Đã thêm")) :
-                                           Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!"));
+                return result.Item2 == 1 ? Ok(new ItemResponse<BookAuthor>("Đã tồn tại!")) : 
+                       result.Item2 == 2 ? Ok(new ItemResponse<BookAuthor>("Đã thêm", result.Item1)) :
+                       Ok(new ItemResponse<BookAuthor>("Đã xảy ra lỗi!!!"));
             }
             catch (Exception ex)
             {
@@ -46,9 +46,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã cập nhật thông tin!")),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    1 => Ok(new ItemResponse<BookAuthor>("Không tồn tại!!!")),
+                    2 => Ok(new ItemResponse<BookAuthor>("Đã cập nhật thông tin!", result.Item2)),
+                    _ => Ok(new ItemResponse<BookAuthor>("Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
             catch (Exception ex)
@@ -66,9 +66,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã xóa thông tin!")),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    1 => Ok(new ItemResponse<BookAuthor>("Không tồn tại!!!", result.Item2)),
+                    2 => Ok(new ItemResponse<BookAuthor>("Đã xóa thành công!", result.Item2)),
+                    _ => Ok(new ItemResponse<BookAuthor>("Đã xảy ra lỗi, vui lòng kiểm tra lại!!!"))
                 };
             }
             catch (Exception ex)
@@ -114,7 +114,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [HttpGet("pagination-and-search")]
-        public async Task<IActionResult> GetAllBookAuthorsPagination(string? key, Guid? bookID, Guid? authorID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<IActionResult> GetAllAuthorPagination(string? key, Guid? bookID, Guid? authorID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             try
             {
@@ -136,7 +136,7 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var bookAuthors = await _service.GetBookAuthorByElement(bookID, authorID);
+                var bookAuthors = await _service.GetABookAuthorByElement(bookID, authorID);
 
                 return bookAuthors switch
                 {
