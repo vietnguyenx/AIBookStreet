@@ -114,7 +114,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [HttpGet("pagination-and-search")]
-        public async Task<IActionResult> GetAllAuthorPagination(string? key, Guid? bookID, Guid? authorID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<IActionResult> GetAllBookAuthorsPagination(string? key, Guid? bookID, Guid? authorID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             try
             {
@@ -136,7 +136,7 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var bookAuthors = await _service.GetABookAuthorByElement(bookID, authorID);
+                var bookAuthors = await _service.GetBookAuthorByElement(bookID, authorID);
 
                 return bookAuthors switch
                 {
