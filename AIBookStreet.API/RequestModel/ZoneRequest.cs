@@ -1,10 +1,13 @@
-﻿namespace AIBookStreet.API.RequestModel
-{
-    public class ZoneRequest : BaseRequest
-    {
-        public string ZoneName { get; set; }
-        public string? Description { get; set; }
+﻿using AIBookStreet.Repositories.Data.Entities;
 
-        public Guid? StreetId { get; set; }
+namespace AIBookStreet.API.RequestModel
+{
+    public class ZoneRequest
+    {
+        public Guid Id { get; set; }
+        public string ZoneName { get; set; } = null!;
+        public string? Description { get; set; }
+        public bool IsDeleted { get; set; }
+        public virtual Street? Street { get; set; }
     }
 }
