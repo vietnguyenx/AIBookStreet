@@ -104,8 +104,8 @@ namespace AIBookStreet.Services.Services.Service
                 return false;
             }
 
-            var Book = _mapper.Map<Book>(entity);
-            return await _bookRepository.Delete(Book);
+            var book = _mapper.Map<Book>(entity);
+            return await _bookRepository.Delete(book);
         }
         
     }

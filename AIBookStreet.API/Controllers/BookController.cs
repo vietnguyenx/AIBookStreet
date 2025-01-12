@@ -91,7 +91,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [HttpPost("search")]
-        public async Task<IActionResult> SearchBook(PaginatedRequest<BookSearchRequest> paginatedRequest)
+        public async Task<IActionResult> Search(PaginatedRequest<BookSearchRequest> paginatedRequest)
         {
             try
             {
@@ -112,11 +112,11 @@ namespace AIBookStreet.API.Controllers
         }
 
         [HttpPost("add")]
-        public async Task<IActionResult> AddBook(BookRequest book)
+        public async Task<IActionResult> Add(BookRequest bookRequest)
         {
             try
             {
-                var isBook = await _bookService.Add(_mapper.Map<BookModel>(book));
+                var isBook = await _bookService.Add(_mapper.Map<BookModel>(bookRequest));
 
                 return isBook switch
                 {
@@ -131,11 +131,11 @@ namespace AIBookStreet.API.Controllers
         }
 
         [HttpPut("update")]
-        public async Task<IActionResult> Update(BookRequest book)
+        public async Task<IActionResult> Update(BookRequest bookRequest)
         {
             try
             {
-                var bookModel = _mapper.Map<BookModel>(book);
+                var bookModel = _mapper.Map<BookModel>(bookRequest);
 
                 var isBook = await _bookService.Update(bookModel);
 

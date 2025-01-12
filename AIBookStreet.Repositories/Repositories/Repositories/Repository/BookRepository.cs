@@ -25,12 +25,11 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var queryable = GetQueryable();
             queryable = base.ApplySort(queryable, sortField, sortOrder);
 
-            // loc theo trang
             queryable = GetQueryablePagination(queryable, pageNumber, pageSize);
 
             return await queryable
                 .Include(b => b.Images)
-                .Include(b => b.Publisher.PublisherName)
+                .Include(b => b.Publisher)
                 .Include(b => b.BookCategories)
                 .Include(b => b.BookAuthors )
                 .Include(b => b.Inventories)
@@ -42,7 +41,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var query = GetQueryable(m => m.Id == id);
             var book = await query
                 .Include(b => b.Images)
-                .Include(b => b.Publisher.PublisherName)
+                .Include(b => b.Publisher)
                 .Include(b => b.BookCategories)
                 .Include(b => b.BookAuthors)
                 .Include(b => b.Inventories)
@@ -75,7 +74,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             var books = await queryable
                 .Include(b => b.Images)
-                .Include(b => b.Publisher.PublisherName)
+                .Include(b => b.Publisher)
                 .Include(b => b.BookCategories)
                 .Include(b => b.BookAuthors)
                 .Include(b => b.Inventories)
