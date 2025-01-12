@@ -8,10 +8,7 @@ using System.Threading.Tasks;
 
 namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
 {
-    public interface IAuthorRepository : IBaseRepository<Author>
+    public interface IImageRepository : IBaseRepository<Image>
     {
-        Task<List<Author>> GetAll();
-        Task<(List<Author>, long)> GetAllPagination(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc);
-        Task<Author?> GetByID(Guid id);
     }
 }

@@ -52,13 +52,14 @@ namespace AIBookStreet.Services.Base
                 entity.CreatedBy = user.Email;
                 entity.CreatedDate = DateTime.Now;
                 entity.LastUpdatedBy = user.Email;
-                entity.LastUpdatedDate = entity.CreatedDate;
+                entity.LastUpdatedDate = DateTime.Now;
                 entity.IsDeleted = false;
             }
             else
             {
                 entity.Id = Guid.NewGuid();
                 entity.CreatedDate = DateTime.Now;
+                entity.LastUpdatedDate= DateTime.Now;
                 entity.IsDeleted = false;
             }
 
@@ -74,7 +75,7 @@ namespace AIBookStreet.Services.Base
                 entity.LastUpdatedBy = user.Email;
                 entity.LastUpdatedDate = DateTime.Now;
             }
-
+            entity.LastUpdatedDate = DateTime.Now;
             return entity;
         }
 
