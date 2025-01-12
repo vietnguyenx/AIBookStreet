@@ -12,6 +12,7 @@ namespace AIBookStreet.API.Tool.Mapping
         {
             CreateMap<BookAuthor, BookAuthorModel>().ReverseMap();
             CreateMap<BookAuthorModel, BookAuthorRequest>().ReverseMap();
+            CreateMap<BookAuthor, BookAuthorRequest>().ReverseMap();
         }
     }
 }
