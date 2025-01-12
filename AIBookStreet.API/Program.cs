@@ -64,24 +64,10 @@ builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();  
 builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
-builder.Services.AddScoped<IBookAuthorRepository, BookAuthorRepository>();
-builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-builder.Services.AddScoped<IBookCategoryRepository, BookCategoryRepository>();
-builder.Services.AddScoped<IEventRepository, EventRepository>();
-builder.Services.AddScoped<IStreetRepository, StreetRepository>();
-builder.Services.AddScoped<IZoneRepository, ZoneRepository>();
-builder.Services.AddScoped<IImageRepository, ImageRepository>();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
-builder.Services.AddScoped<IBookAuthorService, BookAuthorService>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IBookCategoryService, BookCategoryService>();
-builder.Services.AddScoped<IEventService, EventService>();
-builder.Services.AddScoped<IStreetService, StreetService>();
-builder.Services.AddScoped<IZoneService, ZoneService>();
-builder.Services.AddScoped<IImageService, ImageService>();
 
 builder.Services.AddHttpContextAccessor();
 
