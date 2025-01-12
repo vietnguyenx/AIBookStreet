@@ -68,6 +68,7 @@ builder.Services.AddScoped<IBookAuthorRepository, BookAuthorRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IBookCategoryRepository, BookCategoryRepository>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
+builder.Services.AddScoped<IStreetRepository, StreetRepository>();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IBookService, BookService>();
@@ -76,6 +77,7 @@ builder.Services.AddScoped<IBookAuthorService, BookAuthorService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IBookCategoryService, BookCategoryService>();
 builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<IStreetService, StreetService>();
 
 builder.Services.AddHttpContextAccessor();
 
