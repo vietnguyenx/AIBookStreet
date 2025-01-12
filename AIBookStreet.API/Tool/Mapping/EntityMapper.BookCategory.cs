@@ -11,6 +11,7 @@ namespace AIBookStreet.API.Tool.Mapping
         {
             CreateMap<BookCategory, BookCategoryModel>().ReverseMap();
             CreateMap<BookCategoryModel, BookCategoryRequest>().ReverseMap();
+            CreateMap<BookCategory, BookCategoryRequest>().ReverseMap();
         }
     }
 }
