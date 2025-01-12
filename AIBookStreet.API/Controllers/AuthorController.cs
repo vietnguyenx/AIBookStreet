@@ -5,6 +5,7 @@ using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,18 +18,21 @@ namespace AIBookStreet.API.Controllers
         private readonly IAuthorService _service = service;
         private readonly IMapper _mapper = mapper;
 
+        [Authorize]
         [HttpPost("add")]
         public async Task<IActionResult> AddAnAuthor([FromQuery]AuthorModel author)
         {
             try
             {
-                return await _service.AddAnAuthor(author) == null ? Ok(new BaseResponse(false, ConstantMessage.Fail)) : Ok(new BaseResponse(true, "Đã thêm tác giả"));
+                var result = await _service.AddAnAuthor(author);
+                return result == null ? Ok(new ItemResponse<Author>(ConstantMessage.Fail)) : Ok(new ItemResponse<Author>("Đã thêm tác giả",result));
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
+        [Authorize]
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateAnAuthor([FromRoute]Guid id, [FromQuery]AuthorModel author)
         {
@@ -38,9 +42,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, ConstantMessage.NotFound)),
-                    2 => Ok(new BaseResponse(true, ConstantMessage.Success)),
-                    _ => Ok(new BaseResponse(false, ConstantMessage.Fail))
+                    1 => Ok(new ItemResponse<Author>("Tác giả không tồn tại!!!")),
+                    2 => Ok(new ItemResponse<Author>("Đã cập nhật thông tin!", result.Item2)),
+                    _ => Ok(new ItemResponse<Author>("Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
             catch (Exception ex)
@@ -48,8 +52,9 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [Authorize]
         [HttpPut("delete/{id}")]
-        public async Task<IActionResult> Delete([FromRoute]Guid id)
+        public async Task<IActionResult> DeleteAnAuthor([FromRoute]Guid id)
         {
             try
             {
@@ -57,9 +62,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, ConstantMessage.NotFound)),
-                    2 => Ok(new BaseResponse(true, ConstantMessage.Success)),
-                    _ => Ok(new BaseResponse(false, ConstantMessage.Fail))
+                    1 => Ok(new ItemResponse<Author>("Tác giả không tồn tại!!!", result.Item2)),
+                    2 => Ok(new ItemResponse<Author>("Đã xóa thành công!", result.Item2)),
+                    _ => Ok(new ItemResponse<Author>("Đã xảy ra lỗi, vui lòng kiểm tra lại!!!"))
                 };
             }
             catch (Exception ex)
@@ -90,7 +95,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
-        [HttpGet("get-all")]
+        [HttpGet("get-all-active")]
         public async Task<IActionResult> GetAllActiveAuthors()
         {
             try
@@ -108,7 +113,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [HttpPost("pagination-and-search")]
+        [HttpGet("pagination-and-search")]
         public async Task<IActionResult> GetAllAuthorPagination(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             try
