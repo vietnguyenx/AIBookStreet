@@ -19,7 +19,7 @@ namespace AIBookStreet.Services.Services.Service
         private readonly IUnitOfWork _repository = repository;
         public async Task<Author?> AddAnAuthor(AuthorModel authorModel)
         {
-            authorModel.DOB = authorModel.DOB?.ToLocalTime();
+            authorModel.DOB = authorModel.DOB != null ? authorModel.DOB.Value.ToLocalTime() : null;
             var author = _mapper.Map<Author>(authorModel);
             var setAuthor = await SetBaseEntityToCreateFunc(author);
             var isSuccess = await _repository.AuthorRepository.Add(setAuthor);
@@ -42,8 +42,8 @@ namespace AIBookStreet.Services.Services.Service
             }
             existAuthor.AuthorName = authorModel.AuthorName;
             existAuthor.DOB = authorModel.DOB != null ? authorModel.DOB.Value.ToLocalTime() : existAuthor.DOB;
-            existAuthor.Nationality = authorModel.Nationality ?? existAuthor.Nationality;
-            existAuthor.Biography = authorModel.Biography ?? existAuthor.Biography;
+            existAuthor.Nationality = authorModel.Nationality != null ? authorModel.Nationality : existAuthor.Nationality;
+            existAuthor.Biography = authorModel.Biography != null ? authorModel.Biography : existAuthor.Biography;
             existAuthor = await SetBaseEntityToUpdateFunc(existAuthor);
             return await _repository.AuthorRepository.Update(existAuthor) ? (2, existAuthor) //update thanh cong
                                                                           : (3, null);       //update fail
@@ -54,9 +54,7 @@ namespace AIBookStreet.Services.Services.Service
             if (existAuthor == null)
             {
                 return (1, null); //author khong ton tai
-            }            
-            existAuthor = await SetBaseEntityToUpdateFunc(existAuthor);
-
+            }
             return await _repository.AuthorRepository.Delete(existAuthor) ? (2, existAuthor) //delete thanh cong
                                                                           : (3, null);       //delete fail
         }
@@ -73,7 +71,7 @@ namespace AIBookStreet.Services.Services.Service
         public async Task<(List<Author>?, long)> GetAllAuthorsPagination(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             var authors = await _repository.AuthorRepository.GetAllPagination(key, pageNumber, pageSize, sortField, desc);
-            return authors.Item1.Count > 0 ? (authors.Item1, authors.Item2) : (null, 0);
+            return authors.Item1.Count() > 0 ? (authors.Item1, authors.Item2) : (null, 0);
         }
     }
 }

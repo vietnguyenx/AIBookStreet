@@ -10,7 +10,5 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
 {
     public interface IImageRepository : IBaseRepository<Image>
     {
-        Task<Image?> GetByID(Guid id);
-        Task<List<Image>?> GetByTypeAndEntityID(string? type, Guid? entityID);
     }
 }
