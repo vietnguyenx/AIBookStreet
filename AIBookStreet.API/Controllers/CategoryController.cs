@@ -25,7 +25,7 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var result = await _service.AddACategory(model);
-                return result == null ? Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!")) : Ok(new BaseResponse(true, "Đã thêm"));
+                return result == null ? Ok(new ItemResponse<Category>(ConstantMessage.Fail)) : Ok(new ItemResponse<Category>("Đã thêm", result));
             }
             catch (Exception ex)
             {
@@ -42,9 +42,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã cập nhật thông tin!")),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    1 => Ok(new ItemResponse<Category>("Không tồn tại!!!")),
+                    2 => Ok(new ItemResponse<Category>("Đã cập nhật thông tin!", result.Item2)),
+                    _ => Ok(new ItemResponse<Category>("Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
             catch (Exception ex)
@@ -62,9 +62,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã xóa thông tin!")),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    1 => Ok(new ItemResponse<Category>("Không tồn tại!!!")),
+                    2 => Ok(new ItemResponse<Category>("Đã xóa thành công!", result.Item2)),
+                    _ => Ok(new ItemResponse<Category>("Đã xảy ra lỗi, vui lòng kiểm tra lại!!!"))
                 };
             }
             catch (Exception ex)
