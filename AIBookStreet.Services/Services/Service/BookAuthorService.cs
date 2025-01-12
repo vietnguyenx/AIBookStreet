@@ -19,7 +19,7 @@ namespace AIBookStreet.Services.Services.Service
         public async Task<(BookAuthor?, long)> AddABookAuthor(BookAuthorModel model)
         {
             var existed = await _repository.BookAuthorRepository.GetByElement(model.BookId, model.AuthorId);
-            if (existed != null)
+            if (existed != null && existed.Count > 0)
             {
                 return (null, 1); //da ton tai
             }
@@ -76,7 +76,7 @@ namespace AIBookStreet.Services.Services.Service
             var bookAuthors = await _repository.BookAuthorRepository.GetAllPagination(key, bookID, authorID, pageNumber, pageSize, sortField, desc);
             return bookAuthors.Item1.Count() > 0 ? (bookAuthors.Item1, bookAuthors.Item2) : (null, 0);
         }
-        public async Task<List<BookAuthor>?> GetABookAuthorByElement(Guid? bookID, Guid? authorID)
+        public async Task<List<BookAuthor>?> GetBookAuthorByElement(Guid? bookID, Guid? authorID)
         {
             return await _repository.BookAuthorRepository.GetByElement(bookID, authorID);
         }

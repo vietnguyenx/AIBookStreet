@@ -70,10 +70,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             if (bookID != null && authorID != null)
             {
                 query = query.Where(ba => ba.BookId == bookID && ba.AuthorId == authorID);
-            } else if (bookID != null)
+            } else if (bookID != null && authorID == null)
             {
                 query = query.Where(ba => ba.BookId == bookID);
-            } else if (authorID != null)
+            } else if (authorID != null && bookID == null)
             {
                 query = query.Where(ba => ba.AuthorId == authorID);
             }
