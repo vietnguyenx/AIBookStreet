@@ -24,9 +24,9 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var result = await _service.AddABookCategory(model);
-                return result.Item2 == 1 ? Ok(new ItemResponse<BookCategory>("Đã tồn tại!")) :
-                       result.Item2 == 2 ? Ok(new ItemResponse<BookCategory>("Đã thêm", result.Item1)) :
-                                           Ok(new ItemResponse<BookCategory>("Đã xảy ra lỗi!!!"));
+                return result.Item2 == 1 ? Ok(new BaseResponse(false, "Đã tồn tại!")) :
+                        result.Item2 == 2 ? Ok(new BaseResponse(true, "Đã thêm")) :
+                                            Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!"));
             }
             catch (Exception ex)
             {
@@ -43,9 +43,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new ItemResponse<BookCategory>("Không tồn tại!!!")),
-                    2 => Ok(new ItemResponse<BookCategory>("Đã cập nhật thông tin!", result.Item2)),
-                    _ => Ok(new ItemResponse<BookCategory>("Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+                    2 => Ok(new BaseResponse(true, "Đã cập nhật thông tin!")),
+                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
             catch (Exception ex)
@@ -63,9 +63,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new ItemResponse<BookCategory>("Không tồn tại!!!")),
-                    2 => Ok(new ItemResponse<BookCategory>("Đã xóa thành công!", result.Item2)),
-                    _ => Ok(new ItemResponse<BookCategory>("Đã xảy ra lỗi, vui lòng kiểm tra lại!!!"))
+                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+                    2 => Ok(new BaseResponse(true, "Đã xóa thông tin!")),
+                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
             catch (Exception ex)
