@@ -18,7 +18,7 @@ namespace AIBookStreet.API.Controllers
         private readonly IAuthorService _service = service;
         private readonly IMapper _mapper = mapper;
 
-        [Authorize]
+        //[Authorize]
         [HttpPost("add")]
         public async Task<IActionResult> AddAnAuthor([FromQuery]AuthorModel author)
         {
@@ -32,7 +32,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [Authorize]
+        //[Authorize]
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateAnAuthor([FromRoute]Guid id, [FromQuery]AuthorModel author)
         {
@@ -52,7 +52,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [Authorize]
+        //[Authorize]
         [HttpPut("delete/{id}")]
         public async Task<IActionResult> DeleteAnAuthor([FromRoute]Guid id)
         {
