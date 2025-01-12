@@ -1,17 +1,17 @@
 ﻿using AIBookStreet.Repositories.Data.Entities;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace AIBookStreet.Services.Model
 {
-    public class CategoryModel : BaseModel
+    public class CategoryModel
     {
-        public string CategoryName { get; set; }
+        [Required]
+        public string CategoryName { get; set; } = null!;
         public string? Description { get; set; }
-
-        public IList<BookCategoryModel>? BookCategories { get; set; }
     }
 }
