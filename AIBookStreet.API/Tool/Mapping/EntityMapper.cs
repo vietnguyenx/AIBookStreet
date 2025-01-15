@@ -19,7 +19,8 @@ namespace AIBookStreet.API.Tool.Mapping
             StreetMapping();
             UserMapping();
             UserRoleMapping();
-            ZoneMapping();  
+            ZoneMapping();
+            RoleMapping();
         }
     }
 }
