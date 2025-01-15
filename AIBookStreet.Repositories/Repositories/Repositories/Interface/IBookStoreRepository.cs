@@ -10,5 +10,8 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
 {
     public interface IBookStoreRepository : IBaseRepository<BookStore>
     {
+        Task<List<BookStore>> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder);
+        Task<BookStore?> GetById(Guid id);
+        Task<(List<BookStore>, long)> Search(BookStore bookStore, int pageNumber, int pageSize, string sortField, int sortOrder);
     }
 }

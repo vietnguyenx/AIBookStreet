@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AIBookStreet.Services.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +9,10 @@ namespace AIBookStreet.Services.Services.Interface
 {
     public interface IInventoryService
     {
+        Task<List<InventoryModel>> GetAll();
+        Task<List<InventoryModel>?> GetByBookId(Guid bookId);
+        Task<List<InventoryModel>?> GetByBookStoreId(Guid bookStoreId);
+        Task<bool> Add(InventoryModel inventoryModel);
+        Task<bool> Delete(Guid idBook, Guid idBookStore);
     }
 }

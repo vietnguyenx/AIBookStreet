@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AIBookStreet.Services.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +9,13 @@ namespace AIBookStreet.Services.Services.Interface
 {
     public interface IBookStoreService
     {
+        Task<List<BookStoreModel>> GetAll();
+        Task<List<BookStoreModel>?> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder);
+        Task<BookStoreModel?> GetById(Guid id);
+        Task<(List<BookStoreModel>?, long)> Search(BookStoreModel bookStoreModel, int pageNumber, int pageSize, string sortField, int sortOrder);
+        Task<bool> Add(BookStoreModel bookStoreModel);
+        Task<bool> Update(BookStoreModel bookStoreModel);
+        Task<bool> Delete(Guid id);
+        Task<long> GetTotalCount();
     }
 }

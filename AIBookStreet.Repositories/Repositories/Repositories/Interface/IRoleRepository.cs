@@ -10,5 +10,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
 {
     public interface IRoleRepository : IBaseRepository<Role>
     {
+        Task<Role?> GetById(Guid id);
+
     }
 }
