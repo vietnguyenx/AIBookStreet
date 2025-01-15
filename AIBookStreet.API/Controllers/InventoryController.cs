@@ -13,7 +13,7 @@ namespace AIBookStreet.API.Controllers
 {
     [Route("api/inventory")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class InventoryController : ControllerBase
     {
         private readonly IInventoryService _inventoryService;
