@@ -31,58 +31,7 @@ namespace AIBookStreet.Services.Services.Service
             _configuration = configuration;
         }
 
-        public async Task<bool> Add(UserModel userModel)
-        {
-            userModel.DOB = userModel.DOB != null ? userModel.DOB.Value.ToLocalTime() : null;
-            var user = _mapper.Map<User>(userModel);
-            user.Password = userModel.Password;
-            var setUser = await SetBaseEntityToCreateFunc(user);
-
-            return await _repository.Add(setUser);
-        }
-
-        public async Task<bool> Update(UserModel userModel)
-        {
-            var entity = await _repository.GetById(userModel.Id);
-
-            if (entity == null)
-            {
-                return false;
-            }
-
-            userModel.DOB = userModel.DOB.Value.ToLocalTime();
-            _mapper.Map(userModel, entity);
-            entity = await SetBaseEntityToUpdateFunc(entity);
-
-            return await _repository.Update(entity);
-        }
-
-        public async Task<bool> Delete(Guid id)
-        {
-            var entity = await _repository.GetById(id);
-
-            if (entity == null)
-            {
-                return false;
-            }
-
-            var user = _mapper.Map<User>(entity);
-            return await _repository.Delete(user);
-        }
-
-        public async Task<UserModel?> GetById(Guid id)
-        {
-            var user = await _repository.GetById(id);
-
-            if (user == null)
-            {
-                return null;
-            }
-
-            return _mapper.Map<UserModel>(user);
-        }
-
-        public async Task<List<UserModel>?> GetAll()
+        public async Task<List<UserModel>> GetAll()
         {
             var users = await _repository.GetAll();
 
@@ -106,6 +55,18 @@ namespace AIBookStreet.Services.Services.Service
             return _mapper.Map<List<UserModel>>(users);
         }
 
+        public async Task<UserModel?> GetById(Guid id)
+        {
+            var user = await _repository.GetById(id);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            return _mapper.Map<UserModel>(user);
+        }
+
         public async Task<(List<UserModel>?, long)> Search(UserModel userModel, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
             var user = _mapper.Map<User>(userModel);
@@ -118,6 +79,45 @@ namespace AIBookStreet.Services.Services.Service
             var userModels = _mapper.Map<List<UserModel>>(usersWithTotalOrigin.Item1);
 
             return (userModels, usersWithTotalOrigin.Item2);
+        }
+
+        public async Task<bool> Add(UserModel userModel)
+        {
+            userModel.DOB = userModel.DOB != null ? userModel.DOB.Value.ToLocalTime() : null;
+            var mappedUser = _mapper.Map<User>(userModel);
+            mappedUser.Password = userModel.Password;
+            var newUser = await SetBaseEntityToCreateFunc(mappedUser);
+
+            return await _repository.Add(newUser);
+        }
+
+        public async Task<bool> Update(UserModel userModel)
+        {
+            var entity = await _repository.GetById(userModel.Id);
+
+            if (entity == null)
+            {
+                return false;
+            }
+
+            userModel.DOB = userModel.DOB.Value.ToLocalTime();
+            _mapper.Map(userModel, entity);
+            entity = await SetBaseEntityToUpdateFunc(entity);
+
+            return await _repository.Update(entity);
+        }
+
+        public async Task<bool> Delete(Guid id)
+        {
+            var existingUser = await _repository.GetById(id);
+
+            if (existingUser == null)
+            {
+                return false;
+            }
+
+            var mappedUser = _mapper.Map<User>(existingUser);
+            return await _repository.Delete(mappedUser);
         }
 
         public async Task<UserModel> Login(AuthModel authModel)

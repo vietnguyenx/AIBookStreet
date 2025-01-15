@@ -26,14 +26,14 @@ namespace AIBookStreet.Services.Services.Service
 
         public async Task<List<PublisherModel>> GetAll()
         {
-            var Publishers = await _publisherRepository.GetAll();
+            var publishers = await _publisherRepository.GetAll();
 
-            if (!Publishers.Any())
+            if (!publishers.Any())
             {
                 return null;
             }
 
-            return _mapper.Map<List<PublisherModel>>(Publishers);
+            return _mapper.Map<List<PublisherModel>>(publishers);
         }
 
         public async Task<List<PublisherModel>> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder)
@@ -62,8 +62,8 @@ namespace AIBookStreet.Services.Services.Service
 
         public async Task<(List<PublisherModel>?, long)> Search(PublisherModel publisherModel, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
-            var publisher = _mapper.Map<Publisher>(publisherModel);
-            var publishersWithTotalOrigin = await _publisherRepository.Search(publisher, pageNumber, pageSize, sortField, sortOrder);
+            var publishers = _mapper.Map<Publisher>(publisherModel);
+            var publishersWithTotalOrigin = await _publisherRepository.Search(publishers, pageNumber, pageSize, sortField, sortOrder);
 
             if (!publishersWithTotalOrigin.Item1.Any())
             {
@@ -76,41 +76,38 @@ namespace AIBookStreet.Services.Services.Service
 
         public async Task<bool> Add(PublisherModel publisherModel)
         {
-
-            var publisher = _mapper.Map<Publisher>(publisherModel);
-            var setPublisher = await SetBaseEntityToCreateFunc(publisher);
-            return await _publisherRepository.Add(setPublisher);
-
+            var mappedPublisher = _mapper.Map<Publisher>(publisherModel);
+            var newPublisher = await SetBaseEntityToCreateFunc(mappedPublisher);
+            return await _publisherRepository.Add(newPublisher);
         }
 
         public async Task<bool> Update(PublisherModel publisherModel)
         {
+            var existingPublisher = await _publisherRepository.GetById(publisherModel.Id);
 
-            var entity = await _publisherRepository.GetById(publisherModel.Id);
-
-            if (entity == null)
+            if (existingPublisher == null)
             {
                 return false;
             }
 
-            _mapper.Map(publisherModel, entity);
-            entity = await SetBaseEntityToUpdateFunc(entity);
+            _mapper.Map(publisherModel, existingPublisher);
+            var updatedPublisher = await SetBaseEntityToUpdateFunc(existingPublisher);
 
-            return await _publisherRepository.Update(entity);
+            return await _publisherRepository.Update(updatedPublisher);
         }
 
-        public async Task<bool> Delete(Guid id)
+        public async Task<bool> Delete(Guid publisherId)
         {
-            var entity = await _publisherRepository.GetById(id);
-            if (entity == null)
+            var existingPublisher = await _publisherRepository.GetById(publisherId);
+            if (existingPublisher == null)
             {
                 return false;
             }
 
-            var publisher = _mapper.Map<Publisher>(entity);
-            return await _publisherRepository.Delete(publisher);
+            var mappedPublisher = _mapper.Map<Publisher>(existingPublisher);
+            return await _publisherRepository.Delete(mappedPublisher);
         }
 
-        
+
     }
 }

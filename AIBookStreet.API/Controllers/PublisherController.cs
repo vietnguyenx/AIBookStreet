@@ -14,6 +14,7 @@ namespace AIBookStreet.API.Controllers
 {
     [Route("api/publisher")]
     [ApiController]
+    [Authorize]
 
     public class PublisherController : ControllerBase
     {
@@ -115,12 +116,12 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var íPublisher = await _publisherService.Add(_mapper.Map<PublisherModel>(publisherRequest));
+                var isPublisher = await _publisherService.Add(_mapper.Map<PublisherModel>(publisherRequest));
 
-                return íPublisher switch
+                return isPublisher switch
                 {
-                    true => Ok(new BaseResponse(íPublisher, ConstantMessage.Success)),
-                    _ => Ok(new BaseResponse(íPublisher, ConstantMessage.Fail))
+                    true => Ok(new BaseResponse(isPublisher, ConstantMessage.Success)),
+                    _ => Ok(new BaseResponse(isPublisher, ConstantMessage.Fail))
                 };
             }
             catch (Exception ex)

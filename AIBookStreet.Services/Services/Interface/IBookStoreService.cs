@@ -10,12 +10,12 @@ namespace AIBookStreet.Services.Services.Interface
     public interface IBookStoreService
     {
         Task<List<BookStoreModel>> GetAll();
-        public Task<List<BookStoreModel>?> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder);
+        Task<List<BookStoreModel>?> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder);
         Task<BookStoreModel?> GetById(Guid id);
-        public Task<(List<BookStoreModel>?, long)> Search(BookStoreModel bookStoreModel, int pageNumber, int pageSize, string sortField, int sortOrder);
+        Task<(List<BookStoreModel>?, long)> Search(BookStoreModel bookStoreModel, int pageNumber, int pageSize, string sortField, int sortOrder);
         Task<bool> Add(BookStoreModel bookStoreModel);
         Task<bool> Update(BookStoreModel bookStoreModel);
         Task<bool> Delete(Guid id);
-        public Task<long> GetTotalCount();
+        Task<long> GetTotalCount();
     }
 }

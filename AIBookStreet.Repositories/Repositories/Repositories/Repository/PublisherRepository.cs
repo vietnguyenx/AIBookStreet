@@ -13,8 +13,11 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 {
     public class PublisherRepository : BaseRepository<Publisher>, IPublisherRepository
     {
+        private readonly BSDbContext _context;
+
         public PublisherRepository(BSDbContext context) : base(context)
         {
+            _context = context;
         }
 
         public async Task<List<Publisher>> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder)
@@ -26,8 +29,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return await queryable
                 .Include(p => p.Images)
-                .Include(m => m.Manager)
-                .Include(p => p.Books)
                 .ToListAsync();
         }
 
@@ -36,8 +37,8 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var query = GetQueryable(m => m.Id == id);
             var publisher = await query
                 .Include(p => p.Images)
-                .Include(m => m.Manager)
                 .Include(p => p.Books)
+                .Include(p => p.Manager)
                 .SingleOrDefaultAsync();
 
             return publisher;
@@ -52,12 +53,17 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 if (!string.IsNullOrEmpty(publisher.PublisherName))
                 {
-                    queryable = queryable.Where(m => m.PublisherName.ToLower().Trim().StartsWith(publisher.PublisherName.ToLower().Trim()));
+                    queryable = queryable.Where(p => p.PublisherName.ToLower().Trim().StartsWith(publisher.PublisherName.ToLower().Trim()));
                 }
 
                 if (!string.IsNullOrEmpty(publisher.Website))
                 {
-                    queryable = queryable.Where(m => m.Website.ToLower().Trim().StartsWith(publisher.Website.ToLower().Trim()));
+                    queryable = queryable.Where(p => p.Website.ToLower().Trim().StartsWith(publisher.Website.ToLower().Trim()));
+                }
+
+                if (!string.IsNullOrEmpty(publisher.Email))
+                {
+                    queryable = queryable.Where(p => p.Email.ToLower().Trim().StartsWith(publisher.Email.ToLower().Trim()));
                 }
 
             }
@@ -67,8 +73,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             var publishers = await queryable
                 .Include(p => p.Images)
-                .Include(p => p.Manager)
-                .Include(p => p.Books)
                 .ToListAsync();
             return (publishers, totalOrigin);
         }

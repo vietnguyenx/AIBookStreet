@@ -15,6 +15,7 @@ namespace AIBookStreet.API.Controllers
 {
     [Route("api/book")]
     [ApiController]
+    [Authorize]
 
     public class BookController : ControllerBase
     {

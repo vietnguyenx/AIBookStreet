@@ -9,14 +9,13 @@ namespace AIBookStreet.Services.Services.Interface
 {
     public interface IPublisherService
     {
-        public Task<List<PublisherModel>> GetAll();
-        public Task<List<PublisherModel>> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder);
-        public Task<PublisherModel> GetById(Guid id);
-        public Task<(List<PublisherModel>?, long)> Search(PublisherModel publisherModel, int pageNumber, int pageSize, string sortField, int sortOrder);
-        public Task<bool> Add(PublisherModel model);
-        public Task<bool> Update(PublisherModel publisherModel);
-        public Task<bool> Delete(Guid id);
-        
-        public Task<long> GetTotalCount();
+        Task<List<PublisherModel>> GetAll();
+        Task<List<PublisherModel>?> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder);
+        Task<PublisherModel?> GetById(Guid id);
+        Task<(List<PublisherModel>?, long)> Search(PublisherModel publisherModel, int pageNumber, int pageSize, string sortField, int sortOrder);
+        Task<bool> Add(PublisherModel publisherModel);
+        Task<bool> Update(PublisherModel publisherModel);
+        Task<bool> Delete(Guid id);
+        Task<long> GetTotalCount();
     }
 }

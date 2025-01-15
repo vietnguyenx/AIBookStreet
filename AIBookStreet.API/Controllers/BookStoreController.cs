@@ -5,6 +5,7 @@ using AIBookStreet.API.Tool.Constant;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,6 +13,8 @@ namespace AIBookStreet.API.Controllers
 {
     [Route("api/bookStore")]
     [ApiController]
+    [Authorize]
+
     public class BookStoreController : ControllerBase
     {
         private readonly IBookStoreService _bookStoreService;
