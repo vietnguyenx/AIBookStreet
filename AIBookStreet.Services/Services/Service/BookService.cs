@@ -25,14 +25,14 @@ namespace AIBookStreet.Services.Services.Service
 
         public async Task<List<BookModel>> GetAll()
         {
-            var Books = await _bookRepository.GetAll();
+            var books = await _bookRepository.GetAll();
 
-            if (!Books.Any())
+            if (!books.Any())
             {
                 return null;
             }
 
-            return _mapper.Map<List<BookModel>>(Books);
+            return _mapper.Map<List<BookModel>>(books);
         }
 
         public async Task<List<BookModel>?> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder)
@@ -50,14 +50,14 @@ namespace AIBookStreet.Services.Services.Service
 
         public async Task<BookModel?> GetById(Guid id)
         {
-            var Book = await _bookRepository.GetById(id);
+            var book = await _bookRepository.GetById(id);
 
-            if (Book == null)
+            if (book == null)
             {
                 return null;
             }
 
-            return _mapper.Map<BookModel>(Book);
+            return _mapper.Map<BookModel>(book);
         }
 
         public async Task<(List<BookModel>?, long)> Search(BookModel bookModel, int pageNumber, int pageSize, string sortField, int sortOrder)
@@ -76,37 +76,37 @@ namespace AIBookStreet.Services.Services.Service
 
         public async Task<bool> Add(BookModel bookModel)
         {
-            var Book = _mapper.Map<Book>(bookModel);
-            var book = await SetBaseEntityToCreateFunc(Book);
-            return await _bookRepository.Add(book);
+            var mappedBook = _mapper.Map<Book>(bookModel);
+            var newBook = await SetBaseEntityToCreateFunc(mappedBook);
+            return await _bookRepository.Add(newBook);
         }
 
         public async Task<bool> Update(BookModel bookModel)
         {
-            var entity = await _bookRepository.GetById(bookModel.Id);
+            var existingBook = await _bookRepository.GetById(bookModel.Id);
 
-            if (entity == null)
+            if (existingBook == null)
             {
                 return false;
             }
 
-            _mapper.Map(bookModel, entity);
-            entity = await SetBaseEntityToUpdateFunc(entity);
+            _mapper.Map(bookModel, existingBook);
+            var updatedBook = await SetBaseEntityToUpdateFunc(existingBook);
 
-            return await _bookRepository.Update(entity);
+            return await _bookRepository.Update(updatedBook);
         }
 
-        public async Task<bool> Delete(Guid id)
+        public async Task<bool> Delete(Guid bookId)
         {
-            var entity = await _bookRepository.GetById(id);
-            if (entity == null)
+            var existingBook = await _bookRepository.GetById(bookId);
+            if (existingBook == null)
             {
                 return false;
             }
 
-            var book = _mapper.Map<Book>(entity);
-            return await _bookRepository.Delete(book);
+            var mappedBook = _mapper.Map<Book>(existingBook);
+            return await _bookRepository.Delete(mappedBook);
         }
-        
+
     }
 }

@@ -29,16 +29,12 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return await queryable
                 .Include(b => b.Images)
-                .Include(b => b.Publisher)
-                .Include(b => b.BookCategories)
-                .Include(b => b.BookAuthors )
-                .Include(b => b.Inventories)
                 .ToListAsync();
         }
 
         public async Task<Book?> GetById(Guid id)
         {
-            var query = GetQueryable(m => m.Id == id);
+            var query = GetQueryable(b => b.Id == id);
             var book = await query
                 .Include(b => b.Images)
                 .Include(b => b.Publisher)
@@ -50,21 +46,21 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             return book;
         }
 
-        public async Task<(List<Book>, long)> Search(Book Book, int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<(List<Book>, long)> Search(Book book, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
             var queryable = GetQueryable();
             queryable = base.ApplySort(queryable, sortField, sortOrder);
 
             if (queryable.Any())
             {
-                if (!string.IsNullOrEmpty(Book.Title))
+                if (!string.IsNullOrEmpty(book.Title))
                 {
-                    queryable = queryable.Where(b => b.Title.ToLower().Trim().Contains(Book.Title.ToLower().Trim()));
+                    queryable = queryable.Where(b => b.Title.ToLower().Trim().Contains(book.Title.ToLower().Trim()));
                 }
 
-                if (!string.IsNullOrEmpty(Book.Code))
+                if (!string.IsNullOrEmpty(book.Code))
                 {
-                    queryable = queryable.Where(b => b.Code.ToLower().Trim().Contains(Book.Code.ToLower().Trim()));
+                    queryable = queryable.Where(b => b.Code.ToLower().Trim().Contains(book.Code.ToLower().Trim()));
                 }
 
             }
@@ -74,10 +70,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             var books = await queryable
                 .Include(b => b.Images)
-                .Include(b => b.Publisher)
-                .Include(b => b.BookCategories)
-                .Include(b => b.BookAuthors)
-                .Include(b => b.Inventories)
                 .ToListAsync();
 
             return (books, totalOrigin);
