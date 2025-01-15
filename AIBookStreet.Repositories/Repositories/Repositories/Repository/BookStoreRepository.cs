@@ -57,9 +57,29 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                     queryable = queryable.Where(bs => bs.BookStoreName.ToLower().Trim().Contains(bookStore.BookStoreName.ToLower().Trim()));
                 }
 
+                if (!string.IsNullOrEmpty(bookStore.Address))
+                {
+                    queryable = queryable.Where(bs => bs.Address.ToLower().Trim().Contains(bookStore.Address.ToLower().Trim()));
+                }
+
+                if (!string.IsNullOrEmpty(bookStore.Phone))
+                {
+                    queryable = queryable.Where(bs => bs.Phone.ToLower().Trim().Contains(bookStore.Phone.ToLower().Trim()));
+                }
+
                 if (!string.IsNullOrEmpty(bookStore.Email))
                 {
                     queryable = queryable.Where(bs => bs.Email.ToLower().Trim().Contains(bookStore.Email.ToLower().Trim()));
+                }
+
+                if (bookStore.OpeningTime.HasValue)
+                {
+                    queryable = queryable.Where(bs => bs.OpeningTime.Value.Date == bookStore.OpeningTime.Value.Date);
+                }
+
+                if (bookStore.ClosingTime.HasValue)
+                {
+                    queryable = queryable.Where(bs => bs.ClosingTime.Value.Date == bookStore.ClosingTime.Value.Date);
                 }
 
             }

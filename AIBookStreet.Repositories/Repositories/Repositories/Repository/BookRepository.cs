@@ -53,14 +53,39 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             if (queryable.Any())
             {
+                if (!string.IsNullOrEmpty(book.Code))
+                {
+                    queryable = queryable.Where(b => b.Code.ToLower().Trim().Contains(book.Code.ToLower().Trim()));
+                }
+
                 if (!string.IsNullOrEmpty(book.Title))
                 {
                     queryable = queryable.Where(b => b.Title.ToLower().Trim().Contains(book.Title.ToLower().Trim()));
                 }
 
-                if (!string.IsNullOrEmpty(book.Code))
+                if (book.PublicationDate.HasValue)
                 {
-                    queryable = queryable.Where(b => b.Code.ToLower().Trim().Contains(book.Code.ToLower().Trim()));
+                    queryable = queryable.Where(b => b.PublicationDate.Value.Date == book.PublicationDate.Value.Date);
+                }
+
+                if (book.Price.HasValue && book.Price > 0)
+                {
+                    queryable = queryable.Where(m => m.Price == book.Price);
+                }
+
+                if (!string.IsNullOrEmpty(book.Languages))
+                {
+                    queryable = queryable.Where(b => b.Languages.ToLower().Trim().Contains(book.Languages.ToLower().Trim()));
+                }
+
+                if (!string.IsNullOrEmpty(book.Size))
+                {
+                    queryable = queryable.Where(b => b.Size.ToLower().Trim().Contains(book.Size.ToLower().Trim()));
+                }
+
+                if (!string.IsNullOrEmpty(book.Status))
+                {
+                    queryable = queryable.Where(b => b.Status.ToLower().Trim().Contains(book.Status.ToLower().Trim()));
                 }
 
             }

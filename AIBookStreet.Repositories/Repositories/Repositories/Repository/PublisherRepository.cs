@@ -56,15 +56,25 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                     queryable = queryable.Where(p => p.PublisherName.ToLower().Trim().StartsWith(publisher.PublisherName.ToLower().Trim()));
                 }
 
-                if (!string.IsNullOrEmpty(publisher.Website))
+                if (!string.IsNullOrEmpty(publisher.Address))
                 {
-                    queryable = queryable.Where(p => p.Website.ToLower().Trim().StartsWith(publisher.Website.ToLower().Trim()));
+                    queryable = queryable.Where(p => p.Address.ToLower().Trim().StartsWith(publisher.Address.ToLower().Trim()));
+                }
+
+                if (!string.IsNullOrEmpty(publisher.Phone))
+                {
+                    queryable = queryable.Where(p => p.Phone.ToLower().Trim().StartsWith(publisher.Phone.ToLower().Trim()));
                 }
 
                 if (!string.IsNullOrEmpty(publisher.Email))
                 {
                     queryable = queryable.Where(p => p.Email.ToLower().Trim().StartsWith(publisher.Email.ToLower().Trim()));
                 }
+
+                if (!string.IsNullOrEmpty(publisher.Website))
+                {
+                    queryable = queryable.Where(p => p.Website.ToLower().Trim().StartsWith(publisher.Website.ToLower().Trim()));
+                }      
 
             }
 

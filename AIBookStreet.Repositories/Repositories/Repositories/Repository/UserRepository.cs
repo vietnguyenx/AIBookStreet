@@ -53,37 +53,37 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 if (!string.IsNullOrEmpty(user.UserName))
                 {
-                    queryable = queryable.Where(m => m.UserName.ToLower().Trim() == user.UserName.ToLower().Trim());
+                    queryable = queryable.Where(u => u.UserName.ToLower().Trim() == user.UserName.ToLower().Trim());
                 }
 
                 if (!string.IsNullOrEmpty(user.Email))
                 {
-                    queryable = queryable.Where(m => m.Email.ToLower().Trim() == user.Email.ToLower().Trim());
+                    queryable = queryable.Where(u => u.Email.ToLower().Trim() == user.Email.ToLower().Trim());
                 }
 
                 if (!string.IsNullOrEmpty(user.FullName))
                 {
-                    queryable = queryable.Where(m => m.FullName.ToLower().Trim().Contains(user.FullName.ToLower().Trim()));
+                    queryable = queryable.Where(u => u.FullName.ToLower().Trim().Contains(user.FullName.ToLower().Trim()));
                 }
 
                 if (user.DOB.HasValue)
                 {
-                    queryable = queryable.Where(m => m.DOB.Value.Date == user.DOB.Value.Date);
+                    queryable = queryable.Where(u => u.DOB.Value.Date == user.DOB.Value.Date);
                 }
 
                 if (!string.IsNullOrEmpty(user.Address))
                 {
-                    queryable = queryable.Where(m => m.Address.ToLower().Trim().Contains(user.Address.ToLower().Trim()));
+                    queryable = queryable.Where(u => u.Address.ToLower().Trim().Contains(user.Address.ToLower().Trim()));
                 }
 
                 if (!string.IsNullOrEmpty(user.Phone))
                 {
-                    queryable = queryable.Where(m => m.Phone.ToLower().Trim().Contains(user.Phone.ToLower().Trim()));
+                    queryable = queryable.Where(u => u.Phone.ToLower().Trim().Contains(user.Phone.ToLower().Trim()));
                 }
 
                 if (!string.IsNullOrEmpty(user.Gender))
                 {
-                    queryable = queryable.Where(m => m.Gender.ToLower().Trim() == user.Gender.ToLower().Trim());
+                    queryable = queryable.Where(u => u.Gender.ToLower().Trim() == user.Gender.ToLower().Trim());
                 }
 
             }
