@@ -57,17 +57,6 @@ namespace AIBookStreet.Services.Services.Service
             }            
             existAuthor = await SetBaseEntityToUpdateFunc(existAuthor);
 
-            //var bookAuthors = await _repository.BookAuthorRepository.GetByElement(null, id);
-            //if (bookAuthors != null)
-            //{
-            //    foreach (var bookAuthor in bookAuthors)
-            //    {
-            //        bookAuthor.LastUpdatedBy = existAuthor.LastUpdatedBy;
-            //        bookAuthor.LastUpdatedDate = DateTime.Now;
-            //        bookAuthor.IsDeleted = true;
-            //    }
-            //}
-
             return await _repository.AuthorRepository.Delete(existAuthor) ? (2, existAuthor) //delete thanh cong
                                                                           : (3, null);       //delete fail
         }
