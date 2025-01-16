@@ -14,6 +14,7 @@ namespace AIBookStreet.API.Tool.Mapping
             BookStoreMapping();
             CategoryMapping();
             EventMapping();
+            ImageMapping();
             InventoryMapping();
             PublisherMapping();
             StreetMapping();
