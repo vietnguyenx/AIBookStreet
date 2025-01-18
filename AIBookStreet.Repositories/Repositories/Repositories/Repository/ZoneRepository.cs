@@ -42,11 +42,11 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var totalOrigin = queryable.Count();
 
             pageNumber = pageNumber == null ? 1 : pageNumber;
-            pageSize = pageSize == null ? 1 : pageSize;
+            pageSize = pageSize == null ? 10 : pageSize;
 
             queryable = GetQueryablePagination(queryable, (int)pageNumber, (int)pageSize);
 
-            var zones = await queryable.ToListAsync();
+            var zones = await queryable.Include(z => z.Street).ToListAsync();
 
             return (zones, totalOrigin);
         }

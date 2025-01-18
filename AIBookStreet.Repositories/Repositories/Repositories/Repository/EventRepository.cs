@@ -45,12 +45,14 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var totalOrigin = queryable.Count();
 
             pageNumber = pageNumber == null ? 1 : pageNumber;
-            pageSize = pageSize == null ? 1 : pageSize;
+            pageSize = pageSize == null ? 10 : pageSize;
 
             queryable = GetQueryablePagination(queryable, (int)pageNumber, (int)pageSize);
 
             var events = await queryable
-                .Include(at => at.Images).ToListAsync();
+                .Include(at => at.Images)
+                .Include(ev => ev.Street)
+                .ToListAsync();
 
             return (events, totalOrigin);
         }
@@ -75,7 +77,8 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             queryable = GetQueryablePagination(queryable, 1, number);
 
             var events = await queryable
-                .Include(at => at.Images).ToListAsync();
+                .Include(at => at.Images)
+                .Include(ev => ev.Street).ToListAsync();
 
             return events;
         }

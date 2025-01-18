@@ -394,46 +394,46 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.AltText).HasMaxLength(200).IsRequired(true);
 
                 //n-1 voi Author
-                e.HasOne(i => i.Author)
-                 .WithMany(at => at.Images)
-                 .HasForeignKey(bc => bc.EntityId)
-                 .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, author khong bi gi
+                //e.HasOne(i => i.Author)
+                // .WithMany(at => at.Images)
+                // .HasForeignKey(bc => bc.EntityId)
+                // .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, author khong bi gi
 
-                //n-1 voi Event
-                e.HasOne(i => i.Event)
-                 .WithMany(at => at.Images)
-                 .HasForeignKey(bc => bc.EntityId)
-                 .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, event khong bi gi
+                ////n-1 voi Event
+                //e.HasOne(i => i.Event)
+                // .WithMany(at => at.Images)
+                // .HasForeignKey(bc => bc.EntityId)
+                // .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, event khong bi gi
 
-                //n-1 voi publisher
-                e.HasOne(i => i.Publisher)
-                 .WithMany(at => at.Images)
-                 .HasForeignKey(bc => bc.EntityId)
-                 .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, Publisher khong bi gi
+                ////n-1 voi publisher
+                //e.HasOne(i => i.Publisher)
+                // .WithMany(at => at.Images)
+                // .HasForeignKey(bc => bc.EntityId)
+                // .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, Publisher khong bi gi
 
-                //n-1 voi bookStore
-                e.HasOne(i => i.BookStore)
-                 .WithMany(at => at.Images)
-                 .HasForeignKey(bc => bc.EntityId)
-                 .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, bookStore khong bi gi
+                ////n-1 voi bookStore
+                //e.HasOne(i => i.BookStore)
+                // .WithMany(at => at.Images)
+                // .HasForeignKey(bc => bc.EntityId)
+                // .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, bookStore khong bi gi
 
-                //n-1 voi street
-                e.HasOne(i => i.Street)
-                 .WithMany(at => at.Images)
-                 .HasForeignKey(bc => bc.EntityId)
-                 .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, street khong bi gi
+                ////n-1 voi street
+                //e.HasOne(i => i.Street)
+                // .WithMany(at => at.Images)
+                // .HasForeignKey(bc => bc.EntityId)
+                // .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, street khong bi gi
 
-                //n-1 voi user
-                e.HasOne(i => i.User)
-                 .WithMany(at => at.Images)
-                 .HasForeignKey(bc => bc.EntityId)
-                 .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, user khong bi gi
+                ////n-1 voi user
+                //e.HasOne(i => i.User)
+                // .WithMany(at => at.Images)
+                // .HasForeignKey(bc => bc.EntityId)
+                // .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, user khong bi gi
 
-                //n-1 voi book
-                e.HasOne(i => i.Book)
-                 .WithMany(at => at.Images)
-                 .HasForeignKey(bc => bc.EntityId)
-                 .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, book khong bi gi
+                ////n-1 voi book
+                //e.HasOne(i => i.Book)
+                // .WithMany(at => at.Images)
+                // .HasForeignKey(bc => bc.EntityId)
+                // .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, book khong bi gi
             });
 
         }

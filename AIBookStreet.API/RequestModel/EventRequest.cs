@@ -9,9 +9,8 @@ namespace AIBookStreet.API.RequestModel
         public string? Description { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
-        public Guid? StreetId { get; set; }
         public bool IsDeleted { get; set; }
-
-        public virtual ICollection<Image>? Images { get; set; }
+        public virtual StreetRequest? Street { get; set; }
+        public virtual ICollection<ImageRequest>? Images { get; set; }
     }
 }

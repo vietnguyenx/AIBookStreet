@@ -1,4 +1,5 @@
-﻿using AIBookStreet.Repositories.Data.Entities;
+﻿using AIBookStreet.API.ResponseModel;
+using AIBookStreet.Repositories.Data.Entities;
 
 namespace AIBookStreet.API.RequestModel
 {
@@ -6,7 +7,7 @@ namespace AIBookStreet.API.RequestModel
     {
         public Guid Id { get; set; }
         public bool? IsDeleted { get; set; }
-        public virtual Book Book { get; set; } = null!;
-        public virtual Category Category { get; set; } = null!;
+        public virtual BookResponse Book { get; set; } = null!;
+        public virtual CategoryRequest Category { get; set; } = null!;
     }
 }

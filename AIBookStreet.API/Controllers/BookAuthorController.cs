@@ -102,11 +102,13 @@ namespace AIBookStreet.API.Controllers
             {
                 var bookAuthors = await _service.GetAllActiveBookAuthors();
 
-                return bookAuthors switch
+                if (bookAuthors == null)
                 {
-                    null => Ok(new ItemListResponse<BookAuthorRequest>(ConstantMessage.Success, null)),
-                    not null => Ok(new ItemListResponse<BookAuthorRequest>(ConstantMessage.Success, _mapper.Map<List<BookAuthorRequest>>(bookAuthors)))
-                };
+                    return Ok(new ItemListResponse<BookAuthorRequest>(ConstantMessage.Success, null));
+                }
+                
+                return Ok(new ItemListResponse<BookAuthorRequest>(ConstantMessage.Success, _mapper.Map<List<BookAuthorRequest>>(bookAuthors)));
+
             }
             catch (Exception ex)
             {

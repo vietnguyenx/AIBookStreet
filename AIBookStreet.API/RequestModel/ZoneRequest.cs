@@ -8,6 +8,6 @@ namespace AIBookStreet.API.RequestModel
         public string ZoneName { get; set; } = null!;
         public string? Description { get; set; }
         public bool IsDeleted { get; set; }
-        public virtual Street? Street { get; set; }
+        public virtual StreetRequest? Street { get; set; }
     }
 }

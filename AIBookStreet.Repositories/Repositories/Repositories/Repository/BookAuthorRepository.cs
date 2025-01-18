@@ -48,7 +48,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var totalOrigin = queryable.Count();
 
             pageNumber = pageNumber == null ? 1 : pageNumber;
-            pageSize = pageSize == null ? 1 : pageSize;
+            pageSize = pageSize == null ? 10 : pageSize;
             queryable = GetQueryablePagination(queryable, (int)pageNumber, (int)pageSize);
 
             var bookAuthors = await queryable.ToListAsync();
