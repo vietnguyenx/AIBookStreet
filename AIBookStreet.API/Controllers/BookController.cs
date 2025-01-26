@@ -97,7 +97,10 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var book = _mapper.Map<BookModel>(paginatedRequest.Result);
-                var books = await _bookService.Search(book, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
+                var startDate = paginatedRequest.Result.StartDate;
+                var endDate = paginatedRequest.Result.EndDate;
+
+                var books = await _bookService.Search(book, startDate, endDate, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
 
                 return books.Item1 switch
                 {
@@ -107,7 +110,6 @@ namespace AIBookStreet.API.Controllers
             }
             catch (Exception ex)
             {
-
                 return BadRequest(ex.Message);
             };
         }
