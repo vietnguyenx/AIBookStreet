@@ -60,10 +60,10 @@ namespace AIBookStreet.Services.Services.Service
             return _mapper.Map<BookModel>(book);
         }
 
-        public async Task<(List<BookModel>?, long)> Search(BookModel bookModel, int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<(List<BookModel>?, long)> Search(BookModel bookModel, DateTime? startDate, DateTime? endDate, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
             var books = _mapper.Map<Book>(bookModel);
-            var booksWithTotalOrigin = await _bookRepository.Search(books, pageNumber, pageSize, sortField, sortOrder);
+            var booksWithTotalOrigin = await _bookRepository.Search(books, startDate, endDate, pageNumber, pageSize, sortField, sortOrder);
 
             if (!booksWithTotalOrigin.Item1.Any())
             {

@@ -46,10 +46,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             return book;
         }
 
-        public async Task<(List<Book>, long)> Search(Book book, int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<(List<Book>, long)> Search(Book book, DateTime? startDate, DateTime? endDate, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
             var queryable = GetQueryable()
-                .Where(b => !b.IsDeleted); 
+                .Where(b => !b.IsDeleted); // Chỉ lấy các sách chưa bị xóa
             queryable = base.ApplySort(queryable, sortField, sortOrder);
 
             if (queryable.Any())
@@ -64,9 +64,17 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                     queryable = queryable.Where(b => b.Title.ToLower().Trim().Contains(book.Title.ToLower().Trim()));
                 }
 
-                if (book.PublicationDate.HasValue)
+                if (startDate.HasValue && endDate.HasValue)
                 {
-                    queryable = queryable.Where(b => b.PublicationDate.Value.Date == book.PublicationDate.Value.Date);
+                    queryable = queryable.Where(b => b.PublicationDate >= startDate.Value && b.PublicationDate <= endDate.Value);
+                }
+                else if (startDate.HasValue)
+                {
+                    queryable = queryable.Where(b => b.PublicationDate >= startDate.Value);
+                }
+                else if (endDate.HasValue)
+                {
+                    queryable = queryable.Where(b => b.PublicationDate <= endDate.Value);
                 }
 
                 if (book.Price.HasValue && book.Price > 0)
