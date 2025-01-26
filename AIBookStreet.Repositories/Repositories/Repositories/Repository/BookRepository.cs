@@ -48,7 +48,8 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
         public async Task<(List<Book>, long)> Search(Book book, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
-            var queryable = GetQueryable();
+            var queryable = GetQueryable()
+                .Where(b => !b.IsDeleted); 
             queryable = base.ApplySort(queryable, sortField, sortOrder);
 
             if (queryable.Any())
@@ -87,7 +88,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 {
                     queryable = queryable.Where(b => b.Status.ToLower().Trim().Contains(book.Status.ToLower().Trim()));
                 }
-
             }
             var totalOrigin = queryable.Count();
 
@@ -99,6 +99,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return (books, totalOrigin);
         }
-        
+
     }
 }
