@@ -26,6 +26,35 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
             var order = desc != null && (desc != false);
             queryable = order ? base.ApplySort(queryable, field, 0) : base.ApplySort(queryable, field, 1);
+            queryable = queryable.Where(st => !st.IsDeleted);
+
+            if (queryable.Any())
+            {
+                if (!string.IsNullOrEmpty(key))
+                {
+                    queryable = queryable.Where(st => st.StreetName.ToLower().Trim().Contains(key.ToLower().Trim())
+                                                   || (!string.IsNullOrEmpty(st.Address) && st.Address.ToLower().Trim().Contains(key.ToLower().Trim()))
+                                                   || (!string.IsNullOrEmpty(st.Description) && st.Description.ToLower().Trim().Contains(key.ToLower().Trim())));
+                }
+            }
+            var totalOrigin = queryable.Count();
+
+            pageNumber = pageNumber == null ? 1 : pageNumber;
+            pageSize = pageSize == null ? 10 : pageSize;
+
+            queryable = GetQueryablePagination(queryable, (int)pageNumber, (int)pageSize);
+
+            var streets = await queryable
+                .Include(st => st.Images).ToListAsync();
+
+            return (streets, totalOrigin);
+        }
+        public async Task<(List<Street>, long)> GetAllPaginationForAdmin(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        {
+            var queryable = GetQueryable();
+            string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
+            var order = desc != null && (desc != false);
+            queryable = order ? base.ApplySort(queryable, field, 0) : base.ApplySort(queryable, field, 1);
 
             if (queryable.Any())
             {

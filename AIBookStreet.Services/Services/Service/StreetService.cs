@@ -72,7 +72,17 @@ namespace AIBookStreet.Services.Services.Service
         }
         public async Task<(List<Street>?, long)> GetAllStreetsPagination(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
-            var streets = await _repository.StreetRepository.GetAllPagination(key, pageNumber, pageSize, sortField, desc);
+            var user = await GetUserInfo();
+            var isAdmin = false;
+            foreach (var userRole in user.UserRoles)
+            {
+                if (userRole.Role.RoleName == "Quản trị viên")
+                {
+                    isAdmin = true;
+                }
+            }
+            var streets = (user != null && isAdmin) ? await _repository.StreetRepository.GetAllPaginationForAdmin(key, pageNumber, pageSize, sortField, desc)
+                                                    : await _repository.StreetRepository.GetAllPagination(key, pageNumber, pageSize, sortField, desc);
             return streets.Item1.Count > 0 ? (streets.Item1, streets.Item2) : (null, 0);
         }
         public async Task<List<Street>?> GetAllActiveStreets()
