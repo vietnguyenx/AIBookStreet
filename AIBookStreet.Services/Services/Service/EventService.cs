@@ -71,7 +71,17 @@ namespace AIBookStreet.Services.Services.Service
         }
         public async Task<(List<Event>?, long)> GetAllEventsPagination(string? key, DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
-            var events = await _repository.EventRepository.GetAllPagination(key, start, end, streetID, pageNumber, pageSize, sortField, desc);
+            var user = await GetUserInfo();
+            var isAdmin = false;
+            foreach (var userRole in user.UserRoles)
+            {
+                if (userRole.Role.RoleName == "Quản trị viên")
+                {
+                    isAdmin = true;
+                }
+            }
+            var events = (user != null && isAdmin) ? await _repository.EventRepository.GetAllPaginationForAdmin(key, start, end, streetID, pageNumber, pageSize, sortField, desc)
+                                                   : await _repository.EventRepository.GetAllPagination(key, start, end, streetID, pageNumber, pageSize, sortField, desc);
             return events.Item1.Count > 0 ? (events.Item1, events.Item2) : (null, 0);
         }
         public async Task<List<Event>?> GetEventComing(int number)

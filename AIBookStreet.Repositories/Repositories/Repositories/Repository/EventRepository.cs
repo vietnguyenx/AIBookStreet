@@ -21,6 +21,48 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
             var order = desc != null && (desc != false);
             queryable = order ? base.ApplySort(queryable, field, 0) : base.ApplySort(queryable, field, 1);
+            queryable = queryable.Where(ev => !ev.IsDeleted);
+
+            if (queryable.Any())
+            {
+                if (!string.IsNullOrEmpty(key))
+                {
+                    queryable = queryable.Where(ev => ev.EventName.ToLower().Trim().Contains(key.ToLower().Trim())
+                                                   || (!string.IsNullOrEmpty(ev.Description) && ev.Description.ToLower().Trim().Contains(key.ToLower().Trim())));
+                }
+                if (streetID != null)
+                {
+                    queryable = queryable.Where(ev => ev.StreetId == streetID);
+                }
+                if (start != null)
+                {
+                    queryable = queryable.Where(ev => ev.StartDate > start);
+                }
+                if (end != null)
+                {
+                    queryable = queryable.Where(ev => ev.EndDate < end);
+                }
+            }
+            var totalOrigin = queryable.Count();
+
+            pageNumber = pageNumber == null ? 1 : pageNumber;
+            pageSize = pageSize == null ? 10 : pageSize;
+
+            queryable = GetQueryablePagination(queryable, (int)pageNumber, (int)pageSize);
+
+            var events = await queryable
+                .Include(at => at.Images)
+                .Include(ev => ev.Street)
+                .ToListAsync();
+
+            return (events, totalOrigin);
+        }
+        public async Task<(List<Event>, long)> GetAllPaginationForAdmin(string? key, DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        {
+            var queryable = GetQueryable();
+            string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
+            var order = desc != null && (desc != false);
+            queryable = order ? base.ApplySort(queryable, field, 0) : base.ApplySort(queryable, field, 1);
 
             if (queryable.Any())
             {
@@ -69,6 +111,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         {
             var queryable = GetQueryable();
             queryable = base.ApplySort(queryable, "StartDate", 1);
+            queryable = queryable.Where(ev => !ev.IsDeleted);
 
             if (queryable.Any())
             {

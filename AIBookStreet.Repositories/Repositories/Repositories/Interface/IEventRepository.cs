@@ -11,6 +11,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
     public interface IEventRepository : IBaseRepository<Event>
     {
         Task<(List<Event>, long)> GetAllPagination(string? key,DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc);
+        Task<(List<Event>, long)> GetAllPaginationForAdmin(string? key, DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc);
         Task<Event?> GetByID(Guid id);
         Task<List<Event>?> GetEventsComing(int number);
     }
