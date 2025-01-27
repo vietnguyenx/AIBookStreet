@@ -79,7 +79,17 @@ namespace AIBookStreet.Services.Services.Service
         }
         public async Task<(List<Category>?, long)> GetAllCategoriesPagination(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
-            var categories = await _repository.CategoryRepository.GetAllPagination(key, pageNumber, pageSize, sortField, desc);
+            var user = await GetUserInfo();
+            var isAdmin = false;
+            foreach (var userRole in user.UserRoles)
+            {
+                if (userRole.Role.RoleName == "Quản trị viên")
+                {
+                    isAdmin = true;
+                }
+            }
+            var categories = (user != null && isAdmin) ? await _repository.CategoryRepository.GetAllPaginationForAdmin(key, pageNumber, pageSize, sortField, desc)
+                                                       : await _repository.CategoryRepository.GetAllPagination(key, pageNumber, pageSize, sortField, desc);
             return categories.Item1.Count > 0 ? (categories.Item1, categories.Item2) : (null, 0);
         }
     }
