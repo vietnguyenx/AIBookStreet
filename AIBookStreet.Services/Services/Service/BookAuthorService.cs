@@ -73,8 +73,18 @@ namespace AIBookStreet.Services.Services.Service
         }
         public async Task<(List<BookAuthor>?, long)> GetAllBookAuthorsPagination(string? key, Guid? bookID, Guid? authorID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
-            var bookAuthors = await _repository.BookAuthorRepository.GetAllPagination(key, bookID, authorID, pageNumber, pageSize, sortField, desc);
-            return bookAuthors.Item1.Count() > 0 ? (bookAuthors.Item1, bookAuthors.Item2) : (null, 0);
+            var user = await GetUserInfo();
+            var isAdmin = false;
+            foreach (var userRole in user.UserRoles)
+            {
+                if (userRole.Role.RoleName == "Quản trị viên")
+                {
+                    isAdmin = true;
+                }
+            }
+            var bookAuthors = (user != null && isAdmin) ? await _repository.BookAuthorRepository.GetAllPaginationForAdmin(key, bookID, authorID, pageNumber, pageSize, sortField, desc) : 
+                                                            await _repository.BookAuthorRepository.GetAllPagination(key, bookID, authorID, pageNumber, pageSize, sortField, desc);
+            return bookAuthors.Item1.Count > 0 ? (bookAuthors.Item1, bookAuthors.Item2) : (null, 0);
         }
         public async Task<List<BookAuthor>?> GetBookAuthorByElement(Guid? bookID, Guid? authorID)
         {

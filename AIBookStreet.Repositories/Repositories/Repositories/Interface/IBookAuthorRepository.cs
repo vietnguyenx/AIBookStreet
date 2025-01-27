@@ -12,6 +12,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
     {
         Task<List<BookAuthor>> GetAll();
         Task<(List<BookAuthor> , long)> GetAllPagination(string? key, Guid? bookID, Guid? authorID, int? pageNumber, int? pageSize, string? sortField, bool? desc);
+        Task<(List<BookAuthor>, long)> GetAllPaginationForAdmin(string? key, Guid? bookID, Guid? authorID, int? pageNumber, int? pageSize, string? sortField, bool? desc);
         Task<BookAuthor?> GetByID(Guid id);
         Task<List<BookAuthor>?> GetByElement(Guid? bookID, Guid? authorID);
     }

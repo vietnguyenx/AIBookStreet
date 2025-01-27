@@ -26,6 +26,43 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
             var order = desc != null && (desc != false);
             queryable = order ? base.ApplySort(queryable, field, 0) : base.ApplySort(queryable, field, 1);
+            queryable = queryable.Where(ba => !ba.IsDeleted);
+            queryable = queryable.Where(ba => !ba.Book.IsDeleted && !ba.Author.IsDeleted);
+
+            queryable = queryable.Include(ba => ba.Book).Include(ba => ba.Author);
+            if (queryable.Any())
+            {
+                if (!string.IsNullOrEmpty(key))
+                {
+                    queryable = queryable.Where(ba => ba.Author.AuthorName.ToLower().Trim().Contains(key.ToLower().Trim())
+                                                   || (!string.IsNullOrEmpty(ba.Book.Title) && ba.Book.Title.ToLower().Trim().Contains(key.ToLower().Trim())));
+                }
+                if (bookID != null)
+                {
+                    queryable = queryable.Where(ba => ba.BookId.Equals(bookID));
+                }
+                if (authorID != null)
+                {
+                    queryable = queryable.Where(ba => ba.AuthorId.Equals(authorID));
+                }
+            }
+
+            var totalOrigin = queryable.Count();
+
+            pageNumber = pageNumber == null ? 1 : pageNumber;
+            pageSize = pageSize == null ? 10 : pageSize;
+            queryable = GetQueryablePagination(queryable, (int)pageNumber, (int)pageSize);
+
+            var bookAuthors = await queryable.ToListAsync();
+
+            return (bookAuthors, totalOrigin);
+        }
+        public async Task<(List<BookAuthor>, long)> GetAllPaginationForAdmin(string? key, Guid? bookID, Guid? authorID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        {
+            var queryable = GetQueryable();
+            string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
+            var order = desc != null && (desc != false);
+            queryable = order ? base.ApplySort(queryable, field, 0) : base.ApplySort(queryable, field, 1);
 
             queryable = queryable.Include(ba => ba.Book).Include(ba => ba.Author);
             if (queryable.Any())
