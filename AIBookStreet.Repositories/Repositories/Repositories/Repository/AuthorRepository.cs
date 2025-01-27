@@ -27,12 +27,41 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
             var order = desc != null && (desc != false);
             queryable = order ? base.ApplySort(queryable, field, 0) : base.ApplySort(queryable, field, 1);
+            queryable = queryable.Where(at => !at.IsDeleted);
 
             if (queryable.Any())
             {
                 if (!string.IsNullOrEmpty(key))
                 {
                     queryable = queryable.Where(at => at.AuthorName.ToLower().Trim().Contains(key.ToLower().Trim()) 
+                                                   || (!string.IsNullOrEmpty(at.Nationality) && at.Nationality.ToLower().Trim().Contains(key.ToLower().Trim()))
+                                                   || (!string.IsNullOrEmpty(at.Biography) && at.Biography.ToLower().Trim().Contains(key.ToLower().Trim())));
+                }
+            }
+            var totalOrigin = queryable.Count();
+
+            pageNumber = pageNumber == null ? 1 : pageNumber;
+            pageSize = pageSize == null ? 10 : pageSize;
+
+            queryable = GetQueryablePagination(queryable, (int)pageNumber, (int)pageSize);
+
+            var authors = await queryable
+                .Include(at => at.Images).ToListAsync();
+
+            return (authors, totalOrigin);
+        }
+        public async Task<(List<Author>, long)> GetAllPaginationForAdmin(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        {
+            var queryable = GetQueryable();
+            string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
+            var order = desc != null && (desc != false);
+            queryable = order ? base.ApplySort(queryable, field, 0) : base.ApplySort(queryable, field, 1);
+
+            if (queryable.Any())
+            {
+                if (!string.IsNullOrEmpty(key))
+                {
+                    queryable = queryable.Where(at => at.AuthorName.ToLower().Trim().Contains(key.ToLower().Trim())
                                                    || (!string.IsNullOrEmpty(at.Nationality) && at.Nationality.ToLower().Trim().Contains(key.ToLower().Trim()))
                                                    || (!string.IsNullOrEmpty(at.Biography) && at.Biography.ToLower().Trim().Contains(key.ToLower().Trim())));
                 }
