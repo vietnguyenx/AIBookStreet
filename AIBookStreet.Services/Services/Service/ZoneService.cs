@@ -69,7 +69,17 @@ namespace AIBookStreet.Services.Services.Service
         }
         public async Task<(List<Zone>?, long)> GetAllZonesPagination(string? key, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
-            var zones = await _repository.ZoneRepository.GetAllPagination(key, streetID, pageNumber, pageSize, sortField, desc);
+            var user = await GetUserInfo();
+            var isAdmin = false;
+            foreach (var userRole in user.UserRoles)
+            {
+                if (userRole.Role.RoleName == "Quản trị viên")
+                {
+                    isAdmin = true;
+                }
+            }
+            var zones = (user != null && isAdmin) ? await _repository.ZoneRepository.GetAllPaginationForAdmin(key, streetID, pageNumber, pageSize, sortField, desc)
+                                                  : await _repository.ZoneRepository.GetAllPagination(key, streetID, pageNumber, pageSize, sortField, desc);
             return zones.Item1.Count > 0 ? (zones.Item1, zones.Item2) : (null, 0);
         }
     }
