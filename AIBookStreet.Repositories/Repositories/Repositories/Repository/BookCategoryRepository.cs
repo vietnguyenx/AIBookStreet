@@ -26,6 +26,35 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
             var order = desc != null && (desc != false);
             queryable = order ? base.ApplySort(queryable, field, 0) : base.ApplySort(queryable, field, 1);
+            queryable = queryable.Where(bc => !bc.IsDeleted);
+            queryable = queryable.Where(bc => !bc.Book.IsDeleted && !bc.Category.IsDeleted);
+
+            queryable = queryable.Include(bc => bc.Book).Include(bc => bc.Category);
+            if (queryable.Any())
+            {
+                if (!string.IsNullOrEmpty(key))
+                {
+                    queryable = queryable.Where(bc => bc.Category.CategoryName.ToLower().Trim().Contains(key.ToLower().Trim())
+                                                   || (!string.IsNullOrEmpty(bc.Book.Title) && bc.Book.Title.ToLower().Trim().Contains(key.ToLower().Trim())));
+                }
+            }
+
+            var totalOrigin = queryable.Count();
+
+            pageNumber = pageNumber == null ? 1 : pageNumber;
+            pageSize = pageSize == null ? 10 : pageSize;
+            queryable = GetQueryablePagination(queryable, (int)pageNumber, (int)pageSize);
+
+            var bookCategories = await queryable.ToListAsync();
+
+            return (bookCategories, totalOrigin);
+        }
+        public async Task<(List<BookCategory>, long)> GetAllPaginationForAdmin(string? key, Guid? bookID, Guid? categoryID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        {
+            var queryable = GetQueryable();
+            string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
+            var order = desc != null && (desc != false);
+            queryable = order ? base.ApplySort(queryable, field, 0) : base.ApplySort(queryable, field, 1);
 
             queryable = queryable.Include(bc => bc.Book).Include(bc => bc.Category);
             if (queryable.Any())
