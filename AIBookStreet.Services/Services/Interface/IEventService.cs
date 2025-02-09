@@ -11,7 +11,7 @@ namespace AIBookStreet.Services.Services.Interface
     public interface IEventService
     {
         Task<(long, Event?)> AddAnEvent(EventModel model);
-        Task<(long, Event?)> UpdateAnEvent(Guid id, EventModel model);
+        Task<(long, Event?)> UpdateAnEvent(Guid? id, EventModel model);
         Task<(long, Event?)> DeleteAnEvent(Guid id);
         Task<Event?> GetAnEventById(Guid id);
         Task<(List<Event>?, long)> GetAllEventsPagination(string? key, DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc);

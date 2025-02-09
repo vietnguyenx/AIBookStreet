@@ -1,10 +1,12 @@
 ﻿using AIBookStreet.API.RequestModel;
 using AIBookStreet.API.ResponseModel;
+using AIBookStreet.API.SearchModel;
 using AIBookStreet.API.Tool.Constant;
 using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,9 +19,9 @@ namespace AIBookStreet.API.Controllers
         private readonly IEventService _service = service;
         private readonly IMapper _mapper = mapper;
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> AddAnEvent([FromQuery] EventModel model)
+        public async Task<IActionResult> AddAnEvent(EventModel model)
         {
             try
             {
@@ -33,13 +35,13 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //[Authorize]
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateAnEvent([FromRoute] Guid id, [FromQuery] EventModel model)
+        [Authorize]
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateAnEvent(EventModel model)
         {
             try
             {
-                var result = await _service.UpdateAnEvent(id, model);
+                var result = await _service.UpdateAnEvent(model.Id, model);
 
                 return result.Item1 switch
                 {
@@ -53,9 +55,9 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //[Authorize]
-        [HttpPut("delete/{id}")]
-        public async Task<IActionResult> DeleteAnEvent([FromRoute] Guid id)
+        [Authorize]
+        [HttpPut("delete")]
+        public async Task<IActionResult> DeleteAnEvent(Guid id)
         {
             try
             {
@@ -93,7 +95,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
         [HttpGet("get-event-coming")]
-        public async Task<IActionResult> GetEventsComing([FromQuery]int number)
+        public async Task<IActionResult> GetEventsComing(int number)
         {
             try
             {
@@ -111,16 +113,16 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [HttpGet("pagination-and-search")]
-        public async Task<IActionResult> GetAllEventsPagination(string? key, DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<IActionResult> GetAllEventsPagination(PaginatedRequest<EventSearchRequest> request)
         {
             try
             {
-                var events = await _service.GetAllEventsPagination(key, start, end, streetID, pageNumber, pageSize, sortField, desc);
+                var events = await _service.GetAllEventsPagination(request.Result.Key, request.Result.StartDate, request.Result.EndDate, request.Result.StreetId, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
 
                 return events.Item2 switch
                 {
                     0 => Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<List<EventRequest>>(events.Item1), events.Item2, pageNumber != null ? (int)pageNumber : 1, pageSize != null ? (int)pageSize : 10, sortField, desc != null && (desc != false) ? 0 : 1))
+                    _ => Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<List<EventRequest>>(events.Item1), events.Item2, request.PageNumber, request.PageSize, request.SortField, request.SortOrder))
                 };
             }
             catch (Exception ex)

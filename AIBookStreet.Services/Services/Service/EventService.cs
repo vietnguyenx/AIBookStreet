@@ -32,7 +32,7 @@ namespace AIBookStreet.Services.Services.Service
             }
             return (3, null);
         }
-        public async Task<(long, Event?)> UpdateAnEvent(Guid id, EventModel model)
+        public async Task<(long, Event?)> UpdateAnEvent(Guid? id, EventModel model)
         {
             var existed = await _repository.EventRepository.GetByID(id);
             if (existed == null)

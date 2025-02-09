@@ -10,6 +10,7 @@ namespace AIBookStreet.Services.Model
 {
     public class EventModel
     {
+        public Guid? Id { get; set; }
         [Required]
         public required string EventName { get; set; }
         public string? Description { get; set; }
