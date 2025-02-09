@@ -1,10 +1,12 @@
 ﻿using AIBookStreet.API.RequestModel;
 using AIBookStreet.API.ResponseModel;
+using AIBookStreet.API.SearchModel;
 using AIBookStreet.API.Tool.Constant;
 using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,9 +19,9 @@ namespace AIBookStreet.API.Controllers
         private readonly IStreetService _service = service;
         private readonly IMapper _mapper = mapper;
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> AddAStreet([FromQuery] StreetModel model)
+        public async Task<IActionResult> AddAStreet(StreetModel model)
         {
             try
             {
@@ -33,13 +35,13 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //[Authorize]
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateAStreet([FromRoute] Guid id, [FromQuery] StreetModel model)
+        [Authorize]
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateAStreet(StreetModel model)
         {
             try
             {
-                var result = await _service.UpdateAStreet(id, model);
+                var result = await _service.UpdateAStreet(model.Id, model);
 
                 return result.Item1 switch
                 {
@@ -53,7 +55,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //[Authorize]
+        [Authorize]
         [HttpPut("delete/{id}")]
         public async Task<IActionResult> DeleteAStreet([FromRoute] Guid id)
         {
@@ -111,16 +113,16 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [HttpGet("pagination-and-search")]
-        public async Task<IActionResult> GetAllStreetsPagination(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<IActionResult> GetAllStreetsPagination(PaginatedRequest<StreetSearchRequest> request)
         {
             try
             {
-                var streets = await _service.GetAllStreetsPagination(key, pageNumber, pageSize, sortField, desc);
+                var streets = await _service.GetAllStreetsPagination(request.Result.Key, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
 
                 return streets.Item2 switch
                 {
                     0 => Ok(new PaginatedListResponse<StreetRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new PaginatedListResponse<StreetRequest>(ConstantMessage.Success, _mapper.Map<List<StreetRequest>>(streets.Item1), streets.Item2, pageNumber != null ? (int)pageNumber : 1, pageSize != null ? (int)pageSize : 10, sortField, desc != null && (desc != false) ? 0 : 1))
+                    _ => Ok(new PaginatedListResponse<StreetRequest>(ConstantMessage.Success, _mapper.Map<List<StreetRequest>>(streets.Item1), streets.Item2, request.PageNumber, request.PageSize, request.SortField, request.SortOrder))
                 };
             }
             catch (Exception ex)

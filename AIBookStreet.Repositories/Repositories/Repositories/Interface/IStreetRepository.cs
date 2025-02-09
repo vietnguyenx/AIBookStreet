@@ -13,7 +13,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
         Task<List<Street>> GetAll();
         Task<(List<Street>, long)> GetAllPagination(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc);
         Task<(List<Street>, long)> GetAllPaginationForAdmin(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc);
-        Task<Street?> GetByID(Guid id);
+        Task<Street?> GetByID(Guid? id);
         Task<Street?> GetByAddress(string address);
     }
 }

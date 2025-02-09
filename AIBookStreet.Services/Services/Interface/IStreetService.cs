@@ -11,7 +11,7 @@ namespace AIBookStreet.Services.Services.Interface
     public interface IStreetService
     {
         Task<(long, Street?)> AddAStreet(StreetModel model);
-        Task<(long, Street?)> UpdateAStreet(Guid id, StreetModel model);
+        Task<(long, Street?)> UpdateAStreet(Guid? id, StreetModel model);
         Task<(long, Street?)> DeleteAStreet(Guid id);
         Task<Street?> GetAStreetById(Guid id);
         Task<List<Street>?> GetAllActiveStreets();

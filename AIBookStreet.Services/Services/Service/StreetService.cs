@@ -35,7 +35,7 @@ namespace AIBookStreet.Services.Services.Service
             }
             return (3, null);
         }
-        public async Task<(long, Street?)> UpdateAStreet(Guid id, StreetModel model)
+        public async Task<(long, Street?)> UpdateAStreet(Guid? id, StreetModel model)
         {
             var existed = await _repository.StreetRepository.GetByID(id);
             if (existed == null)

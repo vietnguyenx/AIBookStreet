@@ -2,7 +2,6 @@
 {
     public class StreetSearchRequest
     {
-        public string StreetName { get; set; }
-        public string? Address { get; set; }
+        public string? Key { get; set; }
     }
 }
