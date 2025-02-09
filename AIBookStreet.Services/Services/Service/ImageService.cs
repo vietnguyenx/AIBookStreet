@@ -69,7 +69,7 @@ namespace AIBookStreet.Services.Services.Service
             }
             return images;
         }
-        public async Task<(long, Image?)> UpdateAnImage(Guid id, string altText)
+        public async Task<(long, Image?)> UpdateAnImage(Guid? id, ImageModel model)
         {
             var existed = await _repository.ImageRepository.GetByID(id);
             if (existed == null)
@@ -80,7 +80,10 @@ namespace AIBookStreet.Services.Services.Service
             {
                 return (3, null);
             }
-            existed.AltText = altText;
+            existed.Url = model.Url;
+            existed.Type = model.Type;
+            existed.EntityId = model.EntityId;
+            existed.AltText = model.AltText;
             existed = await SetBaseEntityToUpdateFunc(existed);
             return await _repository.ImageRepository.Update(existed) ? (2, existed) //update thanh cong
                                                                           : (3, null);       //update fail

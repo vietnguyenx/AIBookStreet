@@ -10,6 +10,7 @@ namespace AIBookStreet.Services.Model
 {
     public class ImageModel
     {
+        public Guid? Id { get; set; }
         [Required]
         public required string Url { get; set; }
         public string? Type { get; set; }

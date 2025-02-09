@@ -13,7 +13,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 {
     public class ImageRepository(BSDbContext context) : BaseRepository<Image>(context), IImageRepository
     {
-        public async Task<Image?> GetByID(Guid id)
+        public async Task<Image?> GetByID(Guid? id)
         {
             var query = GetQueryable(at => at.Id == id);
             var image = await query.SingleOrDefaultAsync();

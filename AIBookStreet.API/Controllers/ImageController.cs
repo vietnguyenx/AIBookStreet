@@ -1,10 +1,12 @@
 ﻿using AIBookStreet.API.RequestModel;
 using AIBookStreet.API.ResponseModel;
+using AIBookStreet.API.SearchModel;
 using AIBookStreet.API.Tool.Constant;
 using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,7 +32,7 @@ namespace AIBookStreet.API.Controllers
         //        return BadRequest(ex.Message);
         //    }
         //}
-        //[Authorize]
+        [Authorize]
         [HttpPost("add")]
         public async Task<IActionResult> AddImages(List<ImageModel> models)
         {
@@ -44,13 +46,13 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //[Authorize]
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateAnImage([FromRoute] Guid id, [FromQuery] string altText)
+        [Authorize]
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateAnImage(ImageModel model)
         {
             try
             {
-                var result = await _service.UpdateAnImage(id, altText);
+                var result = await _service.UpdateAnImage(model.Id, model);
 
                 return result.Item1 switch
                 {
@@ -64,9 +66,9 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //[Authorize]
-        [HttpPut("delete/{id}")]
-        public async Task<IActionResult> DeleteAnImage([FromRoute] Guid id)
+        [Authorize]
+        [HttpPut("delete")]
+        public async Task<IActionResult> DeleteAnImage(Guid id)
         {
             try
             {
@@ -107,12 +109,12 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
-        [HttpGet("get-by-type-and-entityID")]
-        public async Task<IActionResult> GetList([FromQuery]string? type, Guid? entityID)
+        [HttpGet("get-by-type-or-entityID")]
+        public async Task<IActionResult> GetList(ImageSearchRequest request)
         {
             try
             {
-                var images = await _service.GetImagesByTypeAndEntityID(type, entityID);
+                var images = await _service.GetImagesByTypeAndEntityID(request.Type, request.EntityId);
 
                 return images switch
                 {
