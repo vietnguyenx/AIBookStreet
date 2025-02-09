@@ -27,7 +27,7 @@ namespace AIBookStreet.Services.Services.Service
             }
             return null;
         }
-        public async Task<(long, Category?)> UpdateACategory(Guid id, CategoryModel model)
+        public async Task<(long, Category?)> UpdateACategory(Guid? id, CategoryModel model)
         {
             var existed = await _repository.CategoryRepository.GetByID(id);
             if (existed == null)

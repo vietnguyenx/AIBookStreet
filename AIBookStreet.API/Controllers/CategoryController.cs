@@ -1,5 +1,6 @@
 ﻿using AIBookStreet.API.RequestModel;
 using AIBookStreet.API.ResponseModel;
+using AIBookStreet.API.SearchModel;
 using AIBookStreet.API.Tool.Constant;
 using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Services.Model;
@@ -18,9 +19,9 @@ namespace AIBookStreet.API.Controllers
         private readonly ICategoryService _service = service;
         private readonly IMapper _mapper = mapper;
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> AddACategory([FromQuery] CategoryModel model)
+        public async Task<IActionResult> AddACategory(CategoryModel model)
         {
             try
             {
@@ -32,13 +33,13 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //[Authorize]
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateACategory([FromRoute] Guid id, [FromQuery] CategoryModel model)
+        [Authorize]
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateACategory(CategoryModel model)
         {
             try
             {
-                var result = await _service.UpdateACategory(id, model);
+                var result = await _service.UpdateACategory(model.Id, model);
 
                 return result.Item1 switch
                 {
@@ -52,7 +53,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //[Authorize]
+        [Authorize]
         [HttpPut("delete/{id}")]
         public async Task<IActionResult> DeleteACategory([FromRoute] Guid id)
         {
@@ -110,16 +111,16 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [HttpGet("pagination-and-search")]
-        public async Task<IActionResult> GetAllCategoriesPagination(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<IActionResult> GetAllCategoriesPagination(PaginatedRequest<CategorySearchRequest> request)
         {
             try
             {
-                var categories = await _service.GetAllCategoriesPagination(key, pageNumber, pageSize, sortField, desc);
+                var categories = await _service.GetAllCategoriesPagination(request.Result.Key, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
 
                 return categories.Item2 switch
                 {
                     0 => Ok(new PaginatedListResponse<CategoryRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new PaginatedListResponse<CategoryRequest>(ConstantMessage.Success, _mapper.Map<List<CategoryRequest>>(categories.Item1), categories.Item2, pageNumber != null ? (int)pageNumber : 1, pageSize != null ? (int)pageSize : 10, sortField, desc != null && (desc != false) ? 0 : 1))
+                    _ => Ok(new PaginatedListResponse<CategoryRequest>(ConstantMessage.Success, _mapper.Map<List<CategoryRequest>>(categories.Item1), categories.Item2, request.PageNumber, request.PageSize, request.SortField, request.SortOrder))
                 };
             }
             catch (Exception ex)

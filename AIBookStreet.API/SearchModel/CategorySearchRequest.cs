@@ -2,6 +2,6 @@
 {
     public class CategorySearchRequest
     {
-        public string CategoryName { get; set; }
+        public string? Key { get; set; }
     }
 }

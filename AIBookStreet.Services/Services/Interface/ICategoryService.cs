@@ -11,7 +11,7 @@ namespace AIBookStreet.Services.Services.Interface
     public interface ICategoryService
     {
         Task<Category?> AddACategory(CategoryModel model);
-        Task<(long, Category?)> UpdateACategory(Guid id, CategoryModel model);
+        Task<(long, Category?)> UpdateACategory(Guid? id, CategoryModel model);
         Task<(long, Category?)> DeleteACategory(Guid id);
         Task<Category?> GetACategoryById(Guid id);
         Task<List<Category>?> GetAllActiveCategories();
