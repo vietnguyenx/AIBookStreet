@@ -76,7 +76,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return (bookCategories, totalOrigin);
         }
-        public async Task<BookCategory?> GetByID(Guid id)
+        public async Task<BookCategory?> GetByID(Guid? id)
         {
             var query = GetQueryable(bc => bc.Id == id);
             var bookCategory = await query.Include(bc => bc.Book)

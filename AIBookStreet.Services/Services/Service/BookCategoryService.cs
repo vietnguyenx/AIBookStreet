@@ -33,7 +33,7 @@ namespace AIBookStreet.Services.Services.Service
             }
             return (null, 3);//fail
         }
-        public async Task<(long, BookCategory?)> UpdateABookCategory(Guid id, BookCategoryModel model)
+        public async Task<(long, BookCategory?)> UpdateABookCategory(Guid? id, BookCategoryModel model)
         {
             var existed = await _repository.BookCategoryRepository.GetByID(id);
             if (existed == null)

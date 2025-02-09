@@ -1,10 +1,12 @@
 ﻿using AIBookStreet.API.RequestModel;
 using AIBookStreet.API.ResponseModel;
+using AIBookStreet.API.SearchModel;
 using AIBookStreet.API.Tool.Constant;
 using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,9 +19,9 @@ namespace AIBookStreet.API.Controllers
         private readonly IBookCategoryService _service = service;
         private readonly IMapper _mapper = mapper;
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> AddABookCategory([FromQuery] BookCategoryModel model)
+        public async Task<IActionResult> AddABookCategory(BookCategoryModel model)
         {
             try
             {
@@ -33,13 +35,13 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //[Authorize]
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateABookCategory([FromRoute] Guid id, [FromQuery] BookCategoryModel model)
+        [Authorize]
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateABookCategory(BookCategoryModel model)
         {
             try
             {
-                var result = await _service.UpdateABookCategory(id, model);
+                var result = await _service.UpdateABookCategory(model.Id, model);
 
                 return result.Item1 switch
                 {
@@ -53,9 +55,9 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //[Authorize]
-        [HttpPut("delete/{id}")]
-        public async Task<IActionResult> DeleteABookCategory([FromRoute] Guid id)
+        [Authorize]
+        [HttpPut("delete")]
+        public async Task<IActionResult> DeleteABookCategory(Guid id)
         {
             try
             {
@@ -111,16 +113,16 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [HttpGet("pagination-and-search")]
-        public async Task<IActionResult> GetAllBookcategoriesPagination(string? key, Guid? bookID, Guid? categoryID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<IActionResult> GetAllBookcategoriesPagination(PaginatedRequest<BookCategorySearchRequest> request)
         {
             try
             {
-                var bookCategories = await _service.GetAllBookCategoriesPagination(key, bookID, categoryID, pageNumber, pageSize, sortField, desc);
+                var bookCategories = await _service.GetAllBookCategoriesPagination(request.Result.Key, request.Result.BookId, request.Result.CategoryId, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
 
                 return bookCategories.Item2 switch
                 {
                     0 => Ok(new PaginatedListResponse<BookCategoryRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new PaginatedListResponse<BookCategoryRequest>(ConstantMessage.Success, _mapper.Map<List<BookCategoryRequest>>(bookCategories.Item1), bookCategories.Item2, pageNumber != null ? (int)pageNumber : 1, pageSize != null ? (int)pageSize : 10, sortField, desc != null && (desc != false) ? 0 : 1))
+                    _ => Ok(new PaginatedListResponse<BookCategoryRequest>(ConstantMessage.Success, _mapper.Map<List<BookCategoryRequest>>(bookCategories.Item1), bookCategories.Item2, request.PageNumber, request.PageSize, request.SortField, request.SortOrder))
                 };
             }
             catch (Exception ex)
@@ -129,11 +131,11 @@ namespace AIBookStreet.API.Controllers
             };
         }
         [HttpGet("get-all-by-element")]
-        public async Task<IActionResult> GetBookCategoriesByElement(Guid? bookID, Guid? categoryID)
+        public async Task<IActionResult> GetBookCategoriesByElement(BookCategorySearchRequest request)
         {
             try
             {
-                var bookCategories = await _service.GetBookCategoryByElement(bookID, categoryID);
+                var bookCategories = await _service.GetBookCategoryByElement(request.BookId, request.CategoryId);
 
                 return bookCategories switch
                 {

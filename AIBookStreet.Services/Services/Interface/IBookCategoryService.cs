@@ -11,7 +11,7 @@ namespace AIBookStreet.Services.Services.Interface
     public interface IBookCategoryService
     {
         Task<(BookCategory?, long)> AddABookCategory(BookCategoryModel model);
-        Task<(long, BookCategory?)> UpdateABookCategory(Guid id, BookCategoryModel model);
+        Task<(long, BookCategory?)> UpdateABookCategory(Guid? id, BookCategoryModel model);
         Task<(long, BookCategory?)> DeleteABookCategory(Guid id);
         Task<BookCategory?> GetABookCategoryById(Guid id);
         Task<List<BookCategory>?> GetBookCategoryByElement(Guid? bookID, Guid? categoryID);
