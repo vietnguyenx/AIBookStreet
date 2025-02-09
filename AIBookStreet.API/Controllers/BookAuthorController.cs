@@ -1,5 +1,6 @@
 ﻿using AIBookStreet.API.RequestModel;
 using AIBookStreet.API.ResponseModel;
+using AIBookStreet.API.SearchModel;
 using AIBookStreet.API.Tool.Constant;
 using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Services.Model;
@@ -20,9 +21,9 @@ namespace AIBookStreet.API.Controllers
         private readonly IBookAuthorService _service = service;
         private readonly IMapper _mapper = mapper;
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> AddABookAuthor([FromQuery] BookAuthorModel model)
+        public async Task<IActionResult> AddABookAuthor(BookAuthorModel model)
         {
             try
             {
@@ -36,13 +37,13 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //[Authorize]
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateABookAuthor([FromRoute] Guid id, [FromQuery] BookAuthorModel model)
+        [Authorize]
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateABookAuthor(BookAuthorModel model)
         {
             try
             {
-                var result = await _service.UpdateABookAuthor(id, model);
+                var result = await _service.UpdateABookAuthor(model.Id, model);
 
                 return result.Item1 switch
                 {
@@ -56,9 +57,9 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //[Authorize]
-        [HttpPut("delete/{id}")]
-        public async Task<IActionResult> DeleteABookAuthor([FromRoute] Guid id)
+        [Authorize]
+        [HttpPut("delete")]
+        public async Task<IActionResult> DeleteABookAuthor(Guid id)
         {
             try
             {
@@ -116,16 +117,16 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [HttpGet("pagination-and-search")]
-        public async Task<IActionResult> GetAllBookAuthorsPagination(string? key, Guid? bookID, Guid? authorID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<IActionResult> GetAllBookAuthorsPagination(PaginatedRequest<BookAuthorSearchRequest> request)
         {
             try
             {
-                var bookAuthors = await _service.GetAllBookAuthorsPagination(key, bookID, authorID, pageNumber, pageSize, sortField, desc);
+                var bookAuthors = await _service.GetAllBookAuthorsPagination(request.Result.Key, request.Result.BookId, request.Result.AuthorId, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
 
                 return bookAuthors.Item2 switch
                 {
                     0 => Ok(new PaginatedListResponse<BookAuthorRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new PaginatedListResponse<BookAuthorRequest>(ConstantMessage.Success, _mapper.Map<List<BookAuthorRequest>>(bookAuthors.Item1), bookAuthors.Item2, pageNumber != null ? (int)pageNumber : 1, pageSize != null ? (int)pageSize : 10, sortField, desc != null && (desc != false) ? 0 : 1))
+                    _ => Ok(new PaginatedListResponse<BookAuthorRequest>(ConstantMessage.Success, _mapper.Map<List<BookAuthorRequest>>(bookAuthors.Item1), bookAuthors.Item2, request.PageNumber,request.PageSize, request.SortField, request.SortOrder))
                 };
             }
             catch (Exception ex)
@@ -134,11 +135,11 @@ namespace AIBookStreet.API.Controllers
             };
         }
         [HttpGet("get-all-by-element")]
-        public async Task<IActionResult> GetABookAuthorByElement(Guid? bookID, Guid? authorID)
+        public async Task<IActionResult> GetABookAuthorByElement(BookAuthorSearchRequest request)
         {
             try
             {
-                var bookAuthors = await _service.GetBookAuthorByElement(bookID, authorID);
+                var bookAuthors = await _service.GetBookAuthorByElement(request.BookId, request.AuthorId);
 
                 return bookAuthors switch
                 {

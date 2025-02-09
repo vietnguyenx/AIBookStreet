@@ -10,6 +10,7 @@ namespace AIBookStreet.Services.Model
 {
     public class BookAuthorModel
     {
+        public Guid? Id { get; set; }
         [Required]
         public Guid BookId { get; set; }
         [Required]
