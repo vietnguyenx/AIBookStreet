@@ -10,6 +10,7 @@ namespace AIBookStreet.Services.Model
 {
     public class AuthorModel
     {
+        public Guid? Id { get; set; }
         [Required]
         [MinLength(2, ErrorMessage = "Name is too short")]
         [MaxLength(100, ErrorMessage = "Name is too long")]

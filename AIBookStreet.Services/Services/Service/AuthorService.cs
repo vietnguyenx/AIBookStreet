@@ -29,7 +29,7 @@ namespace AIBookStreet.Services.Services.Service
             }
             return null;
         }
-        public async Task<(long, Author?)> UpdateAnAuthor(Guid authorID, AuthorModel authorModel)
+        public async Task<(long, Author?)> UpdateAnAuthor(Guid? authorID, AuthorModel authorModel)
         {
             var existAuthor = await _repository.AuthorRepository.GetByID(authorID);
             if (existAuthor == null)

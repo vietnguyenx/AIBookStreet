@@ -2,8 +2,6 @@
 {
     public class AuthorSearchRequest
     {
-        public string AuthorName { get; set; }
-        public string? Nationality { get; set; }
-        public string? Biography { get; set; }
+        public string? Key { get; set; }
     }
 }

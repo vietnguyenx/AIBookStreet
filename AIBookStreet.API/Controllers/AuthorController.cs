@@ -1,5 +1,6 @@
 ﻿using AIBookStreet.API.RequestModel;
 using AIBookStreet.API.ResponseModel;
+using AIBookStreet.API.SearchModel;
 using AIBookStreet.API.Tool.Constant;
 using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Services.Model;
@@ -18,9 +19,9 @@ namespace AIBookStreet.API.Controllers
         private readonly IAuthorService _service = service;
         private readonly IMapper _mapper = mapper;
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> AddAnAuthor([FromQuery]AuthorModel author)
+        public async Task<IActionResult> AddAnAuthor(AuthorModel author)
         {
             try
             {
@@ -32,13 +33,13 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //[Authorize]
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateAnAuthor([FromRoute]Guid id, [FromQuery]AuthorModel author)
+        [Authorize]
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateAnAuthor(AuthorModel author)
         {
             try
             {
-                var result = await _service.UpdateAnAuthor(id, author);
+                var result = await _service.UpdateAnAuthor(author.Id, author);
 
                 return result.Item1 switch
                 {
@@ -52,9 +53,9 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //[Authorize]
-        [HttpPut("delete/{id}")]
-        public async Task<IActionResult> DeleteAnAuthor([FromRoute]Guid id)
+        [Authorize]
+        [HttpPut("delete")]
+        public async Task<IActionResult> DeleteAnAuthor(Guid id)
         {
             try
             {
@@ -114,16 +115,16 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [HttpGet("pagination-and-search")]
-        public async Task<IActionResult> GetAllAuthorPagination(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<IActionResult> GetAllAuthorPagination(PaginatedRequest<AuthorSearchRequest> request)
         {
             try
             {
-                var authors = await _service.GetAllAuthorsPagination(key, pageNumber, pageSize, sortField, desc);
+                var authors = await _service.GetAllAuthorsPagination(request != null && request.Result != null ? request.Result.Key : null, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
 
                 return authors.Item2 switch
                 {
                     0 => Ok(new PaginatedListResponse<AuthorRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new PaginatedListResponse<AuthorRequest>(ConstantMessage.Success, _mapper.Map<List<AuthorRequest>>(authors.Item1), authors.Item2, pageNumber != null ? (int)pageNumber : 1, pageSize != null ? (int)pageSize : 10, sortField, desc != null && (desc != false) ? 0 : 1))
+                    _ => Ok(new PaginatedListResponse<AuthorRequest>(ConstantMessage.Success, _mapper.Map<List<AuthorRequest>>(authors.Item1), authors.Item2, request.PageNumber, request.PageSize, request.SortField, request.SortOrder != null && (request.SortOrder != 0) ? 0 : 1))
                 };
             }
             catch (Exception ex)
