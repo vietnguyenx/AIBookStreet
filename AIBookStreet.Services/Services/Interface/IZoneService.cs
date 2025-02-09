@@ -11,7 +11,7 @@ namespace AIBookStreet.Services.Services.Interface
     public interface IZoneService
     {
         Task<Zone?> AddAZone(ZoneModel model);
-        Task<(long, Zone?)> UpdateAZone(Guid id, ZoneModel model);
+        Task<(long, Zone?)> UpdateAZone(Guid? id, ZoneModel model);
         Task<(long, Zone?)> DeleteAZone(Guid id);
         Task<Zone?> GetAZoneById(Guid id);
         Task<List<Zone>?> GetAllActiveZones();

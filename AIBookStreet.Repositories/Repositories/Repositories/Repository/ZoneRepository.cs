@@ -81,7 +81,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return (zones, totalOrigin);
         }
-        public async Task<Zone?> GetByID(Guid id)
+        public async Task<Zone?> GetByID(Guid? id)
         {
             var query = GetQueryable(z => z.Id == id);
             var zone = await query.Include(z => z.BookStores)

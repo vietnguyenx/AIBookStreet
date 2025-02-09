@@ -27,7 +27,7 @@ namespace AIBookStreet.Services.Services.Service
             }
             return null;
         }
-        public async Task<(long, Zone?)> UpdateAZone(Guid id, ZoneModel model)
+        public async Task<(long, Zone?)> UpdateAZone(Guid? id, ZoneModel model)
         {
             var existed = await _repository.ZoneRepository.GetByID(id);
             if (existed == null)

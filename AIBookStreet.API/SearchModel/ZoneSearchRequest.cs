@@ -2,6 +2,7 @@
 {
     public class ZoneSearchRequest
     {
-        public string ZoneName { get; set; }
+        public string? ZoneName { get; set; }
+        public Guid? StreetId { get; set; }
     }
 }
