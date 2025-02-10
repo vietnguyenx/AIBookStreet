@@ -109,7 +109,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
-        [HttpGet("get-by-type-or-entityID")]
+        [HttpPost("get-by-type-or-entityID")]
         public async Task<IActionResult> GetList(ImageSearchRequest request)
         {
             try

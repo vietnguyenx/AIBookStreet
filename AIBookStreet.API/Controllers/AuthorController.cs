@@ -96,12 +96,12 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
-        [HttpGet("get-all-active")]
-        public async Task<IActionResult> GetAllActiveAuthors()
+        [HttpPost("search-not-pagination")]
+        public async Task<IActionResult> GetAllActiveAuthors(AuthorSearchRequest request)
         {
             try
             {
-                var authors = await _service.GetAllActiveAuthors();
+                var authors = await _service.GetAllActiveAuthors(request.AuthorName);
 
                 return authors switch
                 {
@@ -114,12 +114,12 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [HttpGet("pagination-and-search")]
+        [HttpPost("pagination-and-search")]
         public async Task<IActionResult> GetAllAuthorPagination(PaginatedRequest<AuthorSearchRequest> request)
         {
             try
             {
-                var authors = await _service.GetAllAuthorsPagination(request != null && request.Result != null ? request.Result.Key : null, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
+                var authors = await _service.GetAllAuthorsPagination(request != null && request.Result != null ? request.Result.AuthorName : null, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
 
                 return authors.Item2 switch
                 {

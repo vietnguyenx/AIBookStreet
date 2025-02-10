@@ -92,12 +92,12 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
-        [HttpGet("get-all-active")]
-        public async Task<IActionResult> GetAllActiveCategories()
+        [HttpPost("search-not-pagination")]
+        public async Task<IActionResult> GetAllActiveCategories(CategorySearchRequest request)
         {
             try
             {
-                var categories = await _service.GetAllActiveCategories();
+                var categories = await _service.GetAllActiveCategories(request.CategoryName);
 
                 return categories switch
                 {
@@ -110,12 +110,12 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [HttpGet("pagination-and-search")]
+        [HttpPost("pagination-and-search")]
         public async Task<IActionResult> GetAllCategoriesPagination(PaginatedRequest<CategorySearchRequest> request)
         {
             try
             {
-                var categories = await _service.GetAllCategoriesPagination(request.Result.Key, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
+                var categories = await _service.GetAllCategoriesPagination(request.Result.CategoryName, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
 
                 return categories.Item2 switch
                 {

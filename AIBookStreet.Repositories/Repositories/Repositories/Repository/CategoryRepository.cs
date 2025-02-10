@@ -3,6 +3,7 @@ using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Repositories.Repositories.Base;
 using AIBookStreet.Repositories.Repositories.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +14,14 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 {
     public class CategoryRepository(BSDbContext context) : BaseRepository<Category>(context), ICategoryRepository
     {
-        public async Task<List<Category>> GetAll()
+        public async Task<List<Category>> GetAll(string? name)
         {
             var queryable = GetQueryable();
             queryable = queryable.Where(c => !c.IsDeleted);
+            if (!string.IsNullOrEmpty(name))
+            {
+                queryable = queryable.Where(c => c.CategoryName.ToLower().Trim().Contains(name.ToLower().Trim()));
+            }
             var categories = await queryable.ToListAsync();
             return categories;
         }

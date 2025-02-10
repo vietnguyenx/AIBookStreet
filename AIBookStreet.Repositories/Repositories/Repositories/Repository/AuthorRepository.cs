@@ -4,6 +4,7 @@ using AIBookStreet.Repositories.Repositories.Base;
 using AIBookStreet.Repositories.Repositories.Repositories.Interface;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +15,17 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 {
     public class AuthorRepository(BSDbContext context) : BaseRepository<Author>(context), IAuthorRepository
     {
-        public async Task<List<Author>> GetAll()
+        public async Task<List<Author>> GetAll(string? authorName)
         {
             var queryable = GetQueryable();
             queryable = queryable.Where(at => !at.IsDeleted);
+            if (queryable.Any())
+            {
+                if (!string.IsNullOrEmpty(authorName))
+                {
+                    queryable = queryable.Where(at => at.AuthorName.ToLower().Trim().Contains(authorName.ToLower().Trim()));
+                }
+            }
             var authors = await queryable.ToListAsync();
             return authors;
         }

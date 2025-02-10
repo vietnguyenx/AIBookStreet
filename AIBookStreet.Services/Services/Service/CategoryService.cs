@@ -71,9 +71,9 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.CategoryRepository.GetByID(id);
         }
-        public async Task<List<Category>?> GetAllActiveCategories()
+        public async Task<List<Category>?> GetAllActiveCategories(string? name)
         {
-            var categories = await _repository.CategoryRepository.GetAll();
+            var categories = await _repository.CategoryRepository.GetAll(name);
 
             return categories.Count == 0 ? null : categories;
         }

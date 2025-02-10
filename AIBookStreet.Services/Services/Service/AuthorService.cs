@@ -64,9 +64,9 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.AuthorRepository.GetByID(id);
         }
-        public async Task<List<Author>?> GetAllActiveAuthors()
+        public async Task<List<Author>?> GetAllActiveAuthors(string? authorName)
         {
-            var authors = await _repository.AuthorRepository.GetAll();
+            var authors = await _repository.AuthorRepository.GetAll(authorName);
 
             return authors.Count == 0 ? null : authors;
         }

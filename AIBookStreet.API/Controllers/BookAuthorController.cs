@@ -116,7 +116,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [HttpGet("pagination-and-search")]
+        [HttpPost("pagination-and-search")]
         public async Task<IActionResult> GetAllBookAuthorsPagination(PaginatedRequest<BookAuthorSearchRequest> request)
         {
             try
@@ -134,7 +134,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
-        [HttpGet("get-all-by-element")]
+        [HttpPost("get-all-by-element")]
         public async Task<IActionResult> GetABookAuthorByElement(BookAuthorSearchRequest request)
         {
             try

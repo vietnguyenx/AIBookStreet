@@ -14,7 +14,7 @@ namespace AIBookStreet.Services.Services.Interface
         Task<(long, Category?)> UpdateACategory(Guid? id, CategoryModel model);
         Task<(long, Category?)> DeleteACategory(Guid id);
         Task<Category?> GetACategoryById(Guid id);
-        Task<List<Category>?> GetAllActiveCategories();
+        Task<List<Category>?> GetAllActiveCategories(string? name);
         Task<(List<Category>?, long)> GetAllCategoriesPagination(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc);
     }
 }

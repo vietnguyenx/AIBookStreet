@@ -110,7 +110,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [HttpGet("pagination-and-search")]
+        [HttpPost("pagination-and-search")]
         public async Task<IActionResult> GetAllZonesPagination(PaginatedRequest<ZoneSearchRequest> request)
         {
             try
