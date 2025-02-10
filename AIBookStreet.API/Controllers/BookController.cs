@@ -119,19 +119,28 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var isBook = await _bookService.Add(_mapper.Map<BookModel>(bookRequest));
+                var bookModel = _mapper.Map<BookModel>(bookRequest);
 
-                return isBook switch
+                if (bookRequest.AuthorIds != null && bookRequest.AuthorIds.Any())
                 {
-                    true => Ok(new BaseResponse(isBook, ConstantMessage.Success)),
-                    _ => Ok(new BaseResponse(isBook, ConstantMessage.Fail))
-                };
+                    bookModel.BookAuthors = bookRequest.AuthorIds.Select(authorId => new BookAuthorModel
+                    {
+                        AuthorId = authorId
+                    }).ToList();
+                }
+
+                var isBookAdded = await _bookService.Add(bookModel);
+
+                return isBookAdded
+                    ? Ok(new BaseResponse(true, ConstantMessage.Success))
+                    : BadRequest(new BaseResponse(false, ConstantMessage.Fail));
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
+
 
         [HttpPut("update")]
         public async Task<IActionResult> Update(BookRequest bookRequest)
