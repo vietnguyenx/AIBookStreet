@@ -46,10 +46,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             return book;
         }
 
-        public async Task<(List<Book>, long)> Search(Book book, DateTime? startDate, DateTime? endDate, int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<(List<Book>, long)> SearchPagination(Book book, DateTime? startDate, DateTime? endDate, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
             var queryable = GetQueryable()
-                .Where(b => !b.IsDeleted); // Chỉ lấy các sách chưa bị xóa
+                .Where(b => !b.IsDeleted); 
             queryable = base.ApplySort(queryable, sortField, sortOrder);
 
             if (queryable.Any())
@@ -107,6 +107,58 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return (books, totalOrigin);
         }
+
+        public async Task<List<Book>> SearchWithoutPagination(Book book, DateTime? startDate, DateTime? endDate)
+        {
+            var queryable = GetQueryable()
+                .Where(b => !b.IsDeleted); 
+
+            if (!string.IsNullOrEmpty(book.Code))
+            {
+                queryable = queryable.Where(b => b.Code.ToLower().Trim().Contains(book.Code.ToLower().Trim()));
+            }
+
+            if (!string.IsNullOrEmpty(book.Title))
+            {
+                queryable = queryable.Where(b => b.Title.ToLower().Trim().Contains(book.Title.ToLower().Trim()));
+            }
+
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                queryable = queryable.Where(b => b.PublicationDate >= startDate.Value && b.PublicationDate <= endDate.Value);
+            }
+            else if (startDate.HasValue)
+            {
+                queryable = queryable.Where(b => b.PublicationDate >= startDate.Value);
+            }
+            else if (endDate.HasValue)
+            {
+                queryable = queryable.Where(b => b.PublicationDate <= endDate.Value);
+            }
+
+            if (book.Price.HasValue && book.Price > 0)
+            {
+                queryable = queryable.Where(m => m.Price == book.Price);
+            }
+
+            if (!string.IsNullOrEmpty(book.Languages))
+            {
+                queryable = queryable.Where(b => b.Languages.ToLower().Trim().Contains(book.Languages.ToLower().Trim()));
+            }
+
+            if (!string.IsNullOrEmpty(book.Size))
+            {
+                queryable = queryable.Where(b => b.Size.ToLower().Trim().Contains(book.Size.ToLower().Trim()));
+            }
+
+            if (!string.IsNullOrEmpty(book.Status))
+            {
+                queryable = queryable.Where(b => b.Status.ToLower().Trim().Contains(book.Status.ToLower().Trim()));
+            }
+
+            return await queryable.Include(b => b.Images).ToListAsync();
+        }
+
 
     }
 }
