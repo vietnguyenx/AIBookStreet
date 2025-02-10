@@ -91,8 +91,8 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
-        [HttpPost("search")]
-        public async Task<IActionResult> Search(PaginatedRequest<BookSearchRequest> paginatedRequest)
+        [HttpPost("search-pagination")]
+        public async Task<IActionResult> SearchPagination(PaginatedRequest<BookSearchRequest> paginatedRequest)
         {
             try
             {
@@ -100,7 +100,7 @@ namespace AIBookStreet.API.Controllers
                 var startDate = paginatedRequest.Result.StartDate;
                 var endDate = paginatedRequest.Result.EndDate;
 
-                var books = await _bookService.Search(book, startDate, endDate, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
+                var books = await _bookService.SearchPagination(book, startDate, endDate, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
 
                 return books.Item1 switch
                 {
@@ -114,18 +114,58 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
+        [HttpPost("search-without-pagination")]
+        public async Task<IActionResult> SearchWithoutPagination(BookSearchRequest searchRequest)
+        {
+            try
+            {
+                var bookModel = _mapper.Map<BookModel>(searchRequest);
+                var startDate = searchRequest.StartDate;
+                var endDate = searchRequest.EndDate;
+
+                var books = await _bookService.SearchWithoutPagination(bookModel, startDate, endDate);
+
+                return books switch
+                {
+                    null => Ok(new ItemListResponse<BookModel>(ConstantMessage.NotFound, null)),
+                    not null => Ok(new ItemListResponse<BookModel>(ConstantMessage.Success, books))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            };
+        }
+
+
         [HttpPost("add")]
         public async Task<IActionResult> Add(BookRequest bookRequest)
         {
             try
             {
-                var isBook = await _bookService.Add(_mapper.Map<BookModel>(bookRequest));
+                var bookModel = _mapper.Map<BookModel>(bookRequest);
 
-                return isBook switch
+                if (bookRequest.AuthorIds != null && bookRequest.AuthorIds.Any())
                 {
-                    true => Ok(new BaseResponse(isBook, ConstantMessage.Success)),
-                    _ => Ok(new BaseResponse(isBook, ConstantMessage.Fail))
-                };
+                    bookModel.BookAuthors = bookRequest.AuthorIds.Select(authorId => new BookAuthorModel
+                    {
+                        AuthorId = authorId
+                    }).ToList();
+                }
+
+                if (bookRequest.CategoryIds != null && bookRequest.CategoryIds.Any())
+                {
+                    bookModel.BookCategories = bookRequest.CategoryIds.Select(categoryId => new BookCategoryModel
+                    {
+                        CategoryId = categoryId
+                    }).ToList();
+                }
+
+                var isBookAdded = await _bookService.Add(bookModel);
+
+                return isBookAdded
+                    ? Ok(new BaseResponse(true, ConstantMessage.Success))
+                    : BadRequest(new BaseResponse(false, ConstantMessage.Fail));
             }
             catch (Exception ex)
             {

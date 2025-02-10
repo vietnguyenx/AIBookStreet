@@ -12,7 +12,9 @@ namespace AIBookStreet.Services.Services.Interface
         Task<List<BookModel>> GetAll();
         Task<List<BookModel>?> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder);
         Task<BookModel?> GetById(Guid id);
-        Task<(List<BookModel>?, long)> Search(BookModel bookModel, DateTime? startDate, DateTime? endDate, int pageNumber, int pageSize, string sortField, int sortOrder);
+        Task<(List<BookModel>?, long)> SearchPagination(BookModel bookModel, DateTime? startDate, DateTime? endDate, int pageNumber, int pageSize, string sortField, int sortOrder);
+        Task<List<BookModel>?> SearchWithoutPagination(BookModel bookModel, DateTime? startDate, DateTime? endDate);
+
         Task<bool> Add(BookModel bookModel);
         Task<bool> Update(BookModel bookModel);
         Task<bool> Delete(Guid id);

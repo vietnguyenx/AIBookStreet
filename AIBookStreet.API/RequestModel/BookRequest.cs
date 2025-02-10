@@ -12,5 +12,8 @@
         public string? Status { get; set; }
 
         public Guid? PublisherId { get; set; }
+
+        public List<Guid>? AuthorIds { get; set; }
+        public List<Guid>? CategoryIds { get; set; }
     }
 }

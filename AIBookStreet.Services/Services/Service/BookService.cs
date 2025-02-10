@@ -60,10 +60,10 @@ namespace AIBookStreet.Services.Services.Service
             return _mapper.Map<BookModel>(book);
         }
 
-        public async Task<(List<BookModel>?, long)> Search(BookModel bookModel, DateTime? startDate, DateTime? endDate, int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<(List<BookModel>?, long)> SearchPagination(BookModel bookModel, DateTime? startDate, DateTime? endDate, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
             var books = _mapper.Map<Book>(bookModel);
-            var booksWithTotalOrigin = await _bookRepository.Search(books, startDate, endDate, pageNumber, pageSize, sortField, sortOrder);
+            var booksWithTotalOrigin = await _bookRepository.SearchPagination(books, startDate, endDate, pageNumber, pageSize, sortField, sortOrder);
 
             if (!booksWithTotalOrigin.Item1.Any())
             {
@@ -74,12 +74,49 @@ namespace AIBookStreet.Services.Services.Service
             return (bookModels, booksWithTotalOrigin.Item2);
         }
 
+        public async Task<List<BookModel>?> SearchWithoutPagination(BookModel bookModel, DateTime? startDate, DateTime? endDate)
+        {
+            var bookEntity = _mapper.Map<Book>(bookModel);
+            var books = await _bookRepository.SearchWithoutPagination(bookEntity, startDate, endDate);
+
+            if (!books.Any())
+            {
+                return null;
+            }
+
+            return _mapper.Map<List<BookModel>>(books);
+        }
+
+
         public async Task<bool> Add(BookModel bookModel)
         {
             var mappedBook = _mapper.Map<Book>(bookModel);
             var newBook = await SetBaseEntityToCreateFunc(mappedBook);
+
+            if (bookModel.BookAuthors != null && bookModel.BookAuthors.Any())
+            {
+                newBook.BookAuthors = bookModel.BookAuthors.Select(ba => new BookAuthor
+                {
+                    Id = Guid.NewGuid(),
+                    BookId = newBook.Id,
+                    AuthorId = ba.AuthorId
+                }).ToList();
+            }
+
+            if (bookModel.BookCategories != null && bookModel.BookCategories.Any())
+            {
+                newBook.BookCategories = bookModel.BookCategories.Select(bc => new BookCategory
+                {
+                    Id = Guid.NewGuid(),
+                    BookId = newBook.Id,
+                    CategoryId = bc.CategoryId
+                }).ToList();
+            }
+
             return await _bookRepository.Add(newBook);
         }
+
+
 
         public async Task<bool> Update(BookModel bookModel)
         {
