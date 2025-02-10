@@ -79,7 +79,6 @@ namespace AIBookStreet.Services.Services.Service
             var mappedBook = _mapper.Map<Book>(bookModel);
             var newBook = await SetBaseEntityToCreateFunc(mappedBook);
 
-            // Kiểm tra nếu có danh sách AuthorId từ request
             if (bookModel.BookAuthors != null && bookModel.BookAuthors.Any())
             {
                 newBook.BookAuthors = bookModel.BookAuthors.Select(ba => new BookAuthor
@@ -90,8 +89,19 @@ namespace AIBookStreet.Services.Services.Service
                 }).ToList();
             }
 
+            if (bookModel.BookCategories != null && bookModel.BookCategories.Any())
+            {
+                newBook.BookCategories = bookModel.BookCategories.Select(bc => new BookCategory
+                {
+                    Id = Guid.NewGuid(),
+                    BookId = newBook.Id,
+                    CategoryId = bc.CategoryId
+                }).ToList();
+            }
+
             return await _bookRepository.Add(newBook);
         }
+
 
 
         public async Task<bool> Update(BookModel bookModel)

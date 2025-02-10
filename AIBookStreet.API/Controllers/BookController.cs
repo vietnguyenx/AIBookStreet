@@ -129,6 +129,14 @@ namespace AIBookStreet.API.Controllers
                     }).ToList();
                 }
 
+                if (bookRequest.CategoryIds != null && bookRequest.CategoryIds.Any())
+                {
+                    bookModel.BookCategories = bookRequest.CategoryIds.Select(categoryId => new BookCategoryModel
+                    {
+                        CategoryId = categoryId
+                    }).ToList();
+                }
+
                 var isBookAdded = await _bookService.Add(bookModel);
 
                 return isBookAdded
@@ -140,7 +148,6 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
 
         [HttpPut("update")]
         public async Task<IActionResult> Update(BookRequest bookRequest)
