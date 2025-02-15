@@ -114,12 +114,12 @@ namespace AIBookStreet.API.Controllers
         }
 
         [HttpPost("search")]
-        public async Task<IActionResult> Search(PaginatedRequest<UserSearchRequest> paginatedRequest)
+        public async Task<IActionResult> SearchPagination(PaginatedRequest<UserSearchRequest> paginatedRequest)
         {
             try
             {
                 var user = _mapper.Map<UserModel>(paginatedRequest.Result);
-                var users = await _service.Search(user, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
+                var users = await _service.SearchPagination(user, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
 
                 return users.Item1 switch
                 {
@@ -132,6 +132,26 @@ namespace AIBookStreet.API.Controllers
 
                 return BadRequest(ex.Message);
             };
+        }
+
+        [HttpPost("search-without-pagination")]
+        public async Task<IActionResult> SearchWithoutPagination(UserSearchRequest userSearchRequest)
+        {
+            try
+            {
+                var user = _mapper.Map<UserModel>(userSearchRequest);
+                var users = await _service.SearchWithoutPagination(user);
+
+                return users switch
+                {
+                    null => Ok(new { message = ConstantMessage.NotFound, data = users }),
+                    not null => Ok(new { message = ConstantMessage.Success, data = users })
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [Authorize]
