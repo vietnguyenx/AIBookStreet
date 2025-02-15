@@ -13,7 +13,7 @@ namespace AIBookStreet.API.Controllers
 {
     [Route("api/inventory")]
     [ApiController]
-    [Authorize]
+    
     public class InventoryController : ControllerBase
     {
         private readonly IInventoryService _inventoryService;
@@ -80,6 +80,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("add")]
         public async Task<IActionResult> Add(InventoryRequest inventoryRequest)
         {
@@ -99,6 +100,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("delete")]
         public async Task<IActionResult> Delete(Guid idBook, Guid idBookStore)
         {

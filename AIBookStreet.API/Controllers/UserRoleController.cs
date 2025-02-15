@@ -13,7 +13,7 @@ namespace AIBookStreet.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
+    
     public class UserRoleController : ControllerBase
     {
         private readonly IUserRoleService _userRoleService;
@@ -80,6 +80,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("add")]
         public async Task<IActionResult> Add(UserRoleRequest userRoleRequest)
         {
@@ -99,6 +100,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("delete")]
         public async Task<IActionResult> Delete(Guid idUser, Guid idRole)
         {

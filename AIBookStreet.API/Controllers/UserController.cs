@@ -19,7 +19,7 @@ namespace AIBookStreet.API.Controllers
 {
     [Route("api/user")]
     [ApiController]
-    [Authorize]
+    
     public class UserController : ControllerBase
     {
         private readonly IUserService _service;
@@ -94,7 +94,6 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
-        [AllowAnonymous]
         [HttpGet("get-by-email/{email}")]
         public async Task<IActionResult> GetUserByEmail(string email)
         {
@@ -114,13 +113,13 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
-        [HttpPost("search")]
-        public async Task<IActionResult> Search(PaginatedRequest<UserSearchRequest> paginatedRequest)
+        [HttpPost("search-pagination")]
+        public async Task<IActionResult> SearchPagination(PaginatedRequest<UserSearchRequest> paginatedRequest)
         {
             try
             {
                 var user = _mapper.Map<UserModel>(paginatedRequest.Result);
-                var users = await _service.Search(user, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
+                var users = await _service.SearchPagination(user, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
 
                 return users.Item1 switch
                 {
@@ -135,6 +134,27 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
+        [HttpPost("search-without-pagination")]
+        public async Task<IActionResult> SearchWithoutPagination(UserSearchRequest userSearchRequest)
+        {
+            try
+            {
+                var user = _mapper.Map<UserModel>(userSearchRequest);
+                var users = await _service.SearchWithoutPagination(user);
+
+                return users switch
+                {
+                    null => Ok(new { message = ConstantMessage.NotFound, data = users }),
+                    not null => Ok(new { message = ConstantMessage.Success, data = users })
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [Authorize]
         [HttpPost("add")]
         public async Task<IActionResult> Add(UserRequest user)
         {
@@ -154,6 +174,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("update")]
         public async Task<IActionResult> Update(UserRequest user)
         {
@@ -175,6 +196,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("delete")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -201,7 +223,6 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] AuthModel authModel)
         {
@@ -225,7 +246,6 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [AllowAnonymous]
         // POST api/<AuthController>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRequest userRequest)
@@ -256,7 +276,6 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [AllowAnonymous]
         [HttpGet("google-login")]
         public IActionResult GoogleLogin()
         {
@@ -265,7 +284,6 @@ namespace AIBookStreet.API.Controllers
             return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
 
-        [AllowAnonymous]
         [HttpGet("google-response")]
         public async Task<IActionResult> GoogleResponse()
         {
@@ -292,7 +310,7 @@ namespace AIBookStreet.API.Controllers
                     Email = email,
                     FullName = name,
                     UserName = email.Split('@')[0],
-                    Password = Guid.NewGuid().ToString() // Generate random password
+                    Password = Guid.NewGuid().ToString() 
                 };
                 existingUser = await _service.Register(newUser);
             }

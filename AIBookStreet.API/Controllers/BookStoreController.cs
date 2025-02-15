@@ -13,7 +13,7 @@ namespace AIBookStreet.API.Controllers
 {
     [Route("api/bookStore")]
     [ApiController]
-    [Authorize]
+    
 
     public class BookStoreController : ControllerBase
     {
@@ -89,13 +89,13 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
-        [HttpPost("search")]
-        public async Task<IActionResult> Search(PaginatedRequest<BookStoreSearchRequest> paginatedRequest)
+        [HttpPost("search-pagination")]
+        public async Task<IActionResult> SearchPagination(PaginatedRequest<BookStoreSearchRequest> paginatedRequest)
         {
             try
             {
                 var bookStore = _mapper.Map<BookStoreModel>(paginatedRequest.Result);
-                var bookStores = await _bookStoreService.Search(bookStore, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
+                var bookStores = await _bookStoreService.SearchPagination(bookStore, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
 
                 return bookStores.Item1 switch
                 {
@@ -110,6 +110,26 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
+        [HttpPost("search-without-pagination")]
+        public async Task<IActionResult> SearchWithoutPagination(BookStoreSearchRequest searchRequest)
+        {
+            try
+            {
+                var bookStoreModel = _mapper.Map<BookStoreModel>(searchRequest);
+                var bookStores = await _bookStoreService.SearchWithoutPagination(bookStoreModel);
+
+                return bookStores == null
+                    ? Ok(new ItemListResponse<BookStoreModel>(ConstantMessage.NotFound, null))
+                    : Ok(new ItemListResponse<BookStoreModel>(ConstantMessage.Success, bookStores));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+        [Authorize]
         [HttpPost("add")]
         public async Task<IActionResult> Add(BookStoreRequest bookStoreRequest)
         {
@@ -129,6 +149,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("update")]
         public async Task<IActionResult> Update(BookStoreRequest bookStoreRequest)
         {
@@ -150,6 +171,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("delete")]
         public async Task<IActionResult> Delete(Guid id)
         {
