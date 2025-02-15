@@ -113,7 +113,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
-        [HttpPost("search")]
+        [HttpPost("search-pagination")]
         public async Task<IActionResult> SearchPagination(PaginatedRequest<UserSearchRequest> paginatedRequest)
         {
             try

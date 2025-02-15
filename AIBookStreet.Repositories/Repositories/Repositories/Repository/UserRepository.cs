@@ -46,76 +46,22 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
         public async Task<(List<User>, long)> SearchPagination(User user, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
-            var queryable = GetQueryable();
+            var queryable = GetQueryable().Where(u => !u.IsDeleted);
             queryable = base.ApplySort(queryable, sortField, sortOrder);
-
-            if (queryable.Any())
-            {
-                if (!string.IsNullOrEmpty(user.UserName))
-                {
-                    queryable = queryable.Where(u => u.UserName.ToLower().Trim() == user.UserName.ToLower().Trim());
-                }
-
-                if (!string.IsNullOrEmpty(user.Email))
-                {
-                    queryable = queryable.Where(u => u.Email.ToLower().Trim() == user.Email.ToLower().Trim());
-                }
-
-                if (!string.IsNullOrEmpty(user.FullName))
-                {
-                    queryable = queryable.Where(u => u.FullName.ToLower().Trim().Contains(user.FullName.ToLower().Trim()));
-                }
-
-                if (user.DOB.HasValue)
-                {
-                    queryable = queryable.Where(u => u.DOB.Value.Date == user.DOB.Value.Date);
-                }
-
-                if (!string.IsNullOrEmpty(user.Address))
-                {
-                    queryable = queryable.Where(u => u.Address.ToLower().Trim().Contains(user.Address.ToLower().Trim()));
-                }
-
-                if (!string.IsNullOrEmpty(user.Phone))
-                {
-                    queryable = queryable.Where(u => u.Phone.ToLower().Trim().Contains(user.Phone.ToLower().Trim()));
-                }
-
-                if (!string.IsNullOrEmpty(user.Gender))
-                {
-                    queryable = queryable.Where(u => u.Gender.ToLower().Trim() == user.Gender.ToLower().Trim());
-                }
-
-            }
-
-            var totalOrigin = queryable.Count();
-
-            queryable = GetQueryablePagination(queryable, pageNumber, pageSize);
-
-            var users = await queryable
-                .Include(u => u.Images)
-                .ToListAsync();
-
-            return (users, totalOrigin);
-        }
-
-        public async Task<List<User>> SearchWithoutPagination(User user)
-        {
-            var queryable = GetQueryable();
 
             if (!string.IsNullOrEmpty(user.UserName))
             {
-                queryable = queryable.Where(u => u.UserName.ToLower().Trim().Contains(user.UserName.ToLower().Trim()));
+                queryable = queryable.Where(u => EF.Functions.Collate(u.UserName, "Latin1_General_CI_AI").Contains(user.UserName));
             }
 
             if (!string.IsNullOrEmpty(user.Email))
             {
-                queryable = queryable.Where(u => u.Email.ToLower().Trim().Contains(user.Email.ToLower().Trim()));
+                queryable = queryable.Where(u => EF.Functions.Collate(u.Email, "Latin1_General_CI_AI").Contains(user.Email));
             }
 
             if (!string.IsNullOrEmpty(user.FullName))
             {
-                queryable = queryable.Where(u => u.FullName.ToLower().Trim().Contains(user.FullName.ToLower().Trim()));
+                queryable = queryable.Where(u => EF.Functions.Collate(u.FullName, "Latin1_General_CI_AI").Contains(user.FullName));
             }
 
             if (user.DOB.HasValue)
@@ -125,24 +71,68 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             if (!string.IsNullOrEmpty(user.Address))
             {
-                queryable = queryable.Where(u => u.Address.ToLower().Trim().Contains(user.Address.ToLower().Trim()));
+                queryable = queryable.Where(u => EF.Functions.Collate(u.Address, "Latin1_General_CI_AI").Contains(user.Address));
             }
 
             if (!string.IsNullOrEmpty(user.Phone))
             {
-                queryable = queryable.Where(u => u.Phone.ToLower().Trim().Contains(user.Phone.ToLower().Trim()));
+                queryable = queryable.Where(u => EF.Functions.Collate(u.Phone, "Latin1_General_CI_AI").Contains(user.Phone));
             }
 
             if (!string.IsNullOrEmpty(user.Gender))
             {
-                queryable = queryable.Where(u => u.Gender.ToLower().Trim() == user.Gender.ToLower().Trim());
+                queryable = queryable.Where(u => EF.Functions.Collate(u.Gender, "Latin1_General_CI_AI") == user.Gender);
             }
 
-            var users = await queryable
-                .Include(u => u.Images)
-                .ToListAsync();
+            var totalOrigin = await queryable.CountAsync();
 
-            return users;
+            queryable = GetQueryablePagination(queryable, pageNumber, pageSize);
+
+            var users = await queryable.Include(u => u.Images).ToListAsync();
+
+            return (users, totalOrigin);
+        }
+
+        public async Task<List<User>> SearchWithoutPagination(User user)
+        {
+            var queryable = GetQueryable().Where(u => !u.IsDeleted);
+
+            if (!string.IsNullOrEmpty(user.UserName))
+            {
+                queryable = queryable.Where(u => EF.Functions.Collate(u.UserName, "Latin1_General_CI_AI").Contains(user.UserName));
+            }
+
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                queryable = queryable.Where(u => EF.Functions.Collate(u.Email, "Latin1_General_CI_AI").Contains(user.Email));
+            }
+
+            if (!string.IsNullOrEmpty(user.FullName))
+            {
+                queryable = queryable.Where(u => EF.Functions.Collate(u.FullName, "Latin1_General_CI_AI").Contains(user.FullName));
+            }
+
+            if (user.DOB.HasValue)
+            {
+                queryable = queryable.Where(u => u.DOB.Value.Date == user.DOB.Value.Date);
+            }
+
+            if (!string.IsNullOrEmpty(user.Address))
+            {
+                queryable = queryable.Where(u => EF.Functions.Collate(u.Address, "Latin1_General_CI_AI").Contains(user.Address));
+            }
+
+            if (!string.IsNullOrEmpty(user.Phone))
+            {
+                queryable = queryable.Where(u => EF.Functions.Collate(u.Phone, "Latin1_General_CI_AI").Contains(user.Phone));
+            }
+
+            if (!string.IsNullOrEmpty(user.Gender))
+            {
+                queryable = queryable.Where(u => EF.Functions.Collate(u.Gender, "Latin1_General_CI_AI") == user.Gender);
+            }
+
+            return await queryable.Include(u => u.Images).ToListAsync();
         }
 
 

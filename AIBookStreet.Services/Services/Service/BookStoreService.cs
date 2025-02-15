@@ -60,10 +60,10 @@ namespace AIBookStreet.Services.Services.Service
             return _mapper.Map<BookStoreModel>(bookStore);
         }
 
-        public async Task<(List<BookStoreModel>?, long)> Search(BookStoreModel bookStoreModel, int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<(List<BookStoreModel>?, long)> SearchPagination(BookStoreModel bookStoreModel, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
             var bookStores = _mapper.Map<BookStore>(bookStoreModel);
-            var bookStoresWithTotalOrigin = await _bookStoreRepository.Search(bookStores, pageNumber, pageSize, sortField, sortOrder);
+            var bookStoresWithTotalOrigin = await _bookStoreRepository.SearchPagination(bookStores, pageNumber, pageSize, sortField, sortOrder);
 
             if (!bookStoresWithTotalOrigin.Item1.Any())
             {
@@ -73,6 +73,20 @@ namespace AIBookStreet.Services.Services.Service
 
             return (bookStoreModels, bookStoresWithTotalOrigin.Item2);
         }
+
+        public async Task<List<BookStoreModel>?> SearchWithoutPagination(BookStoreModel bookStoreModel)
+        {
+            var bookStore = _mapper.Map<BookStore>(bookStoreModel);
+            var bookStores = await _bookStoreRepository.SearchWithoutPagination(bookStore);
+
+            if (!bookStores.Any())
+            {
+                return null;
+            }
+
+            return _mapper.Map<List<BookStoreModel>>(bookStores);
+        }
+
 
         public async Task<bool> Add(BookStoreModel bookStoreModel)
         {

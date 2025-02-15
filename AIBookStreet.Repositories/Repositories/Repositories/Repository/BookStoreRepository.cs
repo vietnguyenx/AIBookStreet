@@ -45,31 +45,36 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             return bookStore;
         }
 
-        public async Task<(List<BookStore>, long)> Search(BookStore bookStore, int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<(List<BookStore>, long)> SearchPagination(BookStore bookStore, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
-            var queryable = GetQueryable();
+            var queryable = GetQueryable()
+                .Where(bs => !bs.IsDeleted);
             queryable = base.ApplySort(queryable, sortField, sortOrder);
 
             if (queryable.Any())
             {
                 if (!string.IsNullOrEmpty(bookStore.BookStoreName))
                 {
-                    queryable = queryable.Where(bs => bs.BookStoreName.ToLower().Trim().Contains(bookStore.BookStoreName.ToLower().Trim()));
+                    queryable = queryable.Where(bs =>
+                        EF.Functions.Collate(bs.BookStoreName, "Latin1_General_CI_AI").Contains(bookStore.BookStoreName));
                 }
 
                 if (!string.IsNullOrEmpty(bookStore.Address))
                 {
-                    queryable = queryable.Where(bs => bs.Address.ToLower().Trim().Contains(bookStore.Address.ToLower().Trim()));
+                    queryable = queryable.Where(bs =>
+                        EF.Functions.Collate(bs.Address, "Latin1_General_CI_AI").Contains(bookStore.Address));
                 }
 
                 if (!string.IsNullOrEmpty(bookStore.Phone))
                 {
-                    queryable = queryable.Where(bs => bs.Phone.ToLower().Trim().Contains(bookStore.Phone.ToLower().Trim()));
+                    queryable = queryable.Where(bs =>
+                        EF.Functions.Collate(bs.Phone, "Latin1_General_CI_AI").Contains(bookStore.Phone));
                 }
 
                 if (!string.IsNullOrEmpty(bookStore.Email))
                 {
-                    queryable = queryable.Where(bs => bs.Email.ToLower().Trim().Contains(bookStore.Email.ToLower().Trim()));
+                    queryable = queryable.Where(bs =>
+                        EF.Functions.Collate(bs.Email, "Latin1_General_CI_AI").Contains(bookStore.Email));
                 }
 
                 if (bookStore.OpeningTime.HasValue)
@@ -81,7 +86,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 {
                     queryable = queryable.Where(bs => bs.ClosingTime.Value.Date == bookStore.ClosingTime.Value.Date);
                 }
-
             }
             var totalOrigin = queryable.Count();
 
@@ -92,6 +96,48 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 .ToListAsync();
 
             return (bookstores, totalOrigin);
+        }
+
+        public async Task<List<BookStore>> SearchWithoutPagination(BookStore bookStore)
+        {
+            var queryable = GetQueryable()
+                .Where(bs => !bs.IsDeleted);
+
+            if (!string.IsNullOrEmpty(bookStore.BookStoreName))
+            {
+                queryable = queryable.Where(bs =>
+                    EF.Functions.Collate(bs.BookStoreName, "Latin1_General_CI_AI").Contains(bookStore.BookStoreName));
+            }
+
+            if (!string.IsNullOrEmpty(bookStore.Address))
+            {
+                queryable = queryable.Where(bs =>
+                    EF.Functions.Collate(bs.Address, "Latin1_General_CI_AI").Contains(bookStore.Address));
+            }
+
+            if (!string.IsNullOrEmpty(bookStore.Phone))
+            {
+                queryable = queryable.Where(bs =>
+                    EF.Functions.Collate(bs.Phone, "Latin1_General_CI_AI").Contains(bookStore.Phone));
+            }
+
+            if (!string.IsNullOrEmpty(bookStore.Email))
+            {
+                queryable = queryable.Where(bs =>
+                    EF.Functions.Collate(bs.Email, "Latin1_General_CI_AI").Contains(bookStore.Email));
+            }
+
+            if (bookStore.OpeningTime.HasValue)
+            {
+                queryable = queryable.Where(bs => bs.OpeningTime.Value.Date == bookStore.OpeningTime.Value.Date);
+            }
+
+            if (bookStore.ClosingTime.HasValue)
+            {
+                queryable = queryable.Where(bs => bs.ClosingTime.Value.Date == bookStore.ClosingTime.Value.Date);
+            }
+
+            return await queryable.Include(bs => bs.Images).ToListAsync();
         }
     }
 }
