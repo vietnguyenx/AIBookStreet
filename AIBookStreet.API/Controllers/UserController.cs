@@ -19,7 +19,7 @@ namespace AIBookStreet.API.Controllers
 {
     [Route("api/user")]
     [ApiController]
-    [Authorize]
+    
     public class UserController : ControllerBase
     {
         private readonly IUserService _service;
@@ -94,7 +94,6 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
-        [AllowAnonymous]
         [HttpGet("get-by-email/{email}")]
         public async Task<IActionResult> GetUserByEmail(string email)
         {
@@ -135,6 +134,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
+        [Authorize]
         [HttpPost("add")]
         public async Task<IActionResult> Add(UserRequest user)
         {
@@ -154,6 +154,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("update")]
         public async Task<IActionResult> Update(UserRequest user)
         {
@@ -175,6 +176,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("delete")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -201,7 +203,6 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] AuthModel authModel)
         {
@@ -225,7 +226,6 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [AllowAnonymous]
         // POST api/<AuthController>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRequest userRequest)
@@ -256,7 +256,6 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [AllowAnonymous]
         [HttpGet("google-login")]
         public IActionResult GoogleLogin()
         {
@@ -265,7 +264,6 @@ namespace AIBookStreet.API.Controllers
             return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
 
-        [AllowAnonymous]
         [HttpGet("google-response")]
         public async Task<IActionResult> GoogleResponse()
         {
@@ -292,7 +290,7 @@ namespace AIBookStreet.API.Controllers
                     Email = email,
                     FullName = name,
                     UserName = email.Split('@')[0],
-                    Password = Guid.NewGuid().ToString() // Generate random password
+                    Password = Guid.NewGuid().ToString() 
                 };
                 existingUser = await _service.Register(newUser);
             }

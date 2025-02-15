@@ -15,7 +15,6 @@ namespace AIBookStreet.API.Controllers
 {
     [Route("api/book")]
     [ApiController]
-    [Authorize]
 
     public class BookController : ControllerBase
     {
@@ -137,7 +136,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
-
+        [Authorize]
         [HttpPost("add")]
         public async Task<IActionResult> Add(BookRequest bookRequest)
         {
@@ -173,6 +172,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("update")]
         public async Task<IActionResult> Update(BookRequest bookRequest)
         {
@@ -194,6 +194,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("delete")]
         public async Task<IActionResult> Delete(Guid id)
         {
