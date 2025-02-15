@@ -73,14 +73,17 @@ namespace AIBookStreet.Services.Services.Service
         {
             var user = await GetUserInfo();
             var isAdmin = false;
-            foreach (var userRole in user.UserRoles)
+            if (user != null)
             {
-                if (userRole.Role.RoleName == "Quản trị viên")
+                foreach (var userRole in user.UserRoles)
                 {
-                    isAdmin = true;
+                    if (userRole.Role.RoleName == "Quản trị viên")
+                    {
+                        isAdmin = true;
+                    }
                 }
             }
-            var events = (user != null && isAdmin) ? await _repository.EventRepository.GetAllPaginationForAdmin(key, start, end, streetID, pageNumber, pageSize, sortField, desc)
+            var events = isAdmin ? await _repository.EventRepository.GetAllPaginationForAdmin(key, start, end, streetID, pageNumber, pageSize, sortField, desc)
                                                    : await _repository.EventRepository.GetAllPagination(key, start, end, streetID, pageNumber, pageSize, sortField, desc);
             return events.Item1.Count > 0 ? (events.Item1, events.Item2) : (null, 0);
         }

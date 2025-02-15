@@ -86,6 +86,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [AllowAnonymous]
         [HttpGet("get-by-id/{id}")]
         public async Task<IActionResult> GetAnImageById([FromRoute] Guid id)
         {
@@ -109,6 +110,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
+        [AllowAnonymous]
         [HttpPost("get-by-type-or-entityID")]
         public async Task<IActionResult> GetList(ImageSearchRequest request)
         {

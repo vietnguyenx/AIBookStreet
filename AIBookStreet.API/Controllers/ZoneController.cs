@@ -73,6 +73,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [AllowAnonymous]
         [HttpGet("get-by-id/{id}")]
         public async Task<IActionResult> GetAZoneById([FromRoute] Guid id)
         {
@@ -92,6 +93,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
+        [AllowAnonymous]
         [HttpGet("get-all-active")]
         public async Task<IActionResult> GetAllActiveCategories()
         {
@@ -110,6 +112,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [AllowAnonymous]
         [HttpPost("pagination-and-search")]
         public async Task<IActionResult> GetAllZonesPagination(PaginatedRequest<ZoneSearchRequest> request)
         {

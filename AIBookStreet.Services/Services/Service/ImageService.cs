@@ -61,11 +61,12 @@ namespace AIBookStreet.Services.Services.Service
                 var image = _mapper.Map<Image>(model);
                 var setImage = await SetBaseEntityToCreateFunc(image);
                 var isSuccess = await _repository.ImageRepository.Add(setImage);
-                if (isSuccess)
+                if (!isSuccess)
                 {
-                    images.Add(setImage);
+                    return null;
                 }
-                return null;
+                
+                images.Add(setImage);
             }
             return images;
         }

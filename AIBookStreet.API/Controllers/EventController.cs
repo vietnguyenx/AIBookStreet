@@ -75,6 +75,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [AllowAnonymous]
         [HttpGet("get-by-id/{id}")]
         public async Task<IActionResult> GetAnEventById([FromRoute] Guid id)
         {
@@ -94,6 +95,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
+        [AllowAnonymous]
         [HttpGet("get-event-coming")]
         public async Task<IActionResult> GetEventsComing(int number)
         {
@@ -112,6 +114,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [AllowAnonymous]
         [HttpPost("pagination-and-search")]
         public async Task<IActionResult> GetAllEventsPagination(PaginatedRequest<EventSearchRequest> request)
         {

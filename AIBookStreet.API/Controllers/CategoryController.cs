@@ -73,6 +73,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [AllowAnonymous]
         [HttpGet("get-by-id/{id}")]
         public async Task<IActionResult> GetACategoryById([FromRoute] Guid id)
         {
@@ -92,6 +93,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
+        [AllowAnonymous]
         [HttpPost("search-not-pagination")]
         public async Task<IActionResult> GetAllActiveCategories(CategorySearchRequest request)
         {
@@ -110,6 +112,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [AllowAnonymous]
         [HttpPost("pagination-and-search")]
         public async Task<IActionResult> GetAllCategoriesPagination(PaginatedRequest<CategorySearchRequest> request)
         {

@@ -77,6 +77,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [AllowAnonymous]
         [HttpGet("get-by-id/{id}")]
         public async Task<IActionResult> GetABookAuthorById([FromRoute] Guid id)
         {
@@ -96,6 +97,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
+        [AllowAnonymous]
         [HttpGet("get-all-active")]
         public async Task<IActionResult> GetAllActiveBookAuthors()
         {
@@ -116,6 +118,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [AllowAnonymous]
         [HttpPost("pagination-and-search")]
         public async Task<IActionResult> GetAllBookAuthorsPagination(PaginatedRequest<BookAuthorSearchRequest> request)
         {
@@ -134,6 +137,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
+        [AllowAnonymous]
         [HttpPost("get-all-by-element")]
         public async Task<IActionResult> GetABookAuthorByElement(BookAuthorSearchRequest request)
         {
