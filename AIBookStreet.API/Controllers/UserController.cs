@@ -6,10 +6,14 @@ using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AIBookStreet.Services.Services.Service;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace AIBookStreet.API.Controllers
 {
@@ -250,6 +254,64 @@ namespace AIBookStreet.API.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [AllowAnonymous]
+        [HttpGet("google-login")]
+        public IActionResult GoogleLogin()
+        {
+            var redirectUrl = Url.Action(nameof(GoogleResponse), "User");
+            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("google-response")]
+        public async Task<IActionResult> GoogleResponse()
+        {
+            var authResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (!authResult.Succeeded)
+            {
+                return Unauthorized(new { message = "Google authentication failed" });
+            }
+
+            var claims = authResult.Principal.Identities.FirstOrDefault()?.Claims;
+            var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var name = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest(new { message = "Unable to retrieve email from Google login" });
+            }
+
+            var existingUser = await _service.GetUserByEmail(new UserModel { Email = email });
+            if (existingUser == null)
+            {
+                var newUser = new UserModel
+                {
+                    Email = email,
+                    FullName = name,
+                    UserName = email.Split('@')[0],
+                    Password = Guid.NewGuid().ToString() // Generate random password
+                };
+                existingUser = await _service.Register(newUser);
+            }
+
+            if (existingUser == null)
+            {
+                return BadRequest(new { message = "User registration failed" });
+            }
+
+            JwtSecurityToken token = _service.CreateToken(existingUser);
+
+            return Ok(new
+            {
+                message = "Login successful",
+                email,
+                name,
+                token = new JwtSecurityTokenHandler().WriteToken(token),
+                expires = token.ValidTo
+            });
         }
     }
 }
