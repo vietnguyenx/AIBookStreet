@@ -310,7 +310,7 @@ namespace AIBookStreet.API.Controllers
                     Email = email,
                     FullName = name,
                     UserName = email.Split('@')[0],
-                    Password = Guid.NewGuid().ToString() 
+                    Password = Guid.NewGuid().ToString()
                 };
                 existingUser = await _service.Register(newUser);
             }
@@ -322,14 +322,12 @@ namespace AIBookStreet.API.Controllers
 
             JwtSecurityToken token = _service.CreateToken(existingUser);
 
-            return Ok(new
-            {
-                message = "Login successful",
-                email,
-                name,
-                token = new JwtSecurityTokenHandler().WriteToken(token),
-                expires = token.ValidTo
-            });
+            return Ok(new LoginResponse<UserModel>(
+                ConstantMessage.Success,
+                existingUser,
+                new JwtSecurityTokenHandler().WriteToken(token),
+                token.ValidTo.ToString()
+            ));
         }
     }
 }
