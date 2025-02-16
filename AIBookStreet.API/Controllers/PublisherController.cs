@@ -90,13 +90,13 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
-        [HttpPost("search")]
-        public async Task<IActionResult> Search(PaginatedRequest<PublisherSearchRequest> paginatedRequest)
+        [HttpPost("search-pagination")]
+        public async Task<IActionResult> SearchPagination(PaginatedRequest<PublisherSearchRequest> paginatedRequest)
         {
             try
             {
                 var publisher = _mapper.Map<PublisherModel>(paginatedRequest.Result);
-                var publishers = await _publisherService.Search(publisher, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
+                var publishers = await _publisherService.SearchPagination(publisher, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
 
                 return publishers.Item1 switch
                 {
@@ -109,6 +109,26 @@ namespace AIBookStreet.API.Controllers
 
                 return BadRequest(ex.Message);
             };
+        }
+
+        [HttpPost("search-without-pagination")]
+        public async Task<IActionResult> SearchWithoutPagination([FromBody] PublisherSearchRequest searchRequest)
+        {
+            try
+            {
+                var publisher = _mapper.Map<PublisherModel>(searchRequest);
+                var publishers = await _publisherService.SearchWithoutPagination(publisher);
+
+                return publishers switch
+                {
+                    null => Ok(new ItemListResponse<PublisherModel>(ConstantMessage.NotFound, null)),
+                    not null => Ok(new ItemListResponse<PublisherModel>(ConstantMessage.Success, publishers))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [Authorize]

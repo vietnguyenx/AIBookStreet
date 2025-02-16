@@ -44,38 +44,35 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             return publisher;
         }
 
-        public async Task<(List<Publisher>, long)> Search(Publisher publisher, int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<(List<Publisher>, long)> SearchPagination(Publisher publisher, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
-            var queryable = GetQueryable();
+            var queryable = GetQueryable()
+                .Where(b => !b.IsDeleted);
             queryable = base.ApplySort(queryable, sortField, sortOrder);
 
-            if (queryable.Any())
+            if (!string.IsNullOrEmpty(publisher.PublisherName))
             {
-                if (!string.IsNullOrEmpty(publisher.PublisherName))
-                {
-                    queryable = queryable.Where(p => p.PublisherName.ToLower().Trim().StartsWith(publisher.PublisherName.ToLower().Trim()));
-                }
+                queryable = queryable.Where(p => EF.Functions.Collate(p.PublisherName, "Latin1_General_CI_AI").Contains(publisher.PublisherName));
+            }
 
-                if (!string.IsNullOrEmpty(publisher.Address))
-                {
-                    queryable = queryable.Where(p => p.Address.ToLower().Trim().StartsWith(publisher.Address.ToLower().Trim()));
-                }
+            if (!string.IsNullOrEmpty(publisher.Address))
+            {
+                queryable = queryable.Where(p => EF.Functions.Collate(p.Address, "Latin1_General_CI_AI").Contains(publisher.Address));
+            }
 
-                if (!string.IsNullOrEmpty(publisher.Phone))
-                {
-                    queryable = queryable.Where(p => p.Phone.ToLower().Trim().StartsWith(publisher.Phone.ToLower().Trim()));
-                }
+            if (!string.IsNullOrEmpty(publisher.Phone))
+            {
+                queryable = queryable.Where(p => p.Phone.Contains(publisher.Phone));
+            }
 
-                if (!string.IsNullOrEmpty(publisher.Email))
-                {
-                    queryable = queryable.Where(p => p.Email.ToLower().Trim().StartsWith(publisher.Email.ToLower().Trim()));
-                }
+            if (!string.IsNullOrEmpty(publisher.Email))
+            {
+                queryable = queryable.Where(p => p.Email.Contains(publisher.Email));
+            }
 
-                if (!string.IsNullOrEmpty(publisher.Website))
-                {
-                    queryable = queryable.Where(p => p.Website.ToLower().Trim().StartsWith(publisher.Website.ToLower().Trim()));
-                }      
-
+            if (!string.IsNullOrEmpty(publisher.Website))
+            {
+                queryable = queryable.Where(p => p.Website.Contains(publisher.Website));
             }
 
             var totalOrigin = queryable.Count();
@@ -84,7 +81,45 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var publishers = await queryable
                 .Include(p => p.Images)
                 .ToListAsync();
+
             return (publishers, totalOrigin);
+        }
+
+        public async Task<List<Publisher>> SearchWithoutPagination(Publisher publisher)
+        {
+            var queryable = GetQueryable()
+                .Where(b => !b.IsDeleted);
+
+            if (!string.IsNullOrEmpty(publisher.PublisherName))
+            {
+                queryable = queryable.Where(p => EF.Functions.Collate(p.PublisherName, "Latin1_General_CI_AI").Contains(publisher.PublisherName));
+            }
+
+            if (!string.IsNullOrEmpty(publisher.Address))
+            {
+                queryable = queryable.Where(p => EF.Functions.Collate(p.Address, "Latin1_General_CI_AI").Contains(publisher.Address));
+            }
+
+            if (!string.IsNullOrEmpty(publisher.Phone))
+            {
+                queryable = queryable.Where(p => p.Phone.Contains(publisher.Phone));
+            }
+
+            if (!string.IsNullOrEmpty(publisher.Email))
+            {
+                queryable = queryable.Where(p => p.Email.Contains(publisher.Email));
+            }
+
+            if (!string.IsNullOrEmpty(publisher.Website))
+            {
+                queryable = queryable.Where(p => p.Website.Contains(publisher.Website));
+            }
+
+            var publishers = await queryable
+                .Include(p => p.Images)
+                .ToListAsync();
+
+            return publishers;
         }
     }
 }
