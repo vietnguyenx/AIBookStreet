@@ -12,7 +12,8 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
     {
         Task<List<User>> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder);
         Task<User?> GetById(Guid id);
-        Task<(List<User>, long)> Search(User user, int pageNumber, int pageSize, string sortField, int sortOrder);
+        Task<(List<User>, long)> SearchPagination(User user, int pageNumber, int pageSize, string sortField, int sortOrder);
+        Task<List<User>> SearchWithoutPagination(User user);
 
         Task<User> FindUsernameOrEmail(User user);
         Task<User> GetUserByEmail(User user);

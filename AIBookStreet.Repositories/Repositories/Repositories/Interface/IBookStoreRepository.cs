@@ -12,6 +12,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
     {
         Task<List<BookStore>> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder);
         Task<BookStore?> GetById(Guid id);
-        Task<(List<BookStore>, long)> Search(BookStore bookStore, int pageNumber, int pageSize, string sortField, int sortOrder);
+        Task<(List<BookStore>, long)> SearchPagination(BookStore bookStore, int pageNumber, int pageSize, string sortField, int sortOrder);
+        Task<List<BookStore>> SearchWithoutPagination(BookStore bookStore);
     }
 }

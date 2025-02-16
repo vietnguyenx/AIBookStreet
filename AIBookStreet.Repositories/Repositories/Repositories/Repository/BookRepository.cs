@@ -15,7 +15,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
     {
         private readonly BSDbContext _context;
 
-        public BookRepository(BSDbContext context) : base(context) 
+        public BookRepository(BSDbContext context) : base(context)
         {
             _context = context;
         }
@@ -49,19 +49,21 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         public async Task<(List<Book>, long)> SearchPagination(Book book, DateTime? startDate, DateTime? endDate, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
             var queryable = GetQueryable()
-                .Where(b => !b.IsDeleted); 
+                .Where(b => !b.IsDeleted);
             queryable = base.ApplySort(queryable, sortField, sortOrder);
 
             if (queryable.Any())
             {
                 if (!string.IsNullOrEmpty(book.Code))
                 {
-                    queryable = queryable.Where(b => b.Code.ToLower().Trim().Contains(book.Code.ToLower().Trim()));
+                    queryable = queryable.Where(b =>
+                        EF.Functions.Collate(b.Code, "Latin1_General_CI_AI").Contains(book.Code));
                 }
 
                 if (!string.IsNullOrEmpty(book.Title))
                 {
-                    queryable = queryable.Where(b => b.Title.ToLower().Trim().Contains(book.Title.ToLower().Trim()));
+                    queryable = queryable.Where(b =>
+                        EF.Functions.Collate(b.Title, "Latin1_General_CI_AI").Contains(book.Title));
                 }
 
                 if (startDate.HasValue && endDate.HasValue)
@@ -84,17 +86,20 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
                 if (!string.IsNullOrEmpty(book.Languages))
                 {
-                    queryable = queryable.Where(b => b.Languages.ToLower().Trim().Contains(book.Languages.ToLower().Trim()));
+                    queryable = queryable.Where(b =>
+                        EF.Functions.Collate(b.Languages, "Latin1_General_CI_AI").Contains(book.Languages));
                 }
 
                 if (!string.IsNullOrEmpty(book.Size))
                 {
-                    queryable = queryable.Where(b => b.Size.ToLower().Trim().Contains(book.Size.ToLower().Trim()));
+                    queryable = queryable.Where(b =>
+                        EF.Functions.Collate(b.Size, "Latin1_General_CI_AI").Contains(book.Size));
                 }
 
                 if (!string.IsNullOrEmpty(book.Status))
                 {
-                    queryable = queryable.Where(b => b.Status.ToLower().Trim().Contains(book.Status.ToLower().Trim()));
+                    queryable = queryable.Where(b =>
+                        EF.Functions.Collate(b.Status, "Latin1_General_CI_AI").Contains(book.Status));
                 }
             }
             var totalOrigin = queryable.Count();
@@ -111,16 +116,18 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         public async Task<List<Book>> SearchWithoutPagination(Book book, DateTime? startDate, DateTime? endDate)
         {
             var queryable = GetQueryable()
-                .Where(b => !b.IsDeleted); 
+                .Where(b => !b.IsDeleted);
 
             if (!string.IsNullOrEmpty(book.Code))
             {
-                queryable = queryable.Where(b => b.Code.ToLower().Trim().Contains(book.Code.ToLower().Trim()));
+                queryable = queryable.Where(b =>
+                    EF.Functions.Collate(b.Code, "Latin1_General_CI_AI").Contains(book.Code));
             }
 
             if (!string.IsNullOrEmpty(book.Title))
             {
-                queryable = queryable.Where(b => b.Title.ToLower().Trim().Contains(book.Title.ToLower().Trim()));
+                queryable = queryable.Where(b =>
+                    EF.Functions.Collate(b.Title, "Latin1_General_CI_AI").Contains(book.Title));
             }
 
             if (startDate.HasValue && endDate.HasValue)
@@ -143,22 +150,23 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             if (!string.IsNullOrEmpty(book.Languages))
             {
-                queryable = queryable.Where(b => b.Languages.ToLower().Trim().Contains(book.Languages.ToLower().Trim()));
+                queryable = queryable.Where(b =>
+                    EF.Functions.Collate(b.Languages, "Latin1_General_CI_AI").Contains(book.Languages));
             }
 
             if (!string.IsNullOrEmpty(book.Size))
             {
-                queryable = queryable.Where(b => b.Size.ToLower().Trim().Contains(book.Size.ToLower().Trim()));
+                queryable = queryable.Where(b =>
+                    EF.Functions.Collate(b.Size, "Latin1_General_CI_AI").Contains(book.Size));
             }
 
             if (!string.IsNullOrEmpty(book.Status))
             {
-                queryable = queryable.Where(b => b.Status.ToLower().Trim().Contains(book.Status.ToLower().Trim()));
+                queryable = queryable.Where(b =>
+                    EF.Functions.Collate(b.Status, "Latin1_General_CI_AI").Contains(book.Status));
             }
 
             return await queryable.Include(b => b.Images).ToListAsync();
         }
-
-
     }
 }

@@ -7,13 +7,14 @@ using AIBookStreet.Repositories.Repositories.UnitOfWork.Interface;
 using AIBookStreet.Repositories.Repositories.UnitOfWork.Repository;
 using AIBookStreet.Services.Services.Interface;
 using AIBookStreet.Services.Services.Service;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -105,42 +106,46 @@ builder.Services.AddCors(options =>
     });
 });
 
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
-.AddJwtBearer(options =>
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
 {
-    options.Audience = "http://localhost:4200/";
-    options.SaveToken = true;
-    options.RequireHttpsMetadata = true;
-
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
             builder.Configuration.GetValue<string>("AppSettings:Token"))),
-        ClockSkew = TimeSpan.Zero
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        RequireExpirationTime = true,
+        ValidateLifetime = true,
     };
+})
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
+.AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+{
+    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    options.CallbackPath = "/signin-google";
 });
 
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-    app.UseSwagger();
-    app.UseSwaggerUI();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.MapControllers();

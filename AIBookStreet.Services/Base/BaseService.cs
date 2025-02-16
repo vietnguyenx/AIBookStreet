@@ -127,6 +127,4 @@ namespace AIBookStreet.Services.Base
         }
 
     }
-
-
 }

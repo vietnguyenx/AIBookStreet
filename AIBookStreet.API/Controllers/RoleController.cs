@@ -44,6 +44,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("add")]
         public async Task<IActionResult> Add(RoleRequest roleRequest)
         {
@@ -63,6 +64,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("delete")]
         public async Task<IActionResult> Delete(Guid id)
         {
