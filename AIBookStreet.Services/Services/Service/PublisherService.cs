@@ -60,10 +60,10 @@ namespace AIBookStreet.Services.Services.Service
             return _mapper.Map<PublisherModel>(publisher);
         }
 
-        public async Task<(List<PublisherModel>?, long)> Search(PublisherModel publisherModel, int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<(List<PublisherModel>?, long)> SearchPagination(PublisherModel publisherModel, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
             var publishers = _mapper.Map<Publisher>(publisherModel);
-            var publishersWithTotalOrigin = await _publisherRepository.Search(publishers, pageNumber, pageSize, sortField, sortOrder);
+            var publishersWithTotalOrigin = await _publisherRepository.SearchPagination(publishers, pageNumber, pageSize, sortField, sortOrder);
 
             if (!publishersWithTotalOrigin.Item1.Any())
             {
@@ -72,6 +72,20 @@ namespace AIBookStreet.Services.Services.Service
             var publisherModels = _mapper.Map<List<PublisherModel>>(publishersWithTotalOrigin.Item1);
 
             return (publisherModels, publishersWithTotalOrigin.Item2);
+        }
+
+        public async Task<List<PublisherModel>?> SearchWithoutPagination(PublisherModel publisherModel)
+        {
+            var publisher = _mapper.Map<Publisher>(publisherModel);
+            var publishers = await _publisherRepository.SearchWithoutPagination(publisher);
+
+            if (!publishers.Any())
+            {
+                return null;
+            }
+
+            var publisherModels = _mapper.Map<List<PublisherModel>>(publishers);
+            return publisherModels;
         }
 
         public async Task<bool> Add(PublisherModel publisherModel)

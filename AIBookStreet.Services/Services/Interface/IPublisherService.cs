@@ -12,7 +12,8 @@ namespace AIBookStreet.Services.Services.Interface
         Task<List<PublisherModel>> GetAll();
         Task<List<PublisherModel>?> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder);
         Task<PublisherModel?> GetById(Guid id);
-        Task<(List<PublisherModel>?, long)> Search(PublisherModel publisherModel, int pageNumber, int pageSize, string sortField, int sortOrder);
+        Task<(List<PublisherModel>?, long)> SearchPagination(PublisherModel publisherModel, int pageNumber, int pageSize, string sortField, int sortOrder);
+        Task<List<PublisherModel>?> SearchWithoutPagination(PublisherModel publisherModel);
         Task<bool> Add(PublisherModel publisherModel);
         Task<bool> Update(PublisherModel publisherModel);
         Task<bool> Delete(Guid id);
