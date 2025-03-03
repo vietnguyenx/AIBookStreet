@@ -6,9 +6,12 @@ using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
+using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AIBookStreet.API.Controllers
 {
@@ -133,6 +136,48 @@ namespace AIBookStreet.API.Controllers
 
                 return BadRequest(ex.Message);
             };
+        }
+        [AllowAnonymous]
+        [HttpGet("get-date-have-event-in-month-{month}")]
+        public async Task<IActionResult> GetEventDatesInMonth([FromRoute]int month)
+        {
+            try
+            {
+                if (month < 1 ||  month > 12)
+                {
+                    return Ok("Tháng phải trong khoảng 1 - 12 !!!");
+                }
+                var dates = await _service.GetEventDatesInMonth(month);
+
+                return dates switch
+                {
+                    null => Ok(new List<DateOnly>()),
+                    not null => Ok(dates)
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [AllowAnonymous]
+        [HttpPost("get-events-by-date")]
+        public async Task<IActionResult> GetEventsByDate(DateTime date)
+        {
+            try
+            {
+                var events = await _service.GetEventByDate(date);
+
+                return events switch
+                {
+                    null => Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, null)),
+                    not null => Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<List<EventRequest>>(events)))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

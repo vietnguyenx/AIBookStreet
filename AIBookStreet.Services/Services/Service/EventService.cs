@@ -91,5 +91,13 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.EventRepository.GetEventsComing(number);
         }
+        public async Task<List<DateOnly>?> GetEventDatesInMonth(int month)
+        {
+            return await _repository.EventRepository.GetDatesInMonth(month);
+        }
+        public async Task<List<Event>?> GetEventByDate(DateTime date)
+        {
+            return await _repository.EventRepository.GetByDate(date);
+        }
     }
 }

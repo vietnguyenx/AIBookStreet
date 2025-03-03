@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 {
@@ -36,11 +38,11 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 }
                 if (start != null)
                 {
-                    queryable = queryable.Where(ev => ev.StartDate > start);
+                    queryable = queryable.Where(ev => ev.StartDate >= start);
                 }
                 if (end != null)
                 {
-                    queryable = queryable.Where(ev => ev.EndDate < end);
+                    queryable = queryable.Where(ev => ev.EndDate <= end);
                 }
             }
             var totalOrigin = queryable.Count();
@@ -77,11 +79,11 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 }
                 if (start != null)
                 {
-                    queryable = queryable.Where(ev => ev.StartDate > start);
+                    queryable = queryable.Where(ev => ev.StartDate >= start);
                 }
                 if (end != null)
                 {
-                    queryable = queryable.Where(ev => ev.EndDate < end);
+                    queryable = queryable.Where(ev => ev.EndDate <= end);
                 }
             }
             var totalOrigin = queryable.Count();
@@ -123,6 +125,58 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 .Include(at => at.Images)
                 .Include(ev => ev.Street).ToListAsync();
 
+            return events;
+        }
+        public async Task<List<DateOnly>?> GetDatesInMonth(int month)
+        {
+            var queryable = GetQueryable();
+            queryable = base.ApplySort(queryable, "StartDate", 1);
+            queryable = queryable.Where(ev => !ev.IsDeleted);
+
+            if (queryable.Any())
+            {
+                queryable = queryable.Where(ev => (ev.StartDate.Value.Month == month && ev.StartDate.Value.Year == DateTime.Now.Year) || (ev.EndDate.Value.Month == month && ev.EndDate.Value.Year == DateTime.Now.Year));
+            }
+
+            var events = await queryable.ToListAsync();
+
+            var dates = new List<DateOnly>();
+            foreach (var evt in events)
+            {
+                DateTime date = evt.StartDate.Value.Month < month ? new DateTime(DateTime.Now.Year, month, 1) : (DateTime)evt.StartDate;
+                DateTime endDate = evt.EndDate.Value.Month > month ? new DateTime(DateTime.Now.Year, month, DateTime.DaysInMonth(DateTime.Now.Year, month)) : (DateTime)evt.EndDate;
+                while (date < endDate.AddDays(1))
+                {
+                    var existed = false;
+                    var dateConverted = DateOnly.FromDateTime(date);
+                    for (int i = 0; i < dates.Count; i++)
+                    {
+                        if (dates[i] == dateConverted)
+                        {
+                            existed = true; break;
+                        }
+                    }
+                    if (!existed)
+                    {
+                        dates.Add(dateConverted);
+                    }
+                    date = date.AddDays(1);
+                }
+            }
+
+            return dates;
+        }
+        public async Task<List<Event>?> GetByDate(DateTime date)
+        {
+            var queryable = GetQueryable();
+            queryable = base.ApplySort(queryable, "StartDate", 1);
+            queryable = queryable.Where(ev => !ev.IsDeleted);
+            if (queryable.Any())
+            {
+                queryable = queryable.Where(ev => ev.StartDate <= date && ev.EndDate >= date);
+            }
+
+            var events = await queryable.ToListAsync();
             return events;
         }
     }

@@ -16,5 +16,7 @@ namespace AIBookStreet.Services.Services.Interface
         Task<Event?> GetAnEventById(Guid id);
         Task<(List<Event>?, long)> GetAllEventsPagination(string? key, DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc);
         Task<List<Event>?> GetEventComing(int number);
+        Task<List<DateOnly>?> GetEventDatesInMonth(int month);
+        Task<List<Event>?> GetEventByDate(DateTime date);
     }
 }
