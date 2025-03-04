@@ -9,8 +9,11 @@ namespace AIBookStreet.API.RequestModel
         public string? Description { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
+        public string? BaseImgUrl { get; set; }
+        public string? VideoLink { get; set; }
+        public bool isOpen { get; set; }
         public bool IsDeleted { get; set; }
-        public virtual StreetRequest? Street { get; set; }
+        public virtual ZoneRequest? zone { get; set; }
         public virtual ICollection<ImageRequest>? Images { get; set; }
     }
 }

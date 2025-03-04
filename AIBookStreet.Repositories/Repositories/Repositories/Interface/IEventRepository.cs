@@ -14,7 +14,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
         Task<(List<Event>, long)> GetAllPaginationForAdmin(string? key, DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc);
         Task<Event?> GetByID(Guid? id);
         Task<List<Event>?> GetEventsComing(int number);
-        Task<List<DateOnly>?> GetDatesInMonth(int month);
-        Task<List<Event>?> GetByDate(DateTime date);
+        Task<List<DateOnly>?> GetDatesInMonth(int? month);
+        Task<List<Event>?> GetByDate(DateTime? date);
     }
 }

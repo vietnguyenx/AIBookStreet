@@ -18,7 +18,7 @@ namespace AIBookStreet.Services.Services.Service
         private readonly IUnitOfWork _repository = repository;
         public async Task<(long, Event?)> AddAnEvent(EventModel model)
         {
-            var existed = await _repository.EventRepository.GetAllPagination(null, model.StartDate, model.EndDate, model.StreetId, 1, 1, null, true);
+            var existed = await _repository.EventRepository.GetAllPagination(null, model.StartDate, model.EndDate, model.ZoneId, 1, 1, null, true);
             if (existed.Item2 > 0 && existed.Item1 != null)
             {
                 return (1, null); //da co su kien tren duong sach vao thoi gian nay
@@ -47,7 +47,7 @@ namespace AIBookStreet.Services.Services.Service
             existed.Description = model.Description ?? existed.Description;
             existed.StartDate = model.StartDate ?? existed.StartDate;
             existed.EndDate = model.EndDate ?? existed.EndDate;
-            existed.StreetId = model.StreetId ?? existed.StreetId;
+            existed.ZoneId = model.ZoneId ?? existed.ZoneId;
 
             existed = await SetBaseEntityToUpdateFunc(existed);
             return await _repository.EventRepository.Update(existed) ? (2, existed) //update thanh cong
@@ -91,11 +91,11 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.EventRepository.GetEventsComing(number);
         }
-        public async Task<List<DateOnly>?> GetEventDatesInMonth(int month)
+        public async Task<List<DateOnly>?> GetEventDatesInMonth(int? month)
         {
             return await _repository.EventRepository.GetDatesInMonth(month);
         }
-        public async Task<List<Event>?> GetEventByDate(DateTime date)
+        public async Task<List<Event>?> GetEventByDate(DateTime? date)
         {
             return await _repository.EventRepository.GetByDate(date);
         }

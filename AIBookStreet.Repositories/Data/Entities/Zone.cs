@@ -15,5 +15,6 @@ namespace AIBookStreet.Repositories.Data.Entities
         public virtual Street? Street { get; set; }
 
         public virtual ICollection<BookStore>? BookStores { get; set; }
+        public virtual ICollection<Event>? Events { get; set; }
     }
 }

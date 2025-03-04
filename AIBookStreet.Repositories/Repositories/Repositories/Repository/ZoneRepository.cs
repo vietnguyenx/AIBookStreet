@@ -86,6 +86,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var query = GetQueryable(z => z.Id == id);
             var zone = await query.Include(z => z.BookStores)
                                   .Include(z => z.Street)
+                                  .Include(st => st.Events)
                                   .SingleOrDefaultAsync();
 
             return zone;

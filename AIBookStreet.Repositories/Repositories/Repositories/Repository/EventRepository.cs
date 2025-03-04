@@ -17,7 +17,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 {
     public class EventRepository(BSDbContext context) : BaseRepository<Event>(context), IEventRepository
     {
-        public async Task<(List<Event>, long)> GetAllPagination(string? key, DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<(List<Event>, long)> GetAllPagination(string? key, DateTime? start, DateTime? end, Guid? zoneID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             var queryable = GetQueryable();
             string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
@@ -32,9 +32,9 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                     queryable = queryable.Where(ev => ev.EventName.ToLower().Trim().Contains(key.ToLower().Trim())
                                                    || (!string.IsNullOrEmpty(ev.Description) && ev.Description.ToLower().Trim().Contains(key.ToLower().Trim())));
                 }
-                if (streetID != null)
+                if (zoneID != null)
                 {
-                    queryable = queryable.Where(ev => ev.StreetId == streetID);
+                    queryable = queryable.Where(ev => ev.ZoneId == zoneID);
                 }
                 if (start != null)
                 {
@@ -54,12 +54,12 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             var events = await queryable
                 .Include(at => at.Images)
-                .Include(ev => ev.Street)
+                .Include(ev => ev.Zone)
                 .ToListAsync();
 
             return (events, totalOrigin);
         }
-        public async Task<(List<Event>, long)> GetAllPaginationForAdmin(string? key, DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<(List<Event>, long)> GetAllPaginationForAdmin(string? key, DateTime? start, DateTime? end, Guid? zoneID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             var queryable = GetQueryable();
             string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
@@ -73,9 +73,9 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                     queryable = queryable.Where(ev => ev.EventName.ToLower().Trim().Contains(key.ToLower().Trim())
                                                    || (!string.IsNullOrEmpty(ev.Description) && ev.Description.ToLower().Trim().Contains(key.ToLower().Trim())));
                 }
-                if (streetID != null)
+                if (zoneID != null)
                 {
-                    queryable = queryable.Where(ev => ev.StreetId == streetID);
+                    queryable = queryable.Where(ev => ev.ZoneId == zoneID);
                 }
                 if (start != null)
                 {
@@ -95,7 +95,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             var events = await queryable
                 .Include(at => at.Images)
-                .Include(ev => ev.Street)
+                .Include(ev => ev.Zone)
                 .ToListAsync();
 
             return (events, totalOrigin);
@@ -103,7 +103,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         public async Task<Event?> GetByID(Guid? id)
         {
             var query = GetQueryable(ev => ev.Id == id);
-            var ev = await query.Include(e => e.Street)
+            var ev = await query.Include(e => e.Zone)
                                   .Include(at => at.Images)
                                   .SingleOrDefaultAsync();
 
@@ -123,15 +123,16 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             var events = await queryable
                 .Include(at => at.Images)
-                .Include(ev => ev.Street).ToListAsync();
+                .Include(ev => ev.Zone).ToListAsync();
 
             return events;
         }
-        public async Task<List<DateOnly>?> GetDatesInMonth(int month)
+        public async Task<List<DateOnly>?> GetDatesInMonth(int? month)
         {
             var queryable = GetQueryable();
             queryable = base.ApplySort(queryable, "StartDate", 1);
-            queryable = queryable.Where(ev => !ev.IsDeleted);
+
+            month = month == null ? DateTime.Now.Month : month;
 
             if (queryable.Any())
             {
@@ -143,8 +144,8 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var dates = new List<DateOnly>();
             foreach (var evt in events)
             {
-                DateTime date = evt.StartDate.Value.Month < month ? new DateTime(DateTime.Now.Year, month, 1) : (DateTime)evt.StartDate;
-                DateTime endDate = evt.EndDate.Value.Month > month ? new DateTime(DateTime.Now.Year, month, DateTime.DaysInMonth(DateTime.Now.Year, month)) : (DateTime)evt.EndDate;
+                DateTime date = evt.StartDate.Value.Month < month ? new DateTime(DateTime.Now.Year, (int)month, 1) : (DateTime)evt.StartDate;
+                DateTime endDate = evt.EndDate.Value.Month > month ? new DateTime(DateTime.Now.Year, (int)month, DateTime.DaysInMonth(DateTime.Now.Year, (int)month)) : (DateTime)evt.EndDate;
                 while (date < endDate.AddDays(1))
                 {
                     var existed = false;
@@ -166,7 +167,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return dates;
         }
-        public async Task<List<Event>?> GetByDate(DateTime date)
+        public async Task<List<Event>?> GetByDate(DateTime? date)
         {
             var queryable = GetQueryable();
             queryable = base.ApplySort(queryable, "StartDate", 1);

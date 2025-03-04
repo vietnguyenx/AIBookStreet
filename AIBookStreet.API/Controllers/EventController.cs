@@ -123,7 +123,7 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var events = await _service.GetAllEventsPagination(request.Result.Key, request.Result.StartDate, request.Result.EndDate, request.Result.StreetId, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
+                var events = await _service.GetAllEventsPagination(request.Result.Key, request.Result.StartDate, request.Result.EndDate, request.Result.ZoneId, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
 
                 return events.Item2 switch
                 {
@@ -138,8 +138,8 @@ namespace AIBookStreet.API.Controllers
             };
         }
         [AllowAnonymous]
-        [HttpGet("get-date-have-event-in-month-{month}")]
-        public async Task<IActionResult> GetEventDatesInMonth([FromRoute]int month)
+        [HttpPost("get-date-have-event-in-month")]
+        public async Task<IActionResult> GetEventDatesInMonth(int? month)
         {
             try
             {
@@ -162,7 +162,7 @@ namespace AIBookStreet.API.Controllers
         }
         [AllowAnonymous]
         [HttpPost("get-events-by-date")]
-        public async Task<IActionResult> GetEventsByDate(DateTime date)
+        public async Task<IActionResult> GetEventsByDate(DateTime? date)
         {
             try
             {

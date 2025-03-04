@@ -16,6 +16,9 @@ namespace AIBookStreet.Services.Model
         public string? Description { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
-        public Guid? StreetId { get; set; }
+        public string? BaseImgUrl { get; set; }
+        public string? VideoLink { get; set; }
+        public bool isOpen { get; set; }
+        public Guid? ZoneId { get; set; }
     }
 }

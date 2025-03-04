@@ -77,6 +77,7 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.DOB).IsRequired(false);
                 e.Property(x => x.Nationality).HasMaxLength(100).IsRequired(false);
                 e.Property(x => x.Biography).HasMaxLength(2000).IsRequired(false);
+                e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
 
                 // 1-n voi bookAuthor
                 e.HasMany(x => x.BookAuthors)
@@ -213,11 +214,15 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.Description).HasMaxLength(1000).IsRequired(false);
                 e.Property(x => x.StartDate).IsRequired(false);
                 e.Property(x => x.EndDate).IsRequired(false);
+                e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
+                e.Property(x => x.VideoLink).HasMaxLength(2000).IsRequired(false);
+                e.Property(x => x.isOpen).IsRequired(true);
 
-                // n-1 voi street
-                e.HasOne(x => x.Street)
+
+                // n-1 voi zone
+                e.HasOne(x => x.Zone)
                     .WithMany(s => s.Events)
-                    .HasForeignKey(x => x.StreetId)
+                    .HasForeignKey(x => x.ZoneId)
                     .OnDelete(DeleteBehavior.SetNull); // neu street bi xoa, streetId cua event = null
 
                 // 1-n voi image
@@ -294,6 +299,9 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.StreetName).HasMaxLength(255).IsRequired();
                 e.Property(x => x.Address).HasMaxLength(500).IsRequired(false);
                 e.Property(x => x.Description).HasMaxLength(2000).IsRequired(false);
+                e.Property(x => x.Latitude).IsRequired(false);
+                e.Property(x => x.Longitude).IsRequired(false);
+                e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
 
                 // 1-n voi zone
                 e.HasMany(x => x.Zones)
@@ -301,10 +309,6 @@ namespace AIBookStreet.Repositories.Data
                  .HasForeignKey(z => z.StreetId)
                  .OnDelete(DeleteBehavior.SetNull); // neu xoa street, zone khong bi xoa (SetNull)
 
-                e.HasMany(x => x.Events)
-                 .WithOne(ev => ev.Street)
-                 .HasForeignKey(ev => ev.StreetId)
-                 .OnDelete(DeleteBehavior.SetNull); // neu xoa street, cac event khong bi xoa (SetNull)
 
                 // 1-n voi image
                 e.HasMany(s => s.Images)
@@ -384,6 +388,11 @@ namespace AIBookStreet.Repositories.Data
                     .WithOne(x => x.Zone)
                     .HasForeignKey(x => x.ZoneId)
                     .OnDelete(DeleteBehavior.SetNull); // khi zone bi xoa, BookStore co ZoneId = null
+
+                e.HasMany(x => x.Events)
+                 .WithOne(ev => ev.Zone)
+                 .HasForeignKey(ev => ev.ZoneId)
+                 .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<Image>(e =>

@@ -81,7 +81,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         {
             var query = GetQueryable(st => st.Id == id);
             var street = await query.Include(at => at.Zones)
-                                    .Include(st => st.Events)
                                   .Include(at => at.Images)
                                   .SingleOrDefaultAsync();
 
@@ -92,7 +91,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var query = GetQueryable();
             query = query.Where(st => !string.IsNullOrEmpty(st.Address) && st.Address == address);
             var street = await query.Include(at => at.Zones)
-                                    .Include(st => st.Events)
                                   .Include(at => at.Images)
                                   .SingleOrDefaultAsync();
 

@@ -12,6 +12,7 @@ namespace AIBookStreet.Repositories.Data.Entities
         public DateTime? DOB { get; set; }
         public string? Nationality { get; set; }
         public string? Biography { get; set; }
+        public string? BaseImgUrl { get; set; }
 
         public virtual ICollection<BookAuthor>? BookAuthors { get; set; }
         public virtual ICollection<Image>? Images { get; set; }
