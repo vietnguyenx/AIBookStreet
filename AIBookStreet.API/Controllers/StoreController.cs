@@ -15,12 +15,12 @@ namespace AIBookStreet.API.Controllers
     [ApiController]
     
 
-    public class BookStoreController : ControllerBase
+    public class StoreController : ControllerBase
     {
-        private readonly IBookStoreService _bookStoreService;
+        private readonly IStoreService _bookStoreService;
         private readonly IMapper _mapper;
 
-        public BookStoreController(IBookStoreService bookStoreService, IMapper mapper)
+        public StoreController(IStoreService bookStoreService, IMapper mapper)
         {
             _bookStoreService = bookStoreService;
             _mapper = mapper;
@@ -35,8 +35,8 @@ namespace AIBookStreet.API.Controllers
 
                 return bookStores switch
                 {
-                    null => Ok(new ItemListResponse<BookStoreModel>(ConstantMessage.Fail, null)),
-                    not null => Ok(new ItemListResponse<BookStoreModel>(ConstantMessage.Success, bookStores))
+                    null => Ok(new ItemListResponse<StoreModel>(ConstantMessage.Fail, null)),
+                    not null => Ok(new ItemListResponse<StoreModel>(ConstantMessage.Success, bookStores))
                 };
             }
             catch (Exception ex)
@@ -54,8 +54,8 @@ namespace AIBookStreet.API.Controllers
                 long totalOrigin = await _bookStoreService.GetTotalCount();
                 return bookStores switch
                 {
-                    null => Ok(new PaginatedListResponse<BookStoreModel>(ConstantMessage.NotFound)),
-                    not null => Ok(new PaginatedListResponse<BookStoreModel>(ConstantMessage.Success, bookStores, totalOrigin, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField))
+                    null => Ok(new PaginatedListResponse<StoreModel>(ConstantMessage.NotFound)),
+                    not null => Ok(new PaginatedListResponse<StoreModel>(ConstantMessage.Success, bookStores, totalOrigin, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField))
                 };
             }
             catch (Exception ex)
@@ -78,8 +78,8 @@ namespace AIBookStreet.API.Controllers
 
                 return bookStoreModel switch
                 {
-                    null => Ok(new ItemResponse<BookStoreModel>(ConstantMessage.NotFound)),
-                    not null => Ok(new ItemResponse<BookStoreModel>(ConstantMessage.Success, bookStoreModel))
+                    null => Ok(new ItemResponse<StoreModel>(ConstantMessage.NotFound)),
+                    not null => Ok(new ItemResponse<StoreModel>(ConstantMessage.Success, bookStoreModel))
                 };
             }
             catch (Exception ex)
@@ -94,13 +94,13 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var bookStore = _mapper.Map<BookStoreModel>(paginatedRequest.Result);
+                var bookStore = _mapper.Map<StoreModel>(paginatedRequest.Result);
                 var bookStores = await _bookStoreService.SearchPagination(bookStore, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
 
                 return bookStores.Item1 switch
                 {
-                    null => Ok(new PaginatedListResponse<BookStoreModel>(ConstantMessage.NotFound, bookStores.Item1, bookStores.Item2, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField)),
-                    not null => Ok(new PaginatedListResponse<BookStoreModel>(ConstantMessage.Success, bookStores.Item1, bookStores.Item2, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField))
+                    null => Ok(new PaginatedListResponse<StoreModel>(ConstantMessage.NotFound, bookStores.Item1, bookStores.Item2, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField)),
+                    not null => Ok(new PaginatedListResponse<StoreModel>(ConstantMessage.Success, bookStores.Item1, bookStores.Item2, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField))
                 };
             }
             catch (Exception ex)
@@ -115,12 +115,12 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var bookStoreModel = _mapper.Map<BookStoreModel>(searchRequest);
+                var bookStoreModel = _mapper.Map<StoreModel>(searchRequest);
                 var bookStores = await _bookStoreService.SearchWithoutPagination(bookStoreModel);
 
                 return bookStores == null
-                    ? Ok(new ItemListResponse<BookStoreModel>(ConstantMessage.NotFound, null))
-                    : Ok(new ItemListResponse<BookStoreModel>(ConstantMessage.Success, bookStores));
+                    ? Ok(new ItemListResponse<StoreModel>(ConstantMessage.NotFound, null))
+                    : Ok(new ItemListResponse<StoreModel>(ConstantMessage.Success, bookStores));
             }
             catch (Exception ex)
             {
@@ -131,11 +131,11 @@ namespace AIBookStreet.API.Controllers
 
         [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> Add(BookStoreRequest bookStoreRequest)
+        public async Task<IActionResult> Add(StoreRequest bookStoreRequest)
         {
             try
             {
-                var isBookStore = await _bookStoreService.Add(_mapper.Map<BookStoreModel>(bookStoreRequest));
+                var isBookStore = await _bookStoreService.Add(_mapper.Map<StoreModel>(bookStoreRequest));
 
                 return isBookStore switch
                 {
@@ -151,11 +151,11 @@ namespace AIBookStreet.API.Controllers
 
         [Authorize]
         [HttpPut("update")]
-        public async Task<IActionResult> Update(BookStoreRequest bookStoreRequest)
+        public async Task<IActionResult> Update(StoreRequest bookStoreRequest)
         {
             try
             {
-                var bookStoreModel = _mapper.Map<BookStoreModel>(bookStoreRequest);
+                var bookStoreModel = _mapper.Map<StoreModel>(bookStoreRequest);
 
                 var isBookStore = await _bookStoreService.Update(bookStoreModel);
 

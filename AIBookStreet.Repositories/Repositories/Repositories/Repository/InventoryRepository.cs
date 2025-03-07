@@ -22,27 +22,27 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
         public async Task<List<Inventory?>> GetByBookId(Guid bookId)
         {
-            var query = GetQueryable(i => i.BookId == bookId);
+            var query = GetQueryable(i => i.EntityId == bookId);
             return await query
                 .Include(i => i.Book)
-                .Include(i => i.BookStore)
+                .Include(i => i.Store)
                 .ToListAsync();
         }
 
         public async Task<List<Inventory?>> GetByBookStoreId(Guid bookStoreId)
         {
-            var query = GetQueryable(i => i.BookStoreId == bookStoreId);
+            var query = GetQueryable(i => i.StoreId == bookStoreId);
             return await query
                 .Include(i => i.Book)
-                .Include(i => i.BookStore)
+                .Include(i => i.Store)
                 .ToListAsync();
         }
 
-        public async Task<Inventory?> GetByBookIdAndBookStoreId(Guid bookId, Guid bookStoreId)
+        public async Task<Inventory?> GetByBookIdAndBookStoreId(Guid? bookId, Guid bookStoreId)
         {
-            Inventory inventory = await _context.Inventories.Where(x => x.BookId == bookId && x.BookStoreId == bookStoreId)
+            Inventory inventory = await _context.Inventories.Where(x => x.EntityId == bookId && x.StoreId == bookStoreId)
                 .Include(i => i.Book)
-                .Include(i => i.BookStore)
+                .Include(i => i.Store)
                 .SingleOrDefaultAsync();
             return inventory;
         }

@@ -52,7 +52,7 @@ namespace AIBookStreet.Services.Services.Service
 
         public async Task<bool> Add(InventoryModel inventoryModel)
         {
-            var inventory = await _inventoryRepository.GetByBookIdAndBookStoreId(inventoryModel.BookId, inventoryModel.BookStoreId);
+            var inventory = await _inventoryRepository.GetByBookIdAndBookStoreId(inventoryModel.EntityId, inventoryModel.StoreId);
             if (inventory != null) { return false; }
             var mappedInventory = _mapper.Map<Inventory>(inventoryModel);
             var newInventory = await SetBaseEntityToCreateFunc(mappedInventory);

@@ -138,7 +138,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
         [AllowAnonymous]
-        [HttpPost("get-date-have-event-in-month")]
+        [HttpGet("get-date-have-event-in-month")]
         public async Task<IActionResult> GetEventDatesInMonth(int? month)
         {
             try
@@ -161,7 +161,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpPost("get-events-by-date")]
+        [HttpGet("get-events-by-date")]
         public async Task<IActionResult> GetEventsByDate(DateTime? date)
         {
             try

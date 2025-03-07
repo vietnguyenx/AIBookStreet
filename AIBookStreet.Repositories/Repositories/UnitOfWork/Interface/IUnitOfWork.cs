@@ -13,7 +13,7 @@ namespace AIBookStreet.Repositories.Repositories.UnitOfWork.Interface
         IBookAuthorRepository BookAuthorRepository { get; }
         IBookCategoryRepository BookCategoryRepository { get; }
         IBookRepository BookRepository { get; }
-        IBookStoreRepository BookStoreRepository { get; }
+        IStoreRepository BookStoreRepository { get; }
         ICategoryRepository CategoryRepository { get; }
         IEventRepository EventRepository { get; }
         IInventoryRepository InventoryRepository { get; }
@@ -24,5 +24,6 @@ namespace AIBookStreet.Repositories.Repositories.UnitOfWork.Interface
         IUserRoleRepository UserRoleRepository { get; }
         IZoneRepository ZoneRepository { get; }
         IImageRepository ImageRepository { get; }
+        ISouvenirRepository SouvenirRepository { get; }
     }
 }

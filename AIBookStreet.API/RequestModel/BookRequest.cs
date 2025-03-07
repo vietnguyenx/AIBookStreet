@@ -10,6 +10,7 @@
         public string? Description { get; set; }
         public string? Size { get; set; }
         public string? Status { get; set; }
+        public string? BaseImgUrl { get; set; }
 
         public Guid? PublisherId { get; set; }
 

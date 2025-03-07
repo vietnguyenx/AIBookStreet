@@ -14,6 +14,7 @@ namespace AIBookStreet.Repositories.Data.Entities
         public string? Email { get; set; }
         public string? Description { get; set; }
         public string? Website { get; set; }
+        public string? BaseImgUrl { get; set; }
 
         public Guid? ManagerId { get; set; } 
         public virtual User? Manager { get; set; } 

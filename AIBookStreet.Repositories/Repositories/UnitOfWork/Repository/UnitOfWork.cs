@@ -19,7 +19,7 @@ namespace AIBookStreet.Repositories.Repositories.UnitOfWork.Repository
         public IBookAuthorRepository BookAuthorRepository => GetRepository<IBookAuthorRepository>();
         public IBookCategoryRepository BookCategoryRepository => GetRepository<IBookCategoryRepository>();
         public IBookRepository BookRepository => GetRepository<IBookRepository>();
-        public IBookStoreRepository BookStoreRepository => GetRepository<IBookStoreRepository>();
+        public IStoreRepository BookStoreRepository => GetRepository<IStoreRepository>();
         public ICategoryRepository CategoryRepository => GetRepository<ICategoryRepository>();
         public IEventRepository EventRepository => GetRepository<IEventRepository>();
         public IInventoryRepository InventoryRepository => GetRepository<IInventoryRepository>();
@@ -30,5 +30,6 @@ namespace AIBookStreet.Repositories.Repositories.UnitOfWork.Repository
         public IUserRoleRepository UserRoleRepository => GetRepository<IUserRoleRepository>();
         public IZoneRepository ZoneRepository => GetRepository<IZoneRepository>();
         public IImageRepository ImageRepository => GetRepository<IImageRepository>();
+        public ISouvenirRepository SouvenirRepository => GetRepository<ISouvenirRepository>();
     }
 }

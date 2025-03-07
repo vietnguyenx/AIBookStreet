@@ -16,6 +16,7 @@ namespace AIBookStreet.Repositories.Data.Entities
         public string? Description { get; set; }
         public string? Size { get; set; }
         public string? Status { get; set; }
+        public string? BaseImgUrl { get; set; }
 
         public Guid? PublisherId { get; set; }
         public virtual Publisher? Publisher { get; set; }

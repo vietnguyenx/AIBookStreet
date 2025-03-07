@@ -17,8 +17,9 @@ namespace AIBookStreet.Services.Model
         public string? Address { get; set; }
         public string? Phone { get; set; }
         public string? Gender { get; set; }
+        public string? BaseImgUrl { get; set; }
 
-        public BookStoreModel? BookStore { get; set; }
+        public StoreModel? Store { get; set; }
         public PublisherModel? Publisher { get; set; }
 
         public IList<UserRoleModel> UserRoles { get; set; }

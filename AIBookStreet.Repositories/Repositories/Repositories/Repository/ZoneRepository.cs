@@ -84,7 +84,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         public async Task<Zone?> GetByID(Guid? id)
         {
             var query = GetQueryable(z => z.Id == id);
-            var zone = await query.Include(z => z.BookStores)
+            var zone = await query.Include(z => z.Stores)
                                   .Include(z => z.Street)
                                   .Include(st => st.Events)
                                   .SingleOrDefaultAsync();

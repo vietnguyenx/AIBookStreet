@@ -6,14 +6,18 @@ using System.Threading.Tasks;
 
 namespace AIBookStreet.Repositories.Data.Entities
 {
-    public class BookStore : BaseEntity
+    public class Store : BaseEntity
     {
-        public string BookStoreName { get; set; }
+        public string StoreName { get; set; }
         public string? Address { get; set; }
         public string? Phone { get; set; }
         public string? Email { get; set; }
         public DateTime? OpeningTime { get; set; }
         public DateTime? ClosingTime { get; set; }
+        public string? BaseImgUrl { get; set; }
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
+        public string? Type { get; set; }
 
         public Guid? ManagerId { get; set; } 
         public virtual User? Manager { get; set; } 

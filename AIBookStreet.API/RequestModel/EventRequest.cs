@@ -11,7 +11,7 @@ namespace AIBookStreet.API.RequestModel
         public DateTime? EndDate { get; set; }
         public string? BaseImgUrl { get; set; }
         public string? VideoLink { get; set; }
-        public bool isOpen { get; set; }
+        public bool IsOpen { get; set; }
         public bool IsDeleted { get; set; }
         public virtual ZoneRequest? zone { get; set; }
         public virtual ICollection<ImageRequest>? Images { get; set; }

@@ -36,7 +36,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var query = GetQueryable(m => m.Id == id);
             var user = await query
                 .Include(u => u.Images)
-                .Include(u => u.BookStore)
+                .Include(u => u.Store)
                 .Include(u => u.Publisher)
                 .Include(u => u.UserRoles)
                 .SingleOrDefaultAsync();
@@ -150,7 +150,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             var result = await queryable
                 .Include(m => m.UserRoles).ThenInclude(ur => ur.Role)
-                .Include(m => m.BookStore)
+                .Include(m => m.Store)
                 .Include(m => m.Publisher).SingleOrDefaultAsync();
 
             return result;
@@ -169,7 +169,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             var result = await queryable
                 .Include(m => m.UserRoles)
-                .Include(m => m.BookStore)
+                .Include(m => m.Store)
                 .Include(m => m.Publisher).SingleOrDefaultAsync();
 
             return result;

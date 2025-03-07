@@ -39,7 +39,7 @@ namespace AIBookStreet.Repositories.Data
 
         public virtual DbSet<Author> Authors { get; set; } = null!;
         public virtual DbSet<Book> Books { get; set; } = null!;
-        public virtual DbSet<BookStore> BookStores { get; set; } = null!;
+        public virtual DbSet<Store> Stores { get; set; } = null!;
         public virtual DbSet<Street> BookStreets { get; set; } = null!;
         public virtual DbSet<Category> Categories { get; set; } = null!;
         public virtual DbSet<Event> Events { get; set; } = null!;
@@ -53,6 +53,7 @@ namespace AIBookStreet.Repositories.Data
         public virtual DbSet<BookCategory> BookCategories { get; set; } = null!;
         public virtual DbSet<Inventory> Inventories { get; set; } = null!;
         public virtual DbSet<UserRole> UserRoles { get; set; } = null!;
+        public virtual DbSet<Souvenir> Souvenirs { get; set; } = null!;
         #endregion  
 
 
@@ -103,6 +104,7 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.Description).HasMaxLength(1000).IsRequired(false);
                 e.Property(x => x.Size).HasMaxLength(50).IsRequired(false);
                 e.Property(x => x.Status).HasMaxLength(50).IsRequired(false);
+                e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
 
                 // 1-1 voi publisher
                 e.HasOne(x => x.Publisher)
@@ -121,6 +123,12 @@ namespace AIBookStreet.Repositories.Data
                     .WithOne(i => i.Book)
                     .HasForeignKey(i => i.EntityId)
                     .OnDelete(DeleteBehavior.Cascade); // neu book bi xoa, image lien quan cung bi xoa
+
+                // 1-n voi inventory
+                e.HasMany(b => b.Inventories)
+                    .WithOne(i => i.Book)
+                    .HasForeignKey(i => i.EntityId)
+                    .OnDelete(DeleteBehavior.Cascade); // neu book bi xoa, inventory lien quan cung bi xoa
             });
 
             modelBuilder.Entity<BookAuthor>(e =>
@@ -159,37 +167,41 @@ namespace AIBookStreet.Repositories.Data
                  .OnDelete(DeleteBehavior.Cascade); // category bi xoa. bookCategory cung bi xoa
             });
 
-            modelBuilder.Entity<BookStore>(e =>
+            modelBuilder.Entity<Store>(e =>
             {
-                e.ToTable("BookStores");
-                e.Property(x => x.BookStoreName).HasMaxLength(255).IsRequired();
+                e.ToTable("Stores");
+                e.Property(x => x.StoreName).HasMaxLength(255).IsRequired();
                 e.Property(x => x.Address).HasMaxLength(500).IsRequired(false);
                 e.Property(x => x.Phone).HasMaxLength(15).IsRequired(false);
                 e.Property(x => x.Email).HasMaxLength(100).IsRequired(false);
                 e.Property(x => x.OpeningTime).IsRequired(false);
                 e.Property(x => x.ClosingTime).IsRequired(false);
+                e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
+                e.Property(x => x.Longitude).IsRequired(false);
+                e.Property(x => x.Latitude).IsRequired(false);
+                e.Property(x => x.Type).HasMaxLength(2000).IsRequired(false);
 
                 // 1-1 voi user
                 e.HasOne(x => x.Manager)
-                 .WithOne(x => x.BookStore)
-                 .HasForeignKey<BookStore>(x => x.ManagerId)
-                 .OnDelete(DeleteBehavior.SetNull); // neu user bi xoa, bookstore se co managerId = null
+                 .WithOne(x => x.Store)
+                 .HasForeignKey<Store>(x => x.ManagerId)
+                 .OnDelete(DeleteBehavior.SetNull); // neu user bi xoa, store se co managerId = null
 
                 // 1-n voi zone
                 e.HasOne(x => x.Zone)
-                 .WithMany(x => x.BookStores)
+                 .WithMany(x => x.Stores)
                  .HasForeignKey(x => x.ZoneId)
                  .OnDelete(DeleteBehavior.SetNull); // neu zone bi xoa, bookstore co zoneId = null
 
                 // 1-n voi inventory
                 e.HasMany(x => x.Inventories)
-                 .WithOne(x => x.BookStore)
-                 .HasForeignKey(x => x.BookStoreId)
+                 .WithOne(x => x.Store)
+                 .HasForeignKey(x => x.StoreId)
                  .OnDelete(DeleteBehavior.Cascade); // neu bookStore bi xoa, inventory lien quan bi xoa
 
                 // 1-n voi image
                 e.HasMany(bs => bs.Images)
-                    .WithOne(i => i.BookStore)
+                    .WithOne(i => i.Store)
                     .HasForeignKey(i => i.EntityId)
                     .OnDelete(DeleteBehavior.Cascade); // neu bookStore bi xoa, image lien quan cung bi xoa
             });
@@ -216,14 +228,14 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.EndDate).IsRequired(false);
                 e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
                 e.Property(x => x.VideoLink).HasMaxLength(2000).IsRequired(false);
-                e.Property(x => x.isOpen).IsRequired(true);
+                e.Property(x => x.IsOpen).IsRequired(true);
 
 
                 // n-1 voi zone
                 e.HasOne(x => x.Zone)
                     .WithMany(s => s.Events)
                     .HasForeignKey(x => x.ZoneId)
-                    .OnDelete(DeleteBehavior.SetNull); // neu street bi xoa, streetId cua event = null
+                    .OnDelete(DeleteBehavior.SetNull); // neu zone bi xoa, zoneId cua event = null
 
                 // 1-n voi image
                 e.HasMany(e => e.Images)
@@ -235,19 +247,23 @@ namespace AIBookStreet.Repositories.Data
             modelBuilder.Entity<Inventory>(e =>
             {
                 e.ToTable("Inventories");
-                e.HasKey(x => new { x.BookId, x.BookStoreId });
                 e.Property(x => x.Quantity).IsRequired();
                 e.Property(x => x.IsInStock).IsRequired(false);
 
-                // n-1 voi book
-                e.HasOne(x => x.Book)
-                    .WithMany(b => b.Inventories)
-                    .HasForeignKey(x => x.BookId)
-                    .OnDelete(DeleteBehavior.Cascade); // neu book bi xoa, inventory lien quan bi xoa
-                // n-1 voi bookStore
-                e.HasOne(x => x.BookStore)
+                ////n - 1 voi book
+                //e.HasOne(x => x.Book)
+                //    .WithMany(b => b.Inventories)
+                //    .HasForeignKey(x => x.EntityId)
+                //    .OnDelete(DeleteBehavior.Cascade); // neu book bi xoa, inventory lien quan bi xoa
+                ////n - 1 voi souvenir
+                //e.HasOne(x => x.Souvenir)
+                //    .WithMany(b => b.Inventories)
+                //    .HasForeignKey(x => x.EntityId)
+                //    .OnDelete(DeleteBehavior.Cascade); // neu souvenir bi xoa, inventory lien quan bi xoa
+                //n - 1 voi bookStore
+                e.HasOne(x => x.Store)
                     .WithMany(bs => bs.Inventories)
-                    .HasForeignKey(x => x.BookStoreId)
+                    .HasForeignKey(x => x.StoreId)
                     .OnDelete(DeleteBehavior.Cascade); // neu bookStore bi xoa, inventory lien quan bi xoa
             });
 
@@ -260,6 +276,7 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.Email).HasMaxLength(100).IsRequired(false);
                 e.Property(x => x.Description).HasMaxLength(2000).IsRequired(false);
                 e.Property(x => x.Website).HasMaxLength(200).IsRequired(false);
+                e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
 
                 // 1-1 voi user
                 e.HasOne(x => x.Manager)
@@ -328,12 +345,13 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.Address).HasMaxLength(100).IsRequired(false);
                 e.Property(x => x.Phone).HasMaxLength(50).IsRequired(false);
                 e.Property(x => x.Gender).HasMaxLength(50).IsRequired(false);
+                e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
 
                 // 1-1 voi bookStore
-                e.HasOne(x => x.BookStore)
+                e.HasOne(x => x.Store)
                  .WithOne(x => x.Manager)
-                 .HasForeignKey<BookStore>(x => x.ManagerId)
-                 .OnDelete(DeleteBehavior.SetNull); // neu xoa user, bookStore co managerId = null
+                 .HasForeignKey<Store>(x => x.ManagerId)
+                 .OnDelete(DeleteBehavior.SetNull); // neu xoa user, store co managerId = null
 
                 e.HasOne(x => x.Publisher)
                  .WithOne(x => x.Manager)
@@ -376,6 +394,8 @@ namespace AIBookStreet.Repositories.Data
                 e.ToTable("Zones");
                 e.Property(x => x.ZoneName).HasMaxLength(255).IsRequired();
                 e.Property(x => x.Description).HasMaxLength(1000).IsRequired(false);
+                e.Property(x => x.Longitude).IsRequired(false);
+                e.Property(x => x.Latitude).IsRequired(false);
 
                 // n-1 voi street
                 e.HasOne(x => x.Street)
@@ -384,7 +404,7 @@ namespace AIBookStreet.Repositories.Data
                     .OnDelete(DeleteBehavior.SetNull); // khi Street bi xoa, Zone co StreetId = null
 
                 // 1-n voi bookStore
-                e.HasMany(x => x.BookStores)
+                e.HasMany(x => x.Stores)
                     .WithOne(x => x.Zone)
                     .HasForeignKey(x => x.ZoneId)
                     .OnDelete(DeleteBehavior.SetNull); // khi zone bi xoa, BookStore co ZoneId = null
@@ -445,6 +465,26 @@ namespace AIBookStreet.Repositories.Data
                 // .OnDelete(DeleteBehavior.NoAction); // chi image bi xoa, book khong bi gi
             });
 
+            modelBuilder.Entity<Souvenir>(e =>
+            {
+                e.ToTable("Souvenirs");
+                e.Property(x => x.SouvenirName).HasMaxLength(255).IsRequired(false);
+                e.Property(x => x.Price).IsRequired(false).HasColumnType("decimal(18,2)"); ;
+                e.Property(x => x.Description).HasMaxLength(1000).IsRequired(false);
+                e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
+
+                // 1-n voi image
+                e.HasMany(b => b.Images)
+                    .WithOne(i => i.Souvenir)
+                    .HasForeignKey(i => i.EntityId)
+                    .OnDelete(DeleteBehavior.Cascade); // neu souvenir bi xoa, image lien quan cung bi xoa
+
+                // 1-n voi inventory
+                e.HasMany(b => b.Inventories)
+                    .WithOne(i => i.Souvenir)
+                    .HasForeignKey(i => i.EntityId)
+                    .OnDelete(DeleteBehavior.Cascade); // neu souvenir bi xoa, inventory lien quan cung bi xoa
+            });
         }
         #endregion
     }

@@ -15,16 +15,16 @@ using System.Threading.Tasks;
 
 namespace AIBookStreet.Services.Services.Service
 {
-    public class BookStoreService : BaseService<BookStore>, IBookStoreService
+    public class StoreService : BaseService<Store>, IStoreService
     {
-        private readonly IBookStoreRepository _bookStoreRepository;
+        private readonly IStoreRepository _bookStoreRepository;
 
-        public BookStoreService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor) : base(mapper, unitOfWork, httpContextAccessor)
+        public StoreService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor) : base(mapper, unitOfWork, httpContextAccessor)
         {
             _bookStoreRepository = unitOfWork.BookStoreRepository;
         }
 
-        public async Task<List<BookStoreModel>> GetAll()
+        public async Task<List<StoreModel>> GetAll()
         {
             var bookStores = await _bookStoreRepository.GetAll();
 
@@ -33,10 +33,10 @@ namespace AIBookStreet.Services.Services.Service
                 return null;
             }
 
-            return _mapper.Map<List<BookStoreModel>>(bookStores);
+            return _mapper.Map<List<StoreModel>>(bookStores);
         }
 
-        public async Task<List<BookStoreModel>?> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<List<StoreModel>?> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder)
         {
             var bookStores = await _bookStoreRepository.GetAllPagination(pageNumber, pageSize, sortField, sortOrder);
 
@@ -45,10 +45,10 @@ namespace AIBookStreet.Services.Services.Service
                 return null;
             }
 
-            return _mapper.Map<List<BookStoreModel>>(bookStores);
+            return _mapper.Map<List<StoreModel>>(bookStores);
         }
 
-        public async Task<BookStoreModel?> GetById(Guid id)
+        public async Task<StoreModel?> GetById(Guid id)
         {
             var bookStore = await _bookStoreRepository.GetById(id);
 
@@ -57,26 +57,26 @@ namespace AIBookStreet.Services.Services.Service
                 return null;
             }
 
-            return _mapper.Map<BookStoreModel>(bookStore);
+            return _mapper.Map<StoreModel>(bookStore);
         }
 
-        public async Task<(List<BookStoreModel>?, long)> SearchPagination(BookStoreModel bookStoreModel, int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<(List<StoreModel>?, long)> SearchPagination(StoreModel bookStoreModel, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
-            var bookStores = _mapper.Map<BookStore>(bookStoreModel);
+            var bookStores = _mapper.Map<Store>(bookStoreModel);
             var bookStoresWithTotalOrigin = await _bookStoreRepository.SearchPagination(bookStores, pageNumber, pageSize, sortField, sortOrder);
 
             if (!bookStoresWithTotalOrigin.Item1.Any())
             {
                 return (null, bookStoresWithTotalOrigin.Item2);
             }
-            var bookStoreModels = _mapper.Map<List<BookStoreModel>>(bookStoresWithTotalOrigin.Item1);
+            var bookStoreModels = _mapper.Map<List<StoreModel>>(bookStoresWithTotalOrigin.Item1);
 
             return (bookStoreModels, bookStoresWithTotalOrigin.Item2);
         }
 
-        public async Task<List<BookStoreModel>?> SearchWithoutPagination(BookStoreModel bookStoreModel)
+        public async Task<List<StoreModel>?> SearchWithoutPagination(StoreModel bookStoreModel)
         {
-            var bookStore = _mapper.Map<BookStore>(bookStoreModel);
+            var bookStore = _mapper.Map<Store>(bookStoreModel);
             var bookStores = await _bookStoreRepository.SearchWithoutPagination(bookStore);
 
             if (!bookStores.Any())
@@ -84,18 +84,18 @@ namespace AIBookStreet.Services.Services.Service
                 return null;
             }
 
-            return _mapper.Map<List<BookStoreModel>>(bookStores);
+            return _mapper.Map<List<StoreModel>>(bookStores);
         }
 
 
-        public async Task<bool> Add(BookStoreModel bookStoreModel)
+        public async Task<bool> Add(StoreModel bookStoreModel)
         {
-            var mappedBookStore = _mapper.Map<BookStore>(bookStoreModel);
+            var mappedBookStore = _mapper.Map<Store>(bookStoreModel);
             var newBookStore = await SetBaseEntityToCreateFunc(mappedBookStore);
             return await _bookStoreRepository.Add(newBookStore);
         }
 
-        public async Task<bool> Update(BookStoreModel bookStoreModel)
+        public async Task<bool> Update(StoreModel bookStoreModel)
         {
             var existingBookStore = await _bookStoreRepository.GetById(bookStoreModel.Id);
 
@@ -118,7 +118,7 @@ namespace AIBookStreet.Services.Services.Service
                 return false;
             }
 
-            var mappedBookStore = _mapper.Map<BookStore>(existingBookStore);
+            var mappedBookStore = _mapper.Map<Store>(existingBookStore);
             return await _bookStoreRepository.Delete(mappedBookStore);
         }
     }

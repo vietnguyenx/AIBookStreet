@@ -10,11 +10,13 @@ namespace AIBookStreet.Repositories.Data.Entities
     {
         public string ZoneName { get; set; }
         public string? Description { get; set; }
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
 
         public Guid? StreetId { get; set; }
         public virtual Street? Street { get; set; }
 
-        public virtual ICollection<BookStore>? BookStores { get; set; }
+        public virtual ICollection<Store>? Stores { get; set; }
         public virtual ICollection<Event>? Events { get; set; }
     }
 }

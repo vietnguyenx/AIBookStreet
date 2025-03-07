@@ -10,9 +10,9 @@ namespace AIBookStreet.API.Tool.Mapping
     {
         public void BookStoreMapping()
         {
-            CreateMap<BookStore, BookStoreModel>().ReverseMap();
-            CreateMap<BookStoreModel, BookStoreRequest>().ReverseMap();
-            CreateMap<BookStoreModel, BookStoreSearchRequest>().ReverseMap();
+            CreateMap<Store, StoreModel>().ReverseMap();
+            CreateMap<StoreModel, StoreRequest>().ReverseMap();
+            CreateMap<StoreModel, BookStoreSearchRequest>().ReverseMap();
         }
     }
 }

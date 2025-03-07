@@ -14,7 +14,7 @@ namespace AIBookStreet.Repositories.Data.Entities
         public DateTime? EndDate { get; set; }
         public string? BaseImgUrl { get; set; }
         public string? VideoLink { get; set; }
-        public bool isOpen { get; set; }
+        public bool IsOpen { get; set; }
 
         public Guid? ZoneId { get; set; }
         public virtual Zone? Zone { get; set; }

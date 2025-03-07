@@ -10,8 +10,8 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
 {
     public interface IInventoryRepository : IBaseRepository<Inventory>
     {
-        Task<List<Inventory?>> GetByBookId(Guid bookId);
+        Task<List<Inventory?>> GetByBookId(Guid entityId);
         Task<List<Inventory?>> GetByBookStoreId(Guid bookStoreId);
-        Task<Inventory?> GetByBookIdAndBookStoreId(Guid bookId, Guid bookStoreId);
+        Task<Inventory?> GetByBookIdAndBookStoreId(Guid? entityId, Guid bookStoreId);
     }
 }

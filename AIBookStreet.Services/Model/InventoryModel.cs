@@ -9,12 +9,13 @@ namespace AIBookStreet.Services.Model
 {
     public class InventoryModel : BaseModel
     {
-        public Guid BookId { get; set; }
-        public Guid BookStoreId { get; set; }
+        public Guid? EntityId { get; set; }
+        public Guid StoreId { get; set; }
         public int Quantity { get; set; }
         public bool? IsInStock { get; set; }
 
-        public BookModel Book { get; set; }
-        public BookStoreModel BookStore { get; set; }
+        public BookModel? Book { get; set; }
+        public StoreModel Store { get; set; }
+        public SouvenirModel? Souvenir { get; set; }
     }
 }

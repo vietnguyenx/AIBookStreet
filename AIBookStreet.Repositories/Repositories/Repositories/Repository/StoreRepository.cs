@@ -11,16 +11,16 @@ using System.Threading.Tasks;
 
 namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 {
-    public class BookStoreRepository : BaseRepository<BookStore>, IBookStoreRepository
+    public class StoreRepository : BaseRepository<Store>, IStoreRepository
     {
         private readonly BSDbContext _context;
 
-        public BookStoreRepository(BSDbContext context) : base(context)
+        public StoreRepository(BSDbContext context) : base(context)
         {
             _context = context;
         }
 
-        public async Task<List<BookStore>> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<List<Store>> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder)
         {
             var queryable = GetQueryable();
             queryable = base.ApplySort(queryable, sortField, sortOrder);
@@ -32,7 +32,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 .ToListAsync();
         }
 
-        public async Task<BookStore?> GetById(Guid id)
+        public async Task<Store?> GetById(Guid id)
         {
             var query = GetQueryable(bs => bs.Id == id);
             var bookStore = await query
@@ -45,7 +45,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             return bookStore;
         }
 
-        public async Task<(List<BookStore>, long)> SearchPagination(BookStore bookStore, int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<(List<Store>, long)> SearchPagination(Store bookStore, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
             var queryable = GetQueryable()
                 .Where(bs => !bs.IsDeleted);
@@ -53,10 +53,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             if (queryable.Any())
             {
-                if (!string.IsNullOrEmpty(bookStore.BookStoreName))
+                if (!string.IsNullOrEmpty(bookStore.StoreName))
                 {
                     queryable = queryable.Where(bs =>
-                        EF.Functions.Collate(bs.BookStoreName, "Latin1_General_CI_AI").Contains(bookStore.BookStoreName));
+                        EF.Functions.Collate(bs.StoreName, "Latin1_General_CI_AI").Contains(bookStore.StoreName));
                 }
 
                 if (!string.IsNullOrEmpty(bookStore.Address))
@@ -98,15 +98,15 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             return (bookstores, totalOrigin);
         }
 
-        public async Task<List<BookStore>> SearchWithoutPagination(BookStore bookStore)
+        public async Task<List<Store>> SearchWithoutPagination(Store bookStore)
         {
             var queryable = GetQueryable()
                 .Where(bs => !bs.IsDeleted);
 
-            if (!string.IsNullOrEmpty(bookStore.BookStoreName))
+            if (!string.IsNullOrEmpty(bookStore.StoreName))
             {
                 queryable = queryable.Where(bs =>
-                    EF.Functions.Collate(bs.BookStoreName, "Latin1_General_CI_AI").Contains(bookStore.BookStoreName));
+                    EF.Functions.Collate(bs.StoreName, "Latin1_General_CI_AI").Contains(bookStore.StoreName));
             }
 
             if (!string.IsNullOrEmpty(bookStore.Address))

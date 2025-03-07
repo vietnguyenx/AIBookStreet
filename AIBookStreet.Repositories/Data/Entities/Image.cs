@@ -22,12 +22,13 @@ namespace AIBookStreet.Repositories.Data.Entities
 
         public virtual Publisher? Publisher { get; set; }
 
-        public virtual BookStore? BookStore { get; set; }
+        public virtual Store? Store { get; set; }
 
         public virtual Street? Street { get; set; }
 
         public virtual User? User { get; set; }
 
         public virtual Book? Book { get; set; }
+        public virtual Souvenir? Souvenir { get; set; }
     }
 }
