@@ -22,6 +22,7 @@ namespace AIBookStreet.API.Tool.Mapping
             UserRoleMapping();
             ZoneMapping();
             RoleMapping();
+            SouvenirMapping();
         }
     }
 }
