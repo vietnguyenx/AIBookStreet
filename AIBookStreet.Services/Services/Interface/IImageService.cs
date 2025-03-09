@@ -19,5 +19,6 @@ namespace AIBookStreet.Services.Services.Interface
         Task<(long, Image?)> DeleteAnImage(Guid id);
         Task<Image?> GetAnImageById(Guid id);
         Task<List<Image>?> GetImagesByTypeAndEntityID(string? type, Guid? entityID);
+        Task<List<Image>?> GetAllImages();
     }
 }

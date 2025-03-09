@@ -25,9 +25,16 @@ namespace AIBookStreet.API.Controllers
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Add one or multiple images
+        /// </summary>
         [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> AddImages([FromForm] List<IFormFile> files, [FromForm] string? type, [FromForm] string? altText, [FromForm] Guid? entityId)
+        public async Task<IActionResult> AddImages(
+            [FromForm] List<IFormFile> files,
+            [FromForm] string? type,
+            [FromForm] string? altText,
+            [FromForm] Guid? entityId)
         {
             try
             {
@@ -50,18 +57,23 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Update an image
+        /// </summary>
         [Authorize]
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdateAnImage([FromForm] IFormFile file, [FromForm] Guid id, [FromForm] string? type, [FromForm] string? altText, [FromForm] Guid? entityId)
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> UpdateAnImage(
+            [FromRoute] Guid id,
+            [FromForm] UpdateImageRequest request)
         {
             try
             {
                 var model = new FileModel
                 {
-                    File = file,
-                    Type = type,
-                    AltText = altText,
-                    EntityId = entityId
+                    File = request.File,
+                    Type = request.Type,
+                    AltText = request.AltText,
+                    EntityId = request.EntityId
                 };
 
                 var result = await _service.UpdateAnImage(id, model);
@@ -132,6 +144,28 @@ namespace AIBookStreet.API.Controllers
             {
                 var images = await _service.GetImagesByTypeAndEntityID(request.Type, request.EntityId);
 
+                return images switch
+                {
+                    null => Ok(new ItemListResponse<ImageRequest>(ConstantMessage.Success, null)),
+                    not null => Ok(new ItemListResponse<ImageRequest>(ConstantMessage.Success, _mapper.Map<List<ImageRequest>>(images)))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Get all images
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("get-all")]
+        public async Task<IActionResult> GetAllImages()
+        {
+            try
+            {
+                var images = await _service.GetAllImages();
                 return images switch
                 {
                     null => Ok(new ItemListResponse<ImageRequest>(ConstantMessage.Success, null)),
