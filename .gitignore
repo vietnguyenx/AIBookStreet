@@ -397,9 +397,5 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-# Firebase
-firebase-config/
-**/firebase-credentials.json
 
-# Thêm vào cuối file
-appsettings.secrets.json
+
