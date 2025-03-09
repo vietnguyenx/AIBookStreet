@@ -5,6 +5,7 @@ using AIBookStreet.Repositories.Repositories.Repositories.Interface;
 using AIBookStreet.Repositories.Repositories.Repositories.Repository;
 using AIBookStreet.Repositories.Repositories.UnitOfWork.Interface;
 using AIBookStreet.Repositories.Repositories.UnitOfWork.Repository;
+using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AIBookStreet.Services.Services.Service;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -137,6 +138,10 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+
+// Add Firebase configuration
+builder.Services.Configure<FirebaseSettings>(builder.Configuration.GetSection("Firebase"));
+builder.Services.AddScoped<IFirebaseStorageService, FirebaseStorageService>();
 
 var app = builder.Build();
 

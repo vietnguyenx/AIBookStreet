@@ -14,8 +14,8 @@ namespace AIBookStreet.Services.Services.Interface
         //Task<List<string>?> UploadImagesAsync(List<IFormFile> files);
         //string GetImageUrl(string imageName);
         //Task DeleteImageAsync(string imageName);
-        Task<List<Image>?> AddImages(List<ImageModel> models);
-        Task<(long, Image?)> UpdateAnImage(Guid? id, ImageModel model);
+        Task<List<Image>?> AddImages(List<FileModel> models);
+        Task<(long, Image?)> UpdateAnImage(Guid? id, FileModel model);
         Task<(long, Image?)> DeleteAnImage(Guid id);
         Task<Image?> GetAnImageById(Guid id);
         Task<List<Image>?> GetImagesByTypeAndEntityID(string? type, Guid? entityID);
