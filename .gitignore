@@ -397,5 +397,7 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-
+# Firebase
+firebase-config/
+**/firebase-credentials.json
 
