@@ -14,45 +14,57 @@ namespace AIBookStreet.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ImageController(IImageService service, IMapper mapper) : ControllerBase
+    public class ImageController : ControllerBase
     {
-        private readonly IImageService _service = service;
-        private readonly IMapper _mapper = mapper;
+        private readonly IImageService _service;
+        private readonly IMapper _mapper;
 
-        //[HttpPost("upload")]
-        //public async Task<IActionResult> TestUpload(List<IFormFile> files)
-        //{
-        //    try
-        //    {
-        //        var result = await _service.UploadImagesAsync(files);
-        //        return result == null ? Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!")) : Ok(new ItemListResponse<string>(ConstantMessage.Success, result));
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(ex.Message);
-        //    }
-        //}
+        public ImageController(IImageService service, IMapper mapper)
+        {
+            _service = service;
+            _mapper = mapper;
+        }
+
         [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> AddImages(List<ImageModel> models)
+        public async Task<IActionResult> AddImages([FromForm] List<IFormFile> files, [FromForm] string? type, [FromForm] string? altText, [FromForm] Guid? entityId)
         {
             try
             {
+                var models = files.Select(file => new FileModel
+                {
+                    File = file,
+                    Type = type,
+                    AltText = altText,
+                    EntityId = entityId
+                }).ToList();
+
                 var result = await _service.AddImages(models);
-                return result == null ? Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!")) : Ok(new ItemListResponse<ImageRequest>(ConstantMessage.Success, _mapper.Map<List<ImageRequest>>(result)));
+                return result == null 
+                    ? Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!")) 
+                    : Ok(new ItemListResponse<ImageRequest>(ConstantMessage.Success, _mapper.Map<List<ImageRequest>>(result)));
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
+
         [Authorize]
         [HttpPut("update")]
-        public async Task<IActionResult> UpdateAnImage(ImageModel model)
+        public async Task<IActionResult> UpdateAnImage([FromForm] IFormFile file, [FromForm] Guid id, [FromForm] string? type, [FromForm] string? altText, [FromForm] Guid? entityId)
         {
             try
             {
-                var result = await _service.UpdateAnImage(model.Id, model);
+                var model = new FileModel
+                {
+                    File = file,
+                    Type = type,
+                    AltText = altText,
+                    EntityId = entityId
+                };
+
+                var result = await _service.UpdateAnImage(id, model);
 
                 return result.Item1 switch
                 {
@@ -66,6 +78,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
         [Authorize]
         [HttpPut("delete")]
         public async Task<IActionResult> DeleteAnImage(Guid id)
@@ -86,6 +99,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
         [AllowAnonymous]
         [HttpGet("get-by-id/{id}")]
         public async Task<IActionResult> GetAnImageById([FromRoute] Guid id)
@@ -106,10 +120,10 @@ namespace AIBookStreet.API.Controllers
             }
             catch (Exception ex)
             {
-
                 return BadRequest(ex.Message);
-            };
+            }
         }
+
         [AllowAnonymous]
         [HttpPost("get-by-type-or-entityID")]
         public async Task<IActionResult> GetList(ImageSearchRequest request)
