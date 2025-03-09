@@ -5,12 +5,7 @@ using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace AIBookStreet.Services.Services.Service
 {
@@ -153,6 +148,19 @@ namespace AIBookStreet.Services.Services.Service
         public async Task<List<Image>?> GetImagesByTypeAndEntityID(string? type, Guid? entityID)
         {
             return await _repository.ImageRepository.GetByTypeAndEntityID(type, entityID);
+        }
+
+        public async Task<List<Image>?> GetAllImages()
+        {
+            try
+            {
+                var query = _repository.ImageRepository.GetQueryable();
+                return await query.Where(x => !x.IsDeleted).ToListAsync();
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }
