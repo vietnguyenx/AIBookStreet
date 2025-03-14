@@ -11,9 +11,9 @@ namespace AIBookStreet.Repositories.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Images_BookStores_EntityId",
-                table: "Images");
+            //migrationBuilder.DropForeignKey(
+            //    name: "FK_Images_BookStores_EntityId",
+            //    table: "Images");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Inventories_BookStores_BookStoreId",

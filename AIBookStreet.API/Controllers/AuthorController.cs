@@ -21,12 +21,12 @@ namespace AIBookStreet.API.Controllers
 
         [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> AddAnAuthor(AuthorModel author)
+        public async Task<IActionResult> AddAnAuthor([FromForm]AuthorModel author)
         {
             try
             {
                 var result = await _service.AddAnAuthor(author);
-                return result == null ? Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!")) : Ok(new BaseResponse(true, "Đã thêm tác giả"));
+                return result == null ? Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!")) : Ok(new ItemResponse<AuthorRequest>("Đã thêm tác giả", _mapper.Map<AuthorRequest>(result)));
             }
             catch (Exception ex)
             {
@@ -34,17 +34,17 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdateAnAuthor(AuthorModel author)
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> UpdateAnAuthor([FromRoute]Guid id, [FromForm]AuthorModel author)
         {
             try
             {
-                var result = await _service.UpdateAnAuthor(author.Id, author);
+                var result = await _service.UpdateAnAuthor(id, author);
 
                 return result.Item1 switch
                 {
                     1 => Ok(new BaseResponse(false, "Tác giả không tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã cập nhật thông tin!")),
+                    2 => Ok(new ItemResponse<AuthorRequest>("Đã cập nhật thông tin!", _mapper.Map<AuthorRequest>(result.Item2))),
                     _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
@@ -54,8 +54,8 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("delete")]
-        public async Task<IActionResult> DeleteAnAuthor(Guid id)
+        [HttpPut("delete/{id}")]
+        public async Task<IActionResult> DeleteAnAuthor([FromRoute]Guid id)
         {
             try
             {
@@ -64,7 +64,7 @@ namespace AIBookStreet.API.Controllers
                 return result.Item1 switch
                 {
                     1 => Ok(new BaseResponse(false, "Tác giả không tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã xóa thành công!")),
+                    2 => Ok(new ItemResponse<AuthorRequest>("Đã xóa thành công!", _mapper.Map<AuthorRequest>(result.Item2))),
                     _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại!!!"))
                 };
             }
@@ -122,12 +122,12 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var authors = await _service.GetAllAuthorsPagination(request != null && request.Result != null ? request.Result.AuthorName : null, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
+                var authors = await _service.GetAllAuthorsPagination(request != null && request.Result != null ? request.Result.AuthorName : null, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null ? request.SortOrder == 0 : false);
 
                 return authors.Item2 switch
                 {
                     0 => Ok(new PaginatedListResponse<AuthorRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new PaginatedListResponse<AuthorRequest>(ConstantMessage.Success, _mapper.Map<List<AuthorRequest>>(authors.Item1), authors.Item2, request.PageNumber, request.PageSize, request.SortField, request.SortOrder != null && (request.SortOrder != 0) ? 0 : 1))
+                    _ => Ok(new PaginatedListResponse<AuthorRequest>(ConstantMessage.Success, _mapper.Map<List<AuthorRequest>>(authors.Item1), authors.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != 0 ? 0 : 1))
                 };
             }
             catch (Exception ex)
