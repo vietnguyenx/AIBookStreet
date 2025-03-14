@@ -13,7 +13,7 @@ namespace AIBookStreet.API.RequestModel
         public string? VideoLink { get; set; }
         public bool IsOpen { get; set; }
         public bool IsDeleted { get; set; }
-        public virtual ZoneRequest? zone { get; set; }
+        public virtual ZoneRequest? Zone { get; set; }
         public virtual ICollection<ImageRequest>? Images { get; set; }
     }
 }

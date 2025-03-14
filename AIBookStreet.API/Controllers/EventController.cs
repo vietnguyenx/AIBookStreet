@@ -24,13 +24,13 @@ namespace AIBookStreet.API.Controllers
 
         [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> AddAnEvent(EventModel model)
+        public async Task<IActionResult> AddAnEvent([FromForm]EventModel model)
         {
             try
             {
                 var result = await _service.AddAnEvent(model);
                 return result.Item1 == 1 ? Ok(new BaseResponse(false, "Đã có sự kiện trong thời gian trên đường sách này")) 
-                     : result.Item1 == 2 ? Ok(new BaseResponse(true, "Đã thêm"))
+                     : result.Item1 == 2 ? Ok(new ItemResponse<EventRequest>("Đã thêm", _mapper.Map<EventRequest>(result)))
                      :                     Ok(new BaseResponse(false, "Đã xảy ra lỗi"));
             }
             catch (Exception ex)
@@ -39,17 +39,17 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdateAnEvent(EventModel model)
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> UpdateAnEvent([FromRoute] Guid id, [FromForm]EventModel model)
         {
             try
             {
-                var result = await _service.UpdateAnEvent(model.Id, model);
+                var result = await _service.UpdateAnEvent(id, model);
 
                 return result.Item1 switch
                 {
                     1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã cập nhật thông tin!")),
+                    2 => Ok(new ItemResponse<EventRequest>("Đã cập nhật thông tin!", _mapper.Map<EventRequest>(result.Item2))),
                     _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
@@ -69,7 +69,7 @@ namespace AIBookStreet.API.Controllers
                 return result.Item1 switch
                 {
                     1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã xóa thành công!")),
+                    2 => Ok(new ItemResponse<EventRequest>("Đã xóa thành công!", _mapper.Map<EventRequest>(result.Item2))),
                     _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại!!!"))
                 };
             }
@@ -123,12 +123,12 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var events = await _service.GetAllEventsPagination(request.Result.Key, request.Result.StartDate, request.Result.EndDate, request.Result.ZoneId, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
+                var events = await _service.GetAllEventsPagination(request != null && request.Result != null ? request.Result.Key : null, request != null && request.Result != null ? request.Result.StartDate : null, request != null && request.Result != null ? request.Result.EndDate : null, request != null && request.Result != null ? request.Result.ZoneId : null, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null ? request.SortOrder == 0 : false);
 
                 return events.Item2 switch
                 {
                     0 => Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<List<EventRequest>>(events.Item1), events.Item2, request.PageNumber, request.PageSize, request.SortField, request.SortOrder))
+                    _ => Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<List<EventRequest>>(events.Item1), events.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != 0 ? 0 : 1))
                 };
             }
             catch (Exception ex)
