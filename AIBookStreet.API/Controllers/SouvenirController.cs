@@ -21,12 +21,12 @@ namespace AIBookStreet.API.Controllers
 
         [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> AddASouvenir(SouvenirModel model)
+        public async Task<IActionResult> AddASouvenir([FromForm]SouvenirModel model)
         {
             try
             {
                 var result = await _service.AddASouvenir(model);
-                return result == null ? Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!")) : Ok(new BaseResponse(true, "Đã thêm"));
+                return result == null ? Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!")) : Ok(new ItemResponse<SouvenirRequest>("Đã thêm", _mapper.Map<SouvenirRequest>(result)));
             }
             catch (Exception ex)
             {
@@ -34,17 +34,17 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdateASouvenir(SouvenirModel model)
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> UpdateASouvenir([FromRoute] Guid id, [FromForm]SouvenirModel model)
         {
             try
             {
-                var result = await _service.UpdateASouvenir(model.Id, model);
+                var result = await _service.UpdateASouvenir(id, model);
 
                 return result.Item1 switch
                 {
                     1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã cập nhật thông tin!")),
+                    2 => Ok(new ItemResponse<SouvenirRequest>("Đã cập nhật thông tin!", _mapper.Map<SouvenirRequest>(result.Item2))),
                     _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
@@ -64,7 +64,7 @@ namespace AIBookStreet.API.Controllers
                 return result.Item1 switch
                 {
                     1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã xóa thông tin!")),
+                    2 => Ok(new ItemResponse<SouvenirRequest>("Đã xóa thành công!", _mapper.Map<SouvenirRequest>(result.Item2))),
                     _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
@@ -99,12 +99,12 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var souvenir = await _service.GetAllSouvenirsPagination(request.Result.SouvenirName, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
+                var souvenir = await _service.GetAllSouvenirsPagination(request != null && request.Result != null ? request.Result.SouvenirName : null, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null ? request.SortOrder == 0 : false);
 
                 return souvenir.Item2 switch
                 {
                     0 => Ok(new PaginatedListResponse<SouvenirRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new PaginatedListResponse<SouvenirRequest>(ConstantMessage.Success, _mapper.Map<List<SouvenirRequest>>(souvenir.Item1), souvenir.Item2, request.PageNumber, request.PageSize, request.SortField, request.SortOrder))
+                    _ => Ok(new PaginatedListResponse<SouvenirRequest>(ConstantMessage.Success, _mapper.Map<List<SouvenirRequest>>(souvenir.Item1), souvenir.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != 0 ? 0 : 1))
                 };
             }
             catch (Exception ex)
