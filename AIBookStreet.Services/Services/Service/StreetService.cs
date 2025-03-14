@@ -13,29 +13,71 @@ using System.Threading.Tasks;
 
 namespace AIBookStreet.Services.Services.Service
 {
-    public class StreetService(IUnitOfWork repository, IMapper mapper, IHttpContextAccessor httpContextAccessor) : BaseService<Street>(mapper, repository, httpContextAccessor), IStreetService
+    public class StreetService(IUnitOfWork repository, IMapper mapper, IHttpContextAccessor httpContextAccessor, IFirebaseStorageService firebaseStorageService, IImageService imageService) : BaseService<Street>(mapper, repository, httpContextAccessor), IStreetService
     {
         private readonly IUnitOfWork _repository = repository;
+        private readonly IFirebaseStorageService _firebaseStorageService = firebaseStorageService;
+        private readonly IImageService _imageService = imageService;
         public async Task<(long, Street?)> AddAStreet(StreetModel model)
         {
-            if (!string.IsNullOrEmpty(model.Address))
+            try
             {
-                var existed = await _repository.StreetRepository.GetByAddress(model.Address);
-                if (existed != null)
+                var baseFileUrl = "";
+                if (model.BaseImgFile != null)
                 {
-                    return (1, null); //da ton tai
+                    baseFileUrl = await _firebaseStorageService.UploadFileAsync(model.BaseImgFile);
                 }
-            }
-            var street = _mapper.Map<Street>(model);
-            var setStreet = await SetBaseEntityToCreateFunc(street);
-            var isSuccess = await _repository.StreetRepository.Add(setStreet);
-            if (isSuccess)
-            {
+
+                var street = new Street
+                {
+                    BaseImgUrl = !string.IsNullOrEmpty(baseFileUrl) ? baseFileUrl : null,
+                    StreetName = model.StreetName,
+                    Description = model.Description ?? null,
+                    Address = model.Address ?? null,
+                    Latitude = model.Latitude ?? null,
+                    Longitude = model.Longitude ?? null,
+                };
+
+                var setStreet = await SetBaseEntityToCreateFunc(street);
+                var isSuccess = await _repository.StreetRepository.Add(setStreet);
+
+                if (!isSuccess)
+                {
+                    if (model.BaseImgFile != null)
+                    {
+                        await _firebaseStorageService.DeleteFileAsync(baseFileUrl);
+                    }
+                    return (3, null);
+                }
+
+                if (model.OtherImgFiles != null)
+                {
+                    var images = new List<FileModel>();
+                    foreach (var imageFile in model.OtherImgFiles)
+                    {
+                        var image = new FileModel
+                        {
+                            File = imageFile,
+                            Type = "Đường sách",
+                            AltText = "Ảnh đường sách " + setStreet.StreetName,
+                            EntityId = setStreet.Id
+                        };
+                        images.Add(image);
+                    }
+                    var result = _imageService.AddImages(images);
+                    if (result == null)
+                    {
+                        return (3, null);
+                    }
+                }
                 return (2, setStreet);
             }
-            return (3, null);
+            catch (Exception)
+            {
+                throw;
+            }
         }
-        public async Task<(long, Street?)> UpdateAStreet(Guid? id, StreetModel model)
+        public async Task<(long, Street?)> UpdateAStreet(Guid id, StreetModel model)
         {
             var existed = await _repository.StreetRepository.GetByID(id);
             if (existed == null)
@@ -46,13 +88,41 @@ namespace AIBookStreet.Services.Services.Service
             {
                 return (3, null);
             }
-            existed.StreetName = model.StreetName;
-            existed.Description = model.Description ?? existed.Description;
-            existed.Address = model.Address ?? existed.Address;
+            try
+            {
+                var newFileUrl = model.BaseImgFile != null ? await _firebaseStorageService.UploadFileAsync(model.BaseImgFile) : "";
 
-            existed = await SetBaseEntityToUpdateFunc(existed);
-            return await _repository.StreetRepository.Update(existed) ? (2, existed) //update thanh cong
-                                                                          : (3, null);       //update fail
+                var oldFileUrl = existed.BaseImgUrl;
+                // Update entity
+                existed.StreetName = model.StreetName;
+                existed.Description = model.Description ?? existed.Description;
+                existed.Address = model.Address ?? existed.Address;
+                existed.BaseImgUrl = newFileUrl == "" ? existed.BaseImgUrl : newFileUrl;
+                existed.Latitude = model.Latitude ?? existed.Latitude;
+                existed.Longitude = model.Longitude ?? existed.Longitude;
+                existed = await SetBaseEntityToUpdateFunc(existed);
+
+                var updateSuccess = await _repository.StreetRepository.Update(existed);
+                if (updateSuccess)
+                {
+                    if (model.BaseImgFile != null && !string.IsNullOrEmpty(oldFileUrl))
+                    {
+                        await _firebaseStorageService.DeleteFileAsync(oldFileUrl);
+                    }
+                    return (2, existed); //update thành công
+                }
+
+                // Cleanup new file if update fails
+                if (model.BaseImgFile != null)
+                {
+                    await _firebaseStorageService.DeleteFileAsync(newFileUrl);
+                }
+                return (3, null); //update fail
+            }
+            catch
+            {
+                throw;
+            }
         }
         public async Task<(long, Street?)> DeleteAStreet(Guid id)
         {
@@ -61,10 +131,37 @@ namespace AIBookStreet.Services.Services.Service
             {
                 return (1, null); //khong ton tai
             }
+            if (existed.IsDeleted)
+            {
+                return (3, null);
+            }
             existed = await SetBaseEntityToUpdateFunc(existed);
 
-            return await _repository.StreetRepository.Delete(existed) ? (2, existed) //delete thanh cong
-                                                                          : (3, null);       //delete fail
+            var isSuccess = await _repository.StreetRepository.Delete(existed);
+            if (isSuccess)
+            {
+                try
+                {
+                    if (!string.IsNullOrEmpty(existed.BaseImgUrl))
+                    {
+                        await _firebaseStorageService.DeleteFileAsync(existed.BaseImgUrl);
+                    }
+                    var otherImages = existed.Images;
+                    if (otherImages != null)
+                    {
+                        foreach (var image in otherImages)
+                        {
+                            await _firebaseStorageService.DeleteFileAsync(image.Url);
+                        }
+                    }
+                }
+                catch
+                {
+                    throw;
+                }
+                return (2, existed);//delete thanh cong
+            }
+            return (3, null);       //delete fail
         }
         public async Task<Street?> GetAStreetById(Guid id)
         {
