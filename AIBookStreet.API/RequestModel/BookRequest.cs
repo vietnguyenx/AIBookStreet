@@ -1,4 +1,6 @@
-﻿namespace AIBookStreet.API.RequestModel
+﻿using Microsoft.AspNetCore.Http;
+
+namespace AIBookStreet.API.RequestModel
 {
     public class BookRequest : BaseRequest
     {
@@ -11,6 +13,8 @@
         public string? Size { get; set; }
         public string? Status { get; set; }
         public string? BaseImgUrl { get; set; }
+        public IFormFile? MainImageFile { get; set; }
+        public List<IFormFile>? AdditionalImageFiles { get; set; }
 
         public Guid? PublisherId { get; set; }
 
