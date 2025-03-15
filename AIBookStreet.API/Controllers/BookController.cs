@@ -138,11 +138,13 @@ namespace AIBookStreet.API.Controllers
 
         [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> Add(BookRequest bookRequest)
+        public async Task<IActionResult> Add([FromForm] BookRequest bookRequest)
         {
             try
             {
                 var bookModel = _mapper.Map<BookModel>(bookRequest);
+                bookModel.MainImageFile = bookRequest.MainImageFile;
+                bookModel.AdditionalImageFiles = bookRequest.AdditionalImageFiles;
 
                 if (bookRequest.AuthorIds != null && bookRequest.AuthorIds.Any())
                 {
@@ -174,11 +176,13 @@ namespace AIBookStreet.API.Controllers
 
         [Authorize]
         [HttpPut("update")]
-        public async Task<IActionResult> Update(BookRequest bookRequest)
+        public async Task<IActionResult> Update([FromForm] BookRequest bookRequest)
         {
             try
             {
                 var bookModel = _mapper.Map<BookModel>(bookRequest);
+                bookModel.MainImageFile = bookRequest.MainImageFile;
+                bookModel.AdditionalImageFiles = bookRequest.AdditionalImageFiles;
 
                 var isBook = await _bookService.Update(bookModel);
 
