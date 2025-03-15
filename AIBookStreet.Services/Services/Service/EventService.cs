@@ -222,9 +222,18 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.EventRepository.GetEventsComing(number);
         }
-        public async Task<List<DateOnly>?> GetEventDatesInMonth(int? month)
+        public async Task<List<DateModel>?> GetEventDatesInMonth(int? month)
         {
-            return await _repository.EventRepository.GetDatesInMonth(month);
+            var result = await _repository.EventRepository.GetDatesInMonth(month);
+            var dates = new List<DateModel>();
+            if (result != null)
+            {
+                foreach (var date in result)
+                {
+                    dates.Add(new DateModel(date));
+                }
+            }
+            return dates;
         }
         public async Task<List<Event>?> GetEventByDate(DateTime? date)
         {

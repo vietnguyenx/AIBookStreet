@@ -30,7 +30,7 @@ namespace AIBookStreet.API.Controllers
             {
                 var result = await _service.AddAnEvent(model);
                 return result.Item1 == 1 ? Ok(new BaseResponse(false, "Đã có sự kiện trong thời gian trên đường sách này")) 
-                     : result.Item1 == 2 ? Ok(new ItemResponse<EventRequest>("Đã thêm", _mapper.Map<EventRequest>(result)))
+                     : result.Item1 == 2 ? Ok(new ItemResponse<EventRequest>("Đã thêm", _mapper.Map<EventRequest>(result.Item2)))
                      :                     Ok(new BaseResponse(false, "Đã xảy ra lỗi"));
             }
             catch (Exception ex)
@@ -149,10 +149,9 @@ namespace AIBookStreet.API.Controllers
                 }
                 var dates = await _service.GetEventDatesInMonth(month);
 
-                return dates switch
-                {
-                    null => Ok(new List<DateOnly>()),
-                    not null => Ok(dates)
+                return dates switch {
+                    null => Ok(new ItemListResponse<DateModel>(ConstantMessage.Success, null)),
+                    not null => Ok(new ItemListResponse<DateModel>(ConstantMessage.Success, dates)) 
                 };
             }
             catch (Exception ex)

@@ -11,10 +11,8 @@ namespace AIBookStreet.Services.Model
     public class ImageModel
     {
         public Guid? Id { get; set; }
-        [Required]
-        public required string Url { get; set; }
+        public string Url { get; set; } = null!;
         public string? Type { get; set; }
-        [Required]
         public string AltText { get; set; } = null!;
         public Guid? EntityId { get; set; }
     }

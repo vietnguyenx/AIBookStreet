@@ -9,7 +9,7 @@ namespace AIBookStreet.Services.Model
 {
     public class SouvenirModel
     {
-        public string SouvenirName { get; set; }
+        public string SouvenirName { get; set; } = null!;
         public string? Description { get; set; }
         public IFormFile? BaseImgFile { get; set; }
         public List<IFormFile>? OtherImgFiles { get; set; }

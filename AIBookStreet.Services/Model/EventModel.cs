@@ -11,8 +11,7 @@ namespace AIBookStreet.Services.Model
 {
     public class EventModel
     {
-        [Required]
-        public required string EventName { get; set; }
+        public string EventName { get; set; }
         public string? Description { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }

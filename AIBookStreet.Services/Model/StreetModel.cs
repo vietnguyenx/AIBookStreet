@@ -11,8 +11,7 @@ namespace AIBookStreet.Services.Model
 {
     public class StreetModel
     {
-        [Required]
-        public required string StreetName { get; set; }
+        public string StreetName { get; set; } = null!;
         public string? Address { get; set; }
         public string? Description { get; set; }
         public decimal? Latitude { get; set; }
