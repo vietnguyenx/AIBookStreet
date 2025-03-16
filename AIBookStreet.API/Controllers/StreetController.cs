@@ -21,13 +21,13 @@ namespace AIBookStreet.API.Controllers
 
         [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> AddAStreet(StreetModel model)
+        public async Task<IActionResult> AddAStreet([FromForm]StreetModel model)
         {
             try
             {
                 var result = await _service.AddAStreet(model);
                 return result.Item1 == 1 ? Ok(new BaseResponse(false, "Đã tồn tại!")) :
-                        result.Item1 == 2 ? Ok(new BaseResponse(true, "Đã thêm")) :
+                        result.Item1 == 2 ? Ok(new ItemResponse<StreetRequest>("Đã thêm", _mapper.Map<StreetRequest>(result))) :
                                             Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!"));
             }
             catch (Exception ex)
@@ -36,17 +36,17 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdateAStreet(StreetModel model)
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> UpdateAStreet([FromRoute] Guid id, [FromForm] StreetModel model)
         {
             try
             {
-                var result = await _service.UpdateAStreet(model.Id, model);
+                var result = await _service.UpdateAStreet(id, model);
 
                 return result.Item1 switch
                 {
                     1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã cập nhật thông tin!")),
+                    2 => Ok(new ItemResponse<StreetRequest>("Đã cập nhật thông tin!", _mapper.Map<StreetRequest>(result.Item2))),
                     _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
@@ -66,7 +66,7 @@ namespace AIBookStreet.API.Controllers
                 return result.Item1 switch
                 {
                     1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã xóa thông tin!")),
+                    2 => Ok(new ItemResponse<StreetRequest>("Đã xóa thành công!", _mapper.Map<StreetRequest>(result.Item2))),
                     _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
@@ -120,12 +120,12 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var streets = await _service.GetAllStreetsPagination(request.Result.Key, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
+                var streets = await _service.GetAllStreetsPagination(request != null && request.Result != null ? request.Result.Key : null, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null ? request.SortOrder == 0 : false);
 
                 return streets.Item2 switch
                 {
                     0 => Ok(new PaginatedListResponse<StreetRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new PaginatedListResponse<StreetRequest>(ConstantMessage.Success, _mapper.Map<List<StreetRequest>>(streets.Item1), streets.Item2, request.PageNumber, request.PageSize, request.SortField, request.SortOrder))
+                    _ => Ok(new PaginatedListResponse<StreetRequest>(ConstantMessage.Success, _mapper.Map<List<StreetRequest>>(streets.Item1), streets.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != 0 ? 0 : 1))
                 };
             }
             catch (Exception ex)

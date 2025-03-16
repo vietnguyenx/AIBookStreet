@@ -11,25 +11,54 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace AIBookStreet.Services.Services.Service
 {
-    public class AuthorService(IUnitOfWork repository, IMapper mapper, IHttpContextAccessor httpContextAccessor) : BaseService<Author>(mapper, repository, httpContextAccessor), IAuthorService
+    public class AuthorService(IUnitOfWork repository, IMapper mapper, IHttpContextAccessor httpContextAccessor, IFirebaseStorageService firebaseStorageService) : BaseService<Author>(mapper, repository, httpContextAccessor), IAuthorService
     {
         private readonly IUnitOfWork _repository = repository;
+        private readonly IFirebaseStorageService _firebaseStorage = firebaseStorageService;
         public async Task<Author?> AddAnAuthor(AuthorModel authorModel)
         {
             authorModel.DOB = authorModel.DOB?.ToLocalTime();
-            var author = _mapper.Map<Author>(authorModel);
-            var setAuthor = await SetBaseEntityToCreateFunc(author);
-            var isSuccess = await _repository.AuthorRepository.Add(setAuthor);
-            if (isSuccess)
+            try
             {
+                var fileUrl = "";
+                if (authorModel.ImgFile != null)
+                {
+                    fileUrl = await _firebaseStorage.UploadFileAsync(authorModel.ImgFile);
+                }
+
+                var author = new Author
+                {
+                    BaseImgUrl = !string.IsNullOrEmpty(fileUrl) ? fileUrl : null,
+                    AuthorName = authorModel.AuthorName,
+                    DOB = authorModel.DOB ?? null,
+                    Nationality = authorModel.Nationality,
+                    Biography = authorModel.Biography,
+                };
+
+                var setAuthor = await SetBaseEntityToCreateFunc(author);
+                var isSuccess = await _repository.AuthorRepository.Add(setAuthor);
+
+                if (!isSuccess)
+                {
+                    if (authorModel.ImgFile != null)
+                    {
+                        await _firebaseStorage.DeleteFileAsync(fileUrl);
+                    }
+                    return null;
+                }
+
                 return setAuthor;
             }
-            return null;
+            catch (Exception)
+            {
+                throw;
+            }
         }
-        public async Task<(long, Author?)> UpdateAnAuthor(Guid? authorID, AuthorModel authorModel)
+        public async Task<(long, Author?)> UpdateAnAuthor(Guid authorID, AuthorModel authorModel)
         {
             var existAuthor = await _repository.AuthorRepository.GetByID(authorID);
             if (existAuthor == null)
@@ -40,13 +69,40 @@ namespace AIBookStreet.Services.Services.Service
             {
                 return (3, null);
             }
-            existAuthor.AuthorName = authorModel.AuthorName;
-            existAuthor.DOB = authorModel.DOB != null ? authorModel.DOB.Value.ToLocalTime() : existAuthor.DOB;
-            existAuthor.Nationality = authorModel.Nationality ?? existAuthor.Nationality;
-            existAuthor.Biography = authorModel.Biography ?? existAuthor.Biography;
-            existAuthor = await SetBaseEntityToUpdateFunc(existAuthor);
-            return await _repository.AuthorRepository.Update(existAuthor) ? (2, existAuthor) //update thanh cong
-                                                                          : (3, null);       //update fail
+            try
+            {
+                var newFileUrl = authorModel.ImgFile != null ? await _firebaseStorage.UploadFileAsync(authorModel.ImgFile) : "";
+
+                var oldFileUrl = existAuthor.BaseImgUrl;
+                // Update entity
+                existAuthor.AuthorName = authorModel.AuthorName;
+                existAuthor.DOB = authorModel.DOB != null ? authorModel.DOB.Value.ToLocalTime() : existAuthor.DOB;
+                existAuthor.Nationality = authorModel.Nationality ?? existAuthor.Nationality;
+                existAuthor.Biography = authorModel.Biography ?? existAuthor.Biography;
+                existAuthor.BaseImgUrl = newFileUrl == "" ? existAuthor.BaseImgUrl : newFileUrl;
+                existAuthor = await SetBaseEntityToUpdateFunc(existAuthor);
+
+                var updateSuccess = await _repository.AuthorRepository.Update(existAuthor);
+                if (updateSuccess)
+                {
+                    if (authorModel.ImgFile != null && !string.IsNullOrEmpty(oldFileUrl))
+                    {
+                        await _firebaseStorage.DeleteFileAsync(oldFileUrl);
+                    }
+                    return (2, existAuthor); //update thành công
+                }
+
+                // Cleanup new file if update fails
+                if (authorModel.ImgFile != null)
+                {
+                    await _firebaseStorage.DeleteFileAsync(newFileUrl);
+                }
+                return (3, null); //update fail
+            }
+            catch
+            {
+                throw;
+            }
         }
         public async Task<(long, Author?)> DeleteAnAuthor(Guid id)
         {
@@ -54,11 +110,30 @@ namespace AIBookStreet.Services.Services.Service
             if (existAuthor == null)
             {
                 return (1, null); //author khong ton tai
-            }            
+            }    
+            if (existAuthor.IsDeleted)
+            {
+                return (3, null);
+            }
             existAuthor = await SetBaseEntityToUpdateFunc(existAuthor);
 
-            return await _repository.AuthorRepository.Delete(existAuthor) ? (2, existAuthor) //delete thanh cong
-                                                                          : (3, null);       //delete fail
+            var isSuccess = await _repository.AuthorRepository.Delete(existAuthor);
+            if (isSuccess)
+            {
+                if (!string.IsNullOrEmpty(existAuthor.BaseImgUrl))
+                {
+                    try
+                    {
+                        await _firebaseStorage.DeleteFileAsync(existAuthor.BaseImgUrl);
+                    }
+                    catch
+                    {
+                        throw;
+                    }
+                }
+                return (2, existAuthor);//delete thanh cong
+            }            
+            return (3, null);       //delete fail
         }
         public async Task<Author?> GetAnAuthorById(Guid id)
         {

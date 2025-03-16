@@ -1,4 +1,5 @@
 ﻿using AIBookStreet.Repositories.Data.Entities;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -10,14 +11,13 @@ namespace AIBookStreet.Services.Model
 {
     public class EventModel
     {
-        public Guid? Id { get; set; }
-        [Required]
-        public required string EventName { get; set; }
+        public string EventName { get; set; }
         public string? Description { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
-        public string? BaseImgUrl { get; set; }
-        public string? VideoLink { get; set; }
+        public IFormFile? BaseImgFile { get; set; }
+        public IFormFile? VideoFile { get; set; }
+        public List<IFormFile>? OtherImgFile { get; set; }
         public bool IsOpen { get; set; }
         public Guid? ZoneId { get; set; }
     }

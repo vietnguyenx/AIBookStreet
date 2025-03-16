@@ -11,7 +11,6 @@ namespace AIBookStreet.Services.Model
     public class CategoryModel
     {
         public Guid? Id { get; set; }
-        [Required]
         public string CategoryName { get; set; } = null!;
         public string? Description { get; set; }
     }

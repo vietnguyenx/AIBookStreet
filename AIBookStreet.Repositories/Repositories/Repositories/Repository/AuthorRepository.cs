@@ -53,8 +53,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             queryable = GetQueryablePagination(queryable, (int)pageNumber, (int)pageSize);
 
-            var authors = await queryable
-                .Include(at => at.Images).ToListAsync();
+            var authors = await queryable.ToListAsync();
 
             return (authors, totalOrigin);
         }
@@ -81,8 +80,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             queryable = GetQueryablePagination(queryable, (int)pageNumber, (int)pageSize);
 
-            var authors = await queryable
-                .Include(at => at.Images).ToListAsync();
+            var authors = await queryable.ToListAsync();
 
             return (authors, totalOrigin);
         }

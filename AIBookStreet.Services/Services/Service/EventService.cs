@@ -13,9 +13,11 @@ using System.Threading.Tasks;
 
 namespace AIBookStreet.Services.Services.Service
 {
-    public class EventService(IUnitOfWork repository, IMapper mapper, IHttpContextAccessor httpContextAccessor) : BaseService<Event>(mapper, repository, httpContextAccessor), IEventService
+    public class EventService(IUnitOfWork repository, IMapper mapper, IHttpContextAccessor httpContextAccessor, IFirebaseStorageService firebaseStorageService, IImageService imageService) : BaseService<Event>(mapper, repository, httpContextAccessor), IEventService
     {
         private readonly IUnitOfWork _repository = repository;
+        private readonly IFirebaseStorageService _firebaseStorageService = firebaseStorageService;
+        private readonly IImageService _imageService = imageService;
         public async Task<(long, Event?)> AddAnEvent(EventModel model)
         {
             var existed = await _repository.EventRepository.GetAllPagination(null, model.StartDate, model.EndDate, model.ZoneId, 1, 1, null, true);
@@ -23,16 +25,76 @@ namespace AIBookStreet.Services.Services.Service
             {
                 return (1, null); //da co su kien tren duong sach vao thoi gian nay
             }
-            var evt = _mapper.Map<Event>(model);
-            var setEvent = await SetBaseEntityToCreateFunc(evt);
-            var isSuccess = await _repository.EventRepository.Add(setEvent);
-            if (isSuccess)
+
+            try
             {
+                var baseFileUrl = "";
+                if (model.BaseImgFile != null)
+                {
+                    baseFileUrl = await _firebaseStorageService.UploadFileAsync(model.BaseImgFile);
+                }
+                var videoUrl = "";
+                if (model.VideoFile != null)
+                {
+                    videoUrl = await _firebaseStorageService.UploadFileAsync(model.VideoFile);
+                }
+
+                var evt = new Event
+                {
+                    BaseImgUrl = !string.IsNullOrEmpty(baseFileUrl) ? baseFileUrl : null,
+                    EventName = model.EventName,
+                    Description = model.Description ?? null,
+                    StartDate = model.StartDate ?? null,
+                    EndDate = model.EndDate ?? null,
+                    VideoLink = !string.IsNullOrEmpty(videoUrl) ? videoUrl : null,
+                    IsOpen = model.IsOpen,
+                    ZoneId = model.ZoneId ?? null,
+                };
+
+                var setEvent = await SetBaseEntityToCreateFunc(evt);
+                var isSuccess = await _repository.EventRepository.Add(setEvent);
+
+                if (!isSuccess)
+                {
+                    if (model.BaseImgFile != null)
+                    {
+                        await _firebaseStorageService.DeleteFileAsync(baseFileUrl);
+                    }
+                    if (model.VideoFile != null)
+                    {
+                        await _firebaseStorageService.DeleteFileAsync(videoUrl);
+                    }
+                    return (3, null);
+                }
+
+                if (model.OtherImgFile != null)
+                {
+                    var images = new List<FileModel>();
+                    foreach (var imageFile in model.OtherImgFile)
+                    {
+                        var image = new FileModel
+                        {
+                            File = imageFile,
+                            Type = "Sự kiện",
+                            AltText = "Ảnh sự kiện " + setEvent.EventName,
+                            EntityId = setEvent.Id
+                        };
+                        images.Add(image);
+                    }
+                    var result = _imageService.AddImages(images);
+                    if (result == null)
+                    {
+                        return (3, null);
+                    }
+                }
                 return (2, setEvent);
             }
-            return (3, null);
+            catch (Exception)
+            {
+                throw;
+            }
         }
-        public async Task<(long, Event?)> UpdateAnEvent(Guid? id, EventModel model)
+        public async Task<(long, Event?)> UpdateAnEvent(Guid id, EventModel model)
         {
             var existed = await _repository.EventRepository.GetByID(id);
             if (existed == null)
@@ -43,15 +105,53 @@ namespace AIBookStreet.Services.Services.Service
             {
                 return (3, null);
             }
-            existed.EventName = model.EventName;
-            existed.Description = model.Description ?? existed.Description;
-            existed.StartDate = model.StartDate ?? existed.StartDate;
-            existed.EndDate = model.EndDate ?? existed.EndDate;
-            existed.ZoneId = model.ZoneId ?? existed.ZoneId;
+            try
+            {
+                var newFileUrl = model.BaseImgFile != null ? await _firebaseStorageService.UploadFileAsync(model.BaseImgFile) : "";
+                var newVideoUrl = model.VideoFile != null ? await _firebaseStorageService.UploadFileAsync(model.VideoFile) : "";
 
-            existed = await SetBaseEntityToUpdateFunc(existed);
-            return await _repository.EventRepository.Update(existed) ? (2, existed) //update thanh cong
-                                                                          : (3, null);       //update fail
+                var oldFileUrl = existed.BaseImgUrl;
+                var oldVideoFile = existed.VideoLink;
+                // Update entity
+                existed.EventName = model.EventName;
+                existed.Description = model.Description != null ? model.Description : existed.Description;
+                existed.StartDate = model.StartDate != null ? model.StartDate.Value.ToLocalTime() : existed.StartDate;
+                existed.EndDate = model.EndDate != null ? model.EndDate.Value.ToLocalTime() : existed.EndDate;
+                existed.BaseImgUrl = newFileUrl == "" ? existed.BaseImgUrl : newFileUrl;
+                existed.VideoLink = newVideoUrl == "" ? existed.VideoLink : newVideoUrl;
+                existed.IsOpen = model.IsOpen;
+                existed.ZoneId = model.ZoneId != null ? model.ZoneId : existed.ZoneId;
+                existed = await SetBaseEntityToUpdateFunc(existed);
+
+                var updateSuccess = await _repository.EventRepository.Update(existed);
+                if (updateSuccess)
+                {
+                    if (model.BaseImgFile != null && !string.IsNullOrEmpty(oldFileUrl))
+                    {
+                        await _firebaseStorageService.DeleteFileAsync(oldFileUrl);
+                    }
+                    if (model.VideoFile != null && !string.IsNullOrEmpty(oldVideoFile))
+                    {
+                        await _firebaseStorageService.DeleteFileAsync(oldVideoFile);
+                    }
+                    return (2, existed); //update thành công
+                }
+
+                // Cleanup new file if update fails
+                if (model.BaseImgFile != null)
+                {
+                    await _firebaseStorageService.DeleteFileAsync(newFileUrl);
+                }
+                if (model.VideoFile != null)
+                {
+                    await _firebaseStorageService.DeleteFileAsync(newVideoUrl);
+                }
+                return (3, null); //update fail
+            }
+            catch
+            {
+                throw;
+            }
         }
         public async Task<(long, Event?)> DeleteAnEvent(Guid id)
         {
@@ -60,10 +160,41 @@ namespace AIBookStreet.Services.Services.Service
             {
                 return (1, null); //khong ton tai
             }
+            if (existed.IsDeleted)
+            {
+                return (3, null);
+            }
             existed = await SetBaseEntityToUpdateFunc(existed);
 
-            return await _repository.EventRepository.Delete(existed) ? (2, existed) //delete thanh cong
-                                                                          : (3, null);       //delete fail
+            var isSuccess = await _repository.EventRepository.Delete(existed);
+            if (isSuccess)
+            {
+                try
+                {
+                    if (!string.IsNullOrEmpty(existed.BaseImgUrl))
+                    {
+                        await _firebaseStorageService.DeleteFileAsync(existed.BaseImgUrl);
+                    }
+                    if (!string.IsNullOrEmpty(existed.VideoLink))
+                    {
+                        await _firebaseStorageService.DeleteFileAsync(existed.VideoLink);
+                    }
+                    var otherImages = existed.Images;
+                    if (otherImages != null)
+                    {
+                        foreach (var image in otherImages)
+                        {
+                            await _firebaseStorageService.DeleteFileAsync(image.Url);
+                        }
+                    }
+                }
+                catch
+                {
+                    throw;
+                }
+                return (2, existed);//delete thanh cong
+            }
+            return (3, null);       //delete fail
         }
         public async Task<Event?> GetAnEventById(Guid id)
         {
@@ -91,9 +222,18 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.EventRepository.GetEventsComing(number);
         }
-        public async Task<List<DateOnly>?> GetEventDatesInMonth(int? month)
+        public async Task<List<DateModel>?> GetEventDatesInMonth(int? month)
         {
-            return await _repository.EventRepository.GetDatesInMonth(month);
+            var result = await _repository.EventRepository.GetDatesInMonth(month);
+            var dates = new List<DateModel>();
+            if (result != null)
+            {
+                foreach (var date in result)
+                {
+                    dates.Add(new DateModel(date));
+                }
+            }
+            return dates;
         }
         public async Task<List<Event>?> GetEventByDate(DateTime? date)
         {
