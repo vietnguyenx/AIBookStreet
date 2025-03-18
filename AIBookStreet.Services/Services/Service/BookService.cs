@@ -129,12 +129,12 @@ namespace AIBookStreet.Services.Services.Service
                 };
 
                 var mainImages = await _imageService.AddImages(new List<FileModel> { mainImageModel });
-                if (mainImages == null)
+                if (mainImages == null || !mainImages.Any())
                 {
                     return false;
                 }
 
-                // Set BaseImgUrl to the main image URL
+                // Set BaseImgUrl from uploaded image URL
                 newBook.BaseImgUrl = mainImages.First().Url;
             }
 

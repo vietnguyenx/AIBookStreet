@@ -18,7 +18,6 @@ namespace AIBookStreet.Services.Model
         public string? Description { get; set; }
         public string? Size { get; set; }
         public string? Status { get; set; }
-        public string? BaseImgUrl { get; set; }
         public IFormFile? MainImageFile { get; set; }
         public List<IFormFile>? AdditionalImageFiles { get; set; }
 
