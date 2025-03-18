@@ -175,16 +175,17 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("update")]
-        public async Task<IActionResult> Update([FromForm] BookRequest bookRequest)
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromForm] BookRequest bookRequest)
         {
             try
             {
                 var bookModel = _mapper.Map<BookModel>(bookRequest);
+                bookModel.Id = id;
                 bookModel.MainImageFile = bookRequest.MainImageFile;
                 bookModel.AdditionalImageFiles = bookRequest.AdditionalImageFiles;
 
-                var isBook = await _bookService.Update(bookModel);
+                var isBook = await _bookService.    Update(bookModel);
 
                 return isBook switch
                 {

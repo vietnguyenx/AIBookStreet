@@ -163,11 +163,20 @@ namespace AIBookStreet.Services.Services.Service
 
         public async Task<bool> Update(BookModel bookModel)
         {
-            var existingBook = await _bookRepository.GetById(bookModel.Id);
+            if (bookModel.Id == Guid.Empty)
+            {
+                return false; // Id không được để trống
+            }
 
+            var existingBook = await _bookRepository.GetById(bookModel.Id);
             if (existingBook == null)
             {
-                return false;
+                return false; // Không tìm thấy book với Id này
+            }
+
+            if (string.IsNullOrEmpty(bookModel.Code))
+            {
+                bookModel.Code = existingBook.Code;
             }
 
             _mapper.Map(bookModel, existingBook);
@@ -299,3 +308,4 @@ namespace AIBookStreet.Services.Services.Service
 
     }
 }
+
