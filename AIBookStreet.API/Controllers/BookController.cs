@@ -1,7 +1,7 @@
 ﻿using AIBookStreet.API.RequestModel;
 using AIBookStreet.API.ResponseModel;
 using AIBookStreet.API.SearchModel;
-using AIBookStreet.API.Tool.Constant;
+using AIBookStreet.Services.Common;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AIBookStreet.Services.Services.Service;
@@ -15,7 +15,6 @@ namespace AIBookStreet.API.Controllers
 {
     [Route("api/book")]
     [ApiController]
-
     public class BookController : ControllerBase
     {
         private readonly IBookService _bookService;
@@ -33,16 +32,15 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var books = await _bookService.GetAll();
-
                 return books switch
                 {
-                    null => Ok(new ItemListResponse<BookModel>(ConstantMessage.Fail, null)),
-                    not null => Ok(new ItemListResponse<BookModel>(ConstantMessage.Success, books))
+                    null => StatusCode(ConstantHttpStatus.NOT_FOUND, new ItemListResponse<BookModel>(ConstantMessage.NotFound, null)),
+                    not null => StatusCode(ConstantHttpStatus.OK, new ItemListResponse<BookModel>(ConstantMessage.Success, books))
                 };
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
 
@@ -55,15 +53,14 @@ namespace AIBookStreet.API.Controllers
                 long totalOrigin = await _bookService.GetTotalCount();
                 return books switch
                 {
-                    null => Ok(new PaginatedListResponse<BookModel>(ConstantMessage.NotFound)),
-                    not null => Ok(new PaginatedListResponse<BookModel>(ConstantMessage.Success, books, totalOrigin, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField))
+                    null => StatusCode(ConstantHttpStatus.NOT_FOUND, new PaginatedListResponse<BookModel>(ConstantMessage.NotFound)),
+                    not null => StatusCode(ConstantHttpStatus.OK, new PaginatedListResponse<BookModel>(ConstantMessage.Success, books, totalOrigin, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField))
                 };
             }
             catch (Exception ex)
             {
-
-                return BadRequest(ex.Message);
-            };
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
+            }
         }
 
         [HttpGet("get-by-id/{id}")]
@@ -73,21 +70,20 @@ namespace AIBookStreet.API.Controllers
             {
                 if (id == Guid.Empty)
                 {
-                    return BadRequest("Id is empty");
+                    return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ConstantMessage.EmptyId));
                 }
                 var bookModel = await _bookService.GetById(id);
 
                 return bookModel switch
                 {
-                    null => Ok(new ItemResponse<BookModel>(ConstantMessage.NotFound)),
-                    not null => Ok(new ItemResponse<BookModel>(ConstantMessage.Success, bookModel))
+                    null => StatusCode(ConstantHttpStatus.NOT_FOUND, new ItemResponse<BookModel>(ConstantMessage.NotFound)),
+                    not null => StatusCode(ConstantHttpStatus.OK, new ItemResponse<BookModel>(ConstantMessage.Success, bookModel))
                 };
             }
             catch (Exception ex)
             {
-
-                return BadRequest(ex.Message);
-            };
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
+            }
         }
 
         [HttpPost("search-pagination")]
@@ -103,14 +99,14 @@ namespace AIBookStreet.API.Controllers
 
                 return books.Item1 switch
                 {
-                    null => Ok(new PaginatedListResponse<BookModel>(ConstantMessage.NotFound, books.Item1, books.Item2, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField)),
-                    not null => Ok(new PaginatedListResponse<BookModel>(ConstantMessage.Success, books.Item1, books.Item2, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField))
+                    null => StatusCode(ConstantHttpStatus.NOT_FOUND, new PaginatedListResponse<BookModel>(ConstantMessage.NotFound, books.Item1, books.Item2, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField)),
+                    not null => StatusCode(ConstantHttpStatus.OK, new PaginatedListResponse<BookModel>(ConstantMessage.Success, books.Item1, books.Item2, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField))
                 };
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
-            };
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
+            }
         }
 
         [HttpPost("search-without-pagination")]
@@ -126,14 +122,14 @@ namespace AIBookStreet.API.Controllers
 
                 return books switch
                 {
-                    null => Ok(new ItemListResponse<BookModel>(ConstantMessage.NotFound, null)),
-                    not null => Ok(new ItemListResponse<BookModel>(ConstantMessage.Success, books))
+                    null => StatusCode(ConstantHttpStatus.NOT_FOUND, new ItemListResponse<BookModel>(ConstantMessage.NotFound, null)),
+                    not null => StatusCode(ConstantHttpStatus.OK, new ItemListResponse<BookModel>(ConstantMessage.Success, books))
                 };
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
-            };
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
+            }
         }
 
         [Authorize]
@@ -146,7 +142,7 @@ namespace AIBookStreet.API.Controllers
                 bookModel.MainImageFile = bookRequest.MainImageFile;
                 bookModel.AdditionalImageFiles = bookRequest.AdditionalImageFiles;
 
-                if (bookRequest.AuthorIds != null && bookRequest.AuthorIds.Any())
+                if (bookRequest.AuthorIds?.Any() == true)
                 {
                     bookModel.BookAuthors = bookRequest.AuthorIds.Select(authorId => new BookAuthorModel
                     {
@@ -154,7 +150,7 @@ namespace AIBookStreet.API.Controllers
                     }).ToList();
                 }
 
-                if (bookRequest.CategoryIds != null && bookRequest.CategoryIds.Any())
+                if (bookRequest.CategoryIds?.Any() == true)
                 {
                     bookModel.BookCategories = bookRequest.CategoryIds.Select(categoryId => new BookCategoryModel
                     {
@@ -162,15 +158,14 @@ namespace AIBookStreet.API.Controllers
                     }).ToList();
                 }
 
-                var isBookAdded = await _bookService.Add(bookModel);
-
-                return isBookAdded
-                    ? Ok(new BaseResponse(true, ConstantMessage.Success))
-                    : BadRequest(new BaseResponse(false, ConstantMessage.Fail));
+                var (isSuccess, message) = await _bookService.Add(bookModel);
+                return isSuccess
+                    ? StatusCode(ConstantHttpStatus.CREATED, new BaseResponse(true, message))
+                    : StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message));
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
 
@@ -180,52 +175,47 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
+                if (id == Guid.Empty)
+                {
+                    return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ConstantMessage.EmptyId));
+                }
+
                 var bookModel = _mapper.Map<BookModel>(bookRequest);
                 bookModel.Id = id;
                 bookModel.MainImageFile = bookRequest.MainImageFile;
                 bookModel.AdditionalImageFiles = bookRequest.AdditionalImageFiles;
 
-                var isBook = await _bookService.    Update(bookModel);
-
-                return isBook switch
-                {
-                    true => Ok(new BaseResponse(isBook, ConstantMessage.Success)),
-                    _ => Ok(new BaseResponse(isBook, ConstantMessage.Fail))
-                };
+                var (isSuccess, message) = await _bookService.Update(bookModel);
+                return isSuccess
+                    ? StatusCode(ConstantHttpStatus.OK, new BaseResponse(true, message))
+                    : StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message));
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
 
         [Authorize]
-        [HttpPut("delete")]
+        [HttpDelete("delete/{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             try
             {
-                if (id != Guid.Empty)
+                if (id == Guid.Empty)
                 {
-                    var isBook = await _bookService.Delete(id);
+                    return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ConstantMessage.EmptyId));
+                }
 
-                    return isBook switch
-                    {
-                        true => Ok(new BaseResponse(isBook, ConstantMessage.Success)),
-                        _ => Ok(new BaseResponse(isBook, ConstantMessage.Fail))
-                    };
-                }
-                else
-                {
-                    return BadRequest("It's not empty");
-                }
+                var (isSuccess, message) = await _bookService.Delete(id);
+                return isSuccess
+                    ? StatusCode(ConstantHttpStatus.OK, new BaseResponse(true, message))
+                    : StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message));
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
-
     }
-    
 }
