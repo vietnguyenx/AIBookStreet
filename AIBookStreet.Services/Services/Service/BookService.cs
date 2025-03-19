@@ -58,22 +58,22 @@ namespace AIBookStreet.Services.Services.Service
             return !books.Any() ? null : _mapper.Map<List<BookModel>>(books);
         }
 
-        public async Task<(bool, string)> Add(BookModel bookModel)
+        public async Task<(BookModel?, string)> Add(BookModel bookModel)
         {
             try
             {
                 if (bookModel == null)
-                    return (false, ConstantMessage.Book.EmptyInfo);
+                    return (null, ConstantMessage.Book.EmptyInfo);
 
                 if (string.IsNullOrEmpty(bookModel.Code))
-                    return (false, ConstantMessage.Book.EmptyCode);
+                    return (null, ConstantMessage.Book.EmptyCode);
 
                 if (string.IsNullOrEmpty(bookModel.Title))
-                    return (false, ConstantMessage.Book.EmptyTitle);
+                    return (null, ConstantMessage.Book.EmptyTitle);
 
                 var existingBook = await _bookRepository.SearchWithoutPagination(new Book { Code = bookModel.Code }, null, null);
                 if (existingBook?.Any() == true)
-                    return (false, ConstantMessage.Book.CodeExists);
+                    return (null, ConstantMessage.Book.CodeExists);
 
                 var mappedBook = _mapper.Map<Book>(bookModel);
                 var newBook = await SetBaseEntityToCreateFunc(mappedBook);
@@ -83,7 +83,7 @@ namespace AIBookStreet.Services.Services.Service
                     foreach (var author in bookModel.BookAuthors)
                     {
                         if (author.AuthorId == Guid.Empty)
-                            return (false, ConstantMessage.Book.InvalidAuthorId);
+                            return (null, ConstantMessage.Book.InvalidAuthorId);
                     }
 
                     newBook.BookAuthors = bookModel.BookAuthors.Select(ba => new BookAuthor
@@ -99,7 +99,7 @@ namespace AIBookStreet.Services.Services.Service
                     foreach (var category in bookModel.BookCategories)
                     {
                         if (category.CategoryId == Guid.Empty)
-                            return (false, ConstantMessage.Book.InvalidCategoryId);
+                            return (null, ConstantMessage.Book.InvalidCategoryId);
                     }
 
                     newBook.BookCategories = bookModel.BookCategories.Select(bc => new BookCategory
@@ -113,10 +113,10 @@ namespace AIBookStreet.Services.Services.Service
                 if (bookModel.MainImageFile != null)
                 {
                     if (bookModel.MainImageFile.Length > 10 * 1024 * 1024)
-                        return (false, ConstantMessage.Book.MainImageSizeExceeded);
+                        return (null, ConstantMessage.Book.MainImageSizeExceeded);
 
                     if (!bookModel.MainImageFile.ContentType.StartsWith("image/"))
-                        return (false, ConstantMessage.Book.InvalidMainImageFormat);
+                        return (null, ConstantMessage.Book.InvalidMainImageFormat);
 
                     var mainImageModel = new FileModel
                     {
@@ -128,7 +128,7 @@ namespace AIBookStreet.Services.Services.Service
 
                     var mainImages = await _imageService.AddImages(new List<FileModel> { mainImageModel });
                     if (mainImages == null || !mainImages.Any())
-                        return (false, ConstantMessage.Book.MainImageUploadFailed);
+                        return (null, ConstantMessage.Book.MainImageUploadFailed);
 
                     newBook.BaseImgUrl = mainImages.First().Url;
                 }
@@ -138,10 +138,10 @@ namespace AIBookStreet.Services.Services.Service
                     foreach (var file in bookModel.AdditionalImageFiles)
                     {
                         if (file.Length > 10 * 1024 * 1024)
-                            return (false, ConstantMessage.Book.SubImageSizeExceeded);
+                            return (null, ConstantMessage.Book.SubImageSizeExceeded);
 
                         if (!file.ContentType.StartsWith("image/"))
-                            return (false, ConstantMessage.Book.InvalidSubImageFormat);
+                            return (null, ConstantMessage.Book.InvalidSubImageFormat);
                     }
 
                     var additionalImageModels = bookModel.AdditionalImageFiles.Select(file => new FileModel
@@ -154,37 +154,40 @@ namespace AIBookStreet.Services.Services.Service
 
                     var additionalImages = await _imageService.AddImages(additionalImageModels);
                     if (additionalImages == null)
-                        return (false, ConstantMessage.Book.SubImageUploadFailed);
+                        return (null, ConstantMessage.Book.SubImageUploadFailed);
                 }
 
                 var result = await _bookRepository.Add(newBook);
-                return result ? (true, ConstantMessage.Book.AddSuccess) : (false, ConstantMessage.Book.AddFail);
+                if (!result)
+                    return (null, ConstantMessage.Book.AddFail);
+
+                return (_mapper.Map<BookModel>(newBook), ConstantMessage.Book.AddSuccess);
             }
             catch (Exception ex)
             {
-                return (false, $"Error while adding book: {ex.Message}");
+                return (null, $"Error while adding book: {ex.Message}");
             }
         }
 
-        public async Task<(bool, string)> Update(BookModel bookModel)
+        public async Task<(BookModel?, string)> Update(BookModel bookModel)
         {
             try
             {
                 if (bookModel == null)
-                    return (false, ConstantMessage.Book.EmptyInfo);
+                    return (null, ConstantMessage.Book.EmptyInfo);
 
                 if (bookModel.Id == Guid.Empty)
-                    return (false, ConstantMessage.EmptyId);
+                    return (null, ConstantMessage.EmptyId);
 
                 var existingBook = await _bookRepository.GetById(bookModel.Id);
                 if (existingBook == null)
-                    return (false, ConstantMessage.Book.NotFoundForUpdate);
+                    return (null, ConstantMessage.Book.NotFoundForUpdate);
 
                 if (!string.IsNullOrEmpty(bookModel.Code) && bookModel.Code != existingBook.Code)
                 {
                     var bookWithSameCode = await _bookRepository.SearchWithoutPagination(new Book { Code = bookModel.Code }, null, null);
                     if (bookWithSameCode?.Any() == true)
-                        return (false, ConstantMessage.Book.CodeExists);
+                        return (null, ConstantMessage.Book.CodeExists);
                 }
 
                 if (string.IsNullOrEmpty(bookModel.Code))
@@ -196,10 +199,10 @@ namespace AIBookStreet.Services.Services.Service
                 if (bookModel.MainImageFile != null)
                 {
                     if (bookModel.MainImageFile.Length > 10 * 1024 * 1024)
-                        return (false, ConstantMessage.Book.MainImageSizeExceeded);
+                        return (null, ConstantMessage.Book.MainImageSizeExceeded);
 
                     if (!bookModel.MainImageFile.ContentType.StartsWith("image/"))
-                        return (false, ConstantMessage.Book.InvalidMainImageFormat);
+                        return (null, ConstantMessage.Book.InvalidMainImageFormat);
 
                     var existingMainImages = await _imageService.GetImagesByTypeAndEntityID("book_main", updatedBook.Id);
                     if (existingMainImages?.Any() == true)
@@ -214,7 +217,7 @@ namespace AIBookStreet.Services.Services.Service
 
                         var updateResult = await _imageService.UpdateAnImage(existingMainImages.First().Id, mainImageModel);
                         if (updateResult.Item1 != 2)
-                            return (false, ConstantMessage.Book.MainImageUploadFailed);
+                            return (null, ConstantMessage.Book.MainImageUploadFailed);
 
                         updatedBook.BaseImgUrl = updateResult.Item2.Url;
                     }
@@ -230,7 +233,7 @@ namespace AIBookStreet.Services.Services.Service
 
                         var mainImages = await _imageService.AddImages(new List<FileModel> { mainImageModel });
                         if (mainImages == null)
-                            return (false, ConstantMessage.Book.MainImageUploadFailed);
+                            return (null, ConstantMessage.Book.MainImageUploadFailed);
 
                         updatedBook.BaseImgUrl = mainImages.First().Url;
                     }
@@ -241,10 +244,10 @@ namespace AIBookStreet.Services.Services.Service
                     foreach (var file in bookModel.AdditionalImageFiles)
                     {
                         if (file.Length > 10 * 1024 * 1024)
-                            return (false, ConstantMessage.Book.SubImageSizeExceeded);
+                            return (null, ConstantMessage.Book.SubImageSizeExceeded);
 
                         if (!file.ContentType.StartsWith("image/"))
-                            return (false, ConstantMessage.Book.InvalidSubImageFormat);
+                            return (null, ConstantMessage.Book.InvalidSubImageFormat);
                     }
 
                     var existingAdditionalImages = await _imageService.GetImagesByTypeAndEntityID("book_additional", updatedBook.Id);
@@ -254,7 +257,7 @@ namespace AIBookStreet.Services.Services.Service
                         {
                             var deleteResult = await _imageService.DeleteAnImage(image.Id);
                             if (deleteResult.Item1 != 2)
-                                return (false, ConstantMessage.Book.SubImageUploadFailed);
+                                return (null, ConstantMessage.Book.SubImageUploadFailed);
                         }
                     }
 
@@ -268,28 +271,31 @@ namespace AIBookStreet.Services.Services.Service
 
                     var additionalImages = await _imageService.AddImages(additionalImageModels);
                     if (additionalImages == null)
-                        return (false, ConstantMessage.Book.SubImageUploadFailed);
+                        return (null, ConstantMessage.Book.SubImageUploadFailed);
                 }
 
                 var result = await _bookRepository.Update(updatedBook);
-                return result ? (true, ConstantMessage.Book.UpdateSuccess) : (false, ConstantMessage.Book.UpdateFail);
+                if (!result)
+                    return (null, ConstantMessage.Book.UpdateFail);
+
+                return (_mapper.Map<BookModel>(updatedBook), ConstantMessage.Book.UpdateSuccess);
             }
             catch (Exception ex)
             {
-                return (false, $"Error while updating book: {ex.Message}");
+                return (null, $"Error while updating book: {ex.Message}");
             }
         }
 
-        public async Task<(bool, string)> Delete(Guid bookId)
+        public async Task<(BookModel?, string)> Delete(Guid bookId)
         {
             try
             {
                 if (bookId == Guid.Empty)
-                    return (false, ConstantMessage.EmptyId);
+                    return (null, ConstantMessage.EmptyId);
 
                 var existingBook = await _bookRepository.GetById(bookId);
                 if (existingBook == null)
-                    return (false, ConstantMessage.Book.NotFoundForDelete);
+                    return (null, ConstantMessage.Book.NotFoundForDelete);
 
                 var existingMainImages = await _imageService.GetImagesByTypeAndEntityID("book_main", bookId);
                 var existingAdditionalImages = await _imageService.GetImagesByTypeAndEntityID("book_additional", bookId);
@@ -300,7 +306,7 @@ namespace AIBookStreet.Services.Services.Service
                     {
                         var deleteResult = await _imageService.DeleteAnImage(image.Id);
                         if (deleteResult.Item1 != 2)
-                            return (false, ConstantMessage.Book.MainImageUploadFailed);
+                            return (null, ConstantMessage.Book.MainImageUploadFailed);
                     }
                 }
 
@@ -310,16 +316,19 @@ namespace AIBookStreet.Services.Services.Service
                     {
                         var deleteResult = await _imageService.DeleteAnImage(image.Id);
                         if (deleteResult.Item1 != 2)
-                            return (false, ConstantMessage.Book.SubImageUploadFailed);
+                            return (null, ConstantMessage.Book.SubImageUploadFailed);
                     }
                 }
 
                 var result = await _bookRepository.Delete(existingBook);
-                return result ? (true, ConstantMessage.Book.DeleteSuccess) : (false, ConstantMessage.Book.DeleteFail);
+                if (!result)
+                    return (null, ConstantMessage.Book.DeleteFail);
+
+                return (_mapper.Map<BookModel>(existingBook), ConstantMessage.Book.DeleteSuccess);
             }
             catch (Exception ex)
             {
-                return (false, $"Error while deleting book: {ex.Message}");
+                return (null, $"Error while deleting book: {ex.Message}");
             }
         }
 
