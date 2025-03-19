@@ -3,6 +3,7 @@ using AIBookStreet.Repositories.Repositories.Repositories.Interface;
 using AIBookStreet.Repositories.Repositories.Repositories.Repository;
 using AIBookStreet.Repositories.Repositories.UnitOfWork.Interface;
 using AIBookStreet.Services.Base;
+using AIBookStreet.Services.Common;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
@@ -18,10 +19,12 @@ namespace AIBookStreet.Services.Services.Service
     public class PublisherService : BaseService<Publisher>, IPublisherService
     {
         private readonly IPublisherRepository _publisherRepository;
+        private readonly IImageService _imageService;
 
-        public PublisherService(IMapper mapper, IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor) : base(mapper, unitOfWork, httpContextAccessor)
+        public PublisherService(IMapper mapper, IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, IImageService imageService) : base(mapper, unitOfWork, httpContextAccessor)
         {
             _publisherRepository = unitOfWork.PublisherRepository;
+            _imageService = imageService;
         }
 
         public async Task<List<PublisherModel>> GetAll()
@@ -88,38 +91,243 @@ namespace AIBookStreet.Services.Services.Service
             return publisherModels;
         }
 
-        public async Task<bool> Add(PublisherModel publisherModel)
+        public async Task<(PublisherModel?, string)> Add(PublisherModel publisherModel)
         {
-            var mappedPublisher = _mapper.Map<Publisher>(publisherModel);
-            var newPublisher = await SetBaseEntityToCreateFunc(mappedPublisher);
-            return await _publisherRepository.Add(newPublisher);
+            try
+            {
+                if (publisherModel == null)
+                    return (null, ConstantMessage.Publisher.EmptyInfo);
+
+                if (string.IsNullOrEmpty(publisherModel.PublisherName))
+                    return (null, ConstantMessage.Publisher.EmptyPublisherName);
+
+                var existingPublisher = await _publisherRepository.SearchWithoutPagination(new Publisher { PublisherName = publisherModel.PublisherName });
+                if (existingPublisher?.Any() == true)
+                    return (null, ConstantMessage.Publisher.PublisherNameExists);
+
+                var mappedPublisher = _mapper.Map<Publisher>(publisherModel);
+                var newPublisher = await SetBaseEntityToCreateFunc(mappedPublisher);            
+
+                if (publisherModel.MainImageFile != null)
+                {
+                    if (publisherModel.MainImageFile.Length > 10 * 1024 * 1024)
+                        return (null, ConstantMessage.Publisher.MainImageSizeExceeded);
+
+                    if (!publisherModel.MainImageFile.ContentType.StartsWith("image/"))
+                        return (null, ConstantMessage.Publisher.InvalidMainImageFormat);
+
+                    var mainImageModel = new FileModel
+                    {
+                        File = publisherModel.MainImageFile,
+                        Type = "publisher_main",
+                        AltText = publisherModel.PublisherName ?? publisherModel.MainImageFile.FileName,
+                        EntityId = newPublisher.Id
+                    };
+
+                    var mainImages = await _imageService.AddImages(new List<FileModel> { mainImageModel });
+                    if (mainImages == null || !mainImages.Any())
+                        return (null, ConstantMessage.Publisher.MainImageUploadFailed);
+
+                    newPublisher.BaseImgUrl = mainImages.First().Url;
+                }
+
+                if (publisherModel.AdditionalImageFiles?.Any() == true)
+                {
+                    foreach (var file in publisherModel.AdditionalImageFiles)
+                    {
+                        if (file.Length > 10 * 1024 * 1024)
+                            return (null, ConstantMessage.Publisher.SubImageSizeExceeded);
+
+                        if (!file.ContentType.StartsWith("image/"))
+                            return (null, ConstantMessage.Publisher.InvalidSubImageFormat);
+                    }
+
+                    var additionalImageModels = publisherModel.AdditionalImageFiles.Select(file => new FileModel
+                    {
+                        File = file,
+                        Type = "publisher_additional",
+                        AltText = publisherModel.PublisherName ?? file.FileName,
+                        EntityId = newPublisher.Id
+                    }).ToList();
+
+                    var additionalImages = await _imageService.AddImages(additionalImageModels);
+                    if (additionalImages == null)
+                        return (null, ConstantMessage.Publisher.SubImageUploadFailed);
+                }
+
+                var result = await _publisherRepository.Add(newPublisher);
+                if (!result)
+                    return (null, ConstantMessage.Publisher.AddFail);
+
+                return (_mapper.Map<PublisherModel>(newPublisher), ConstantMessage.Publisher.AddSuccess);
+            }
+            catch (Exception ex)
+            {
+                return (null, $"Error while adding publisher: {ex.Message}");
+            }
         }
 
-        public async Task<bool> Update(PublisherModel publisherModel)
+        public async Task<(PublisherModel?, string)> Update(PublisherModel publisherModel)
         {
-            var existingPublisher = await _publisherRepository.GetById(publisherModel.Id);
-
-            if (existingPublisher == null)
+            try
             {
-                return false;
+                if (publisherModel == null)
+                    return (null, ConstantMessage.Publisher.EmptyInfo);
+
+                if (publisherModel.Id == Guid.Empty)
+                    return (null, ConstantMessage.EmptyId);
+
+                var existingPublisher = await _publisherRepository.GetById(publisherModel.Id);
+                if (existingPublisher == null)
+                    return (null, ConstantMessage.Publisher.NotFoundForUpdate);
+
+                if (!string.IsNullOrEmpty(publisherModel.PublisherName) && publisherModel.PublisherName != existingPublisher.PublisherName)
+                {
+                    var PubilsherWithSameName = await _publisherRepository.SearchWithoutPagination(new Publisher { PublisherName = publisherModel.PublisherName });
+                    if (PubilsherWithSameName?.Any() == true)
+                        return (null, ConstantMessage.Publisher.PublisherNameExists);
+                }
+
+                if (string.IsNullOrEmpty(publisherModel.PublisherName))
+                    publisherModel.PublisherName = existingPublisher.PublisherName;
+
+                _mapper.Map(publisherModel, existingPublisher);
+                var updatedPublisher = await SetBaseEntityToUpdateFunc(existingPublisher);
+
+                if (publisherModel.MainImageFile != null)
+                {
+                    if (publisherModel.MainImageFile.Length > 10 * 1024 * 1024)
+                        return (null, ConstantMessage.Publisher.MainImageSizeExceeded);
+
+                    if (!publisherModel.MainImageFile.ContentType.StartsWith("image/"))
+                        return (null, ConstantMessage.Publisher.InvalidMainImageFormat);
+
+                    var existingMainImages = await _imageService.GetImagesByTypeAndEntityID("publisher_main", updatedPublisher.Id);
+                    if (existingMainImages?.Any() == true)
+                    {
+                        var mainImageModel = new FileModel
+                        {
+                            File = publisherModel.MainImageFile,
+                            Type = "publisher_main",
+                            AltText = publisherModel.PublisherName ?? publisherModel.MainImageFile.FileName,
+                            EntityId = updatedPublisher.Id
+                        };
+
+                        var updateResult = await _imageService.UpdateAnImage(existingMainImages.First().Id, mainImageModel);
+                        if (updateResult.Item1 != 2)
+                            return (null, ConstantMessage.Publisher.MainImageUploadFailed);
+
+                        updatedPublisher.BaseImgUrl = updateResult.Item2.Url;
+                    }
+                    else
+                    {
+                        var mainImageModel = new FileModel
+                        {
+                            File = publisherModel.MainImageFile,
+                            Type = "publisher_main",
+                            AltText = publisherModel.PublisherName ?? publisherModel.MainImageFile.FileName,
+                            EntityId = updatedPublisher.Id
+                        };
+
+                        var mainImages = await _imageService.AddImages(new List<FileModel> { mainImageModel });
+                        if (mainImages == null)
+                            return (null, ConstantMessage.Publisher.MainImageUploadFailed);
+
+                        updatedPublisher.BaseImgUrl = mainImages.First().Url;
+                    }
+                }
+
+                if (publisherModel.AdditionalImageFiles?.Any() == true)
+                {
+                    foreach (var file in publisherModel.AdditionalImageFiles)
+                    {
+                        if (file.Length > 10 * 1024 * 1024)
+                            return (null, ConstantMessage.Publisher.SubImageSizeExceeded);
+
+                        if (!file.ContentType.StartsWith("image/"))
+                            return (null, ConstantMessage.Publisher.InvalidSubImageFormat);
+                    }
+
+                    var existingAdditionalImages = await _imageService.GetImagesByTypeAndEntityID("publisher_additional", updatedPublisher.Id);
+                    if (existingAdditionalImages?.Any() == true)
+                    {
+                        foreach (var image in existingAdditionalImages)
+                        {
+                            var deleteResult = await _imageService.DeleteAnImage(image.Id);
+                            if (deleteResult.Item1 != 2)
+                                return (null, ConstantMessage.Publisher.SubImageUploadFailed);
+                        }
+                    }
+
+                    var additionalImageModels = publisherModel.AdditionalImageFiles.Select(file => new FileModel
+                    {
+                        File = file,
+                        Type = "publisher_additional",
+                        AltText = publisherModel.PublisherName ?? file.FileName,
+                        EntityId = updatedPublisher.Id
+                    }).ToList();
+
+                    var additionalImages = await _imageService.AddImages(additionalImageModels);
+                    if (additionalImages == null)
+                        return (null, ConstantMessage.Publisher.SubImageUploadFailed);
+                }
+
+                var result = await _publisherRepository.Update(updatedPublisher);
+                if (!result)
+                    return (null, ConstantMessage.Publisher.UpdateFail);
+
+                return (_mapper.Map<PublisherModel>(updatedPublisher), ConstantMessage.Publisher.UpdateSuccess);
             }
-
-            _mapper.Map(publisherModel, existingPublisher);
-            var updatedPublisher = await SetBaseEntityToUpdateFunc(existingPublisher);
-
-            return await _publisherRepository.Update(updatedPublisher);
+            catch (Exception ex)
+            {
+                return (null, $"Error while updating publisher: {ex.Message}");
+            }
         }
 
-        public async Task<bool> Delete(Guid publisherId)
+        public async Task<(PublisherModel?, string)> Delete(Guid publisherId)
         {
-            var existingPublisher = await _publisherRepository.GetById(publisherId);
-            if (existingPublisher == null)
+            try
             {
-                return false;
-            }
+                if (publisherId == Guid.Empty)
+                    return (null, ConstantMessage.EmptyId);
 
-            var mappedPublisher = _mapper.Map<Publisher>(existingPublisher);
-            return await _publisherRepository.Delete(mappedPublisher);
+                var existingPublisher = await _publisherRepository.GetById(publisherId);
+                if (existingPublisher == null)
+                    return (null, ConstantMessage.Publisher.NotFoundForDelete);
+
+                var existingMainImages = await _imageService.GetImagesByTypeAndEntityID("publisher_main", publisherId);
+                var existingAdditionalImages = await _imageService.GetImagesByTypeAndEntityID("publisher_additional", publisherId);
+
+                if (existingMainImages != null)
+                {
+                    foreach (var image in existingMainImages)
+                    {
+                        var deleteResult = await _imageService.DeleteAnImage(image.Id);
+                        if (deleteResult.Item1 != 2)
+                            return (null, ConstantMessage.Publisher.MainImageUploadFailed);
+                    }
+                }
+
+                if (existingAdditionalImages != null)
+                {
+                    foreach (var image in existingAdditionalImages)
+                    {
+                        var deleteResult = await _imageService.DeleteAnImage(image.Id);
+                        if (deleteResult.Item1 != 2)
+                            return (null, ConstantMessage.Publisher.SubImageUploadFailed);
+                    }
+                }
+
+                var result = await _publisherRepository.Delete(existingPublisher);
+                if (!result)
+                    return (null, ConstantMessage.Publisher.DeleteFail);
+
+                return (_mapper.Map<PublisherModel>(existingPublisher), ConstantMessage.Publisher.DeleteSuccess);
+            }
+            catch (Exception ex)
+            {
+                return (null, $"Error while deleting publisher: {ex.Message}");
+            }
         }
 
 

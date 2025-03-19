@@ -1,7 +1,7 @@
 ﻿using AIBookStreet.API.RequestModel;
 using AIBookStreet.API.ResponseModel;
 using AIBookStreet.API.SearchModel;
-using AIBookStreet.API.Tool.Constant;
+using AIBookStreet.Services.Common;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AIBookStreet.Services.Services.Service;
@@ -133,43 +133,53 @@ namespace AIBookStreet.API.Controllers
 
         [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> Add(PublisherRequest publisherRequest)
+        public async Task<IActionResult> Add([FromForm] PublisherRequest publisherRequest)
         {
             try
             {
-                var isPublisher = await _publisherService.Add(_mapper.Map<PublisherModel>(publisherRequest));
+                var publisherModel = _mapper.Map<PublisherModel>(publisherRequest);
+                publisherModel.MainImageFile = publisherRequest.MainImageFile;
+                publisherModel.AdditionalImageFiles = publisherRequest.AdditionalImageFiles;
 
-                return isPublisher switch
+                var (result, message) = await _publisherService.Add(publisherModel);
+                return result switch
                 {
-                    true => Ok(new BaseResponse(isPublisher, ConstantMessage.Success)),
-                    _ => Ok(new BaseResponse(isPublisher, ConstantMessage.Fail))
+                    null => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message)),
+                    not null => StatusCode(ConstantHttpStatus.CREATED, new ItemResponse<PublisherModel>(message, result))
                 };
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
 
         [Authorize]
         [HttpPut("update")]
-        public async Task<IActionResult> Update(PublisherRequest publisherRequest)
+        public async Task<IActionResult> Update(Guid id, [FromForm] PublisherRequest publisherRequest)
         {
             try
             {
-                var publisherModel = _mapper.Map<PublisherModel>(publisherRequest);
-
-                var isPublisher = await _publisherService.Update(publisherModel);
-
-                return isPublisher switch
+                if (id == Guid.Empty)
                 {
-                    true => Ok(new BaseResponse(isPublisher, ConstantMessage.Success)),
-                    _ => Ok(new BaseResponse(isPublisher, ConstantMessage.Fail))
+                    return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ConstantMessage.EmptyId));
+                }
+
+                var publisherModel = _mapper.Map<PublisherModel>(publisherRequest);
+                publisherModel.Id = id;
+                publisherModel.MainImageFile = publisherRequest.MainImageFile;
+                publisherModel.AdditionalImageFiles = publisherRequest.AdditionalImageFiles;
+
+                var (result, message) = await _publisherService.Update(publisherModel);
+                return result switch
+                {
+                    null => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message)),
+                    not null => StatusCode(ConstantHttpStatus.OK, new ItemResponse<PublisherModel>(message, result))
                 };
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
 
@@ -179,24 +189,21 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                if (id != Guid.Empty)
+                if (id == Guid.Empty)
                 {
-                    var isPublisher = await _publisherService.Delete(id);
+                    return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ConstantMessage.EmptyId));
+                }
 
-                    return isPublisher switch
-                    {
-                        true => Ok(new BaseResponse(isPublisher, ConstantMessage.Success)),
-                        _ => Ok(new BaseResponse(isPublisher, ConstantMessage.Fail))
-                    };
-                }
-                else
+                var (result, message) = await _publisherService.Delete(id);
+                return result switch
                 {
-                    return BadRequest("It's not empty");
-                }
+                    null => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message)),
+                    not null => StatusCode(ConstantHttpStatus.OK, new ItemResponse<PublisherModel>(message, result))
+                };
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
     }
