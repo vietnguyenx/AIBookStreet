@@ -1,7 +1,9 @@
 ﻿using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Repositories.Repositories.Repositories.Interface;
+using AIBookStreet.Repositories.Repositories.Repositories.Repository;
 using AIBookStreet.Repositories.Repositories.UnitOfWork.Interface;
 using AIBookStreet.Services.Base;
+using AIBookStreet.Services.Common;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
@@ -21,14 +23,16 @@ namespace AIBookStreet.Services.Services.Service
     public class UserService : BaseService<User>, IUserService
     {
         private readonly IUserRepository _repository;
+        private readonly IImageService _imageService;
         private readonly IConfiguration _configuration;
         private DateTime countDown = DateTime.Now.AddDays(0.5);
         private static readonly Dictionary<string, (string Otp, DateTime Expiry)> OtpStore = new();
 
-        public UserService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IHttpContextAccessor _httpContextAccessor) : base(mapper, unitOfWork, _httpContextAccessor)
+        public UserService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IHttpContextAccessor _httpContextAccessor, IImageService imageService) : base(mapper, unitOfWork, _httpContextAccessor)
         {
             _repository = unitOfWork.UserRepository;
             _configuration = configuration;
+            _imageService = imageService;
         }
 
         public async Task<List<UserModel>> GetAll()
@@ -94,43 +98,246 @@ namespace AIBookStreet.Services.Services.Service
             return _mapper.Map<List<UserModel>>(users);
         }
 
-        public async Task<bool> Add(UserModel userModel)
+        public async Task<(UserModel?, string)> Add(UserModel userModel)
         {
-            userModel.DOB = userModel.DOB != null ? userModel.DOB.Value.ToLocalTime() : null;
-            var mappedUser = _mapper.Map<User>(userModel);
-            mappedUser.Password = userModel.Password;
-            var newUser = await SetBaseEntityToCreateFunc(mappedUser);
+            try
+            {
+                if (userModel == null)
+                    return (null, ConstantMessage.User.EmptyInfo);
 
-            return await _repository.Add(newUser);
+                if (string.IsNullOrEmpty(userModel.UserName))
+                    return (null, ConstantMessage.User.EmptyUsername);
+
+                if (string.IsNullOrEmpty(userModel.Password))
+                    return (null, ConstantMessage.User.EmptyPassword);
+
+                var existingUser = await _userRepository.SearchWithoutPagination(new User { UserName = userModel.UserName });
+                if (existingUser?.Any() == true)
+                    return (null, ConstantMessage.User.UsernameExists);
+
+                var mappedUser = _mapper.Map<User>(userModel);
+                var newUser = await SetBaseEntityToCreateFunc(mappedUser);
+
+                if (userModel.MainImageFile != null)
+                {
+                    if (userModel.MainImageFile.Length > 10 * 1024 * 1024)
+                        return (null, ConstantMessage.User.MainImageSizeExceeded);
+
+                    if (!userModel.MainImageFile.ContentType.StartsWith("image/"))
+                        return (null, ConstantMessage.User.InvalidMainImageFormat);
+
+                    var mainImageModel = new FileModel
+                    {
+                        File = userModel.MainImageFile,
+                        Type = "user_main",
+                        AltText = userModel.UserName ?? userModel.MainImageFile.FileName,
+                        EntityId = newUser.Id
+                    };
+
+                    var mainImages = await _imageService.AddImages(new List<FileModel> { mainImageModel });
+                    if (mainImages == null || !mainImages.Any())
+                        return (null, ConstantMessage.User.MainImageUploadFailed);
+
+                    newUser.BaseImgUrl = mainImages.First().Url;
+                }
+
+                if (userModel.AdditionalImageFiles?.Any() == true)
+                {
+                    foreach (var file in userModel.AdditionalImageFiles)
+                    {
+                        if (file.Length > 10 * 1024 * 1024)
+                            return (null, ConstantMessage.User.SubImageSizeExceeded);
+
+                        if (!file.ContentType.StartsWith("image/"))
+                            return (null, ConstantMessage.User.InvalidSubImageFormat);
+                    }
+
+                    var additionalImageModels = userModel.AdditionalImageFiles.Select(file => new FileModel
+                    {
+                        File = file,
+                        Type = "user_additional",
+                        AltText = userModel.UserName ?? file.FileName,
+                        EntityId = newUser.Id
+                    }).ToList();
+
+                    var additionalImages = await _imageService.AddImages(additionalImageModels);
+                    if (additionalImages == null)
+                        return (null, ConstantMessage.User.SubImageUploadFailed);
+                }
+
+                var result = await _userRepository.Add(newUser);
+                if (!result)
+                    return (null, ConstantMessage.User.AddFail);
+
+                return (_mapper.Map<UserModel>(newUser), ConstantMessage.User.AddSuccess);
+            }
+            catch (Exception ex)
+            {
+                return (null, $"Error while adding user: {ex.Message}");
+            }
         }
 
-        public async Task<bool> Update(UserModel userModel)
+        public async Task<(UserModel?, string)> Update(UserModel userModel)
         {
-            var entity = await _repository.GetById(userModel.Id);
-
-            if (entity == null)
+            try
             {
-                return false;
+                if (userModel == null)
+                    return (null, ConstantMessage.User.EmptyInfo);
+
+                if (userModel.Id == Guid.Empty)
+                    return (null, ConstantMessage.EmptyId);
+
+                var existingUser = await _userRepository.GetById(userModel.Id);
+                if (existingUser == null)
+                    return (null, ConstantMessage.User.NotFoundForUpdate);
+
+                if (!string.IsNullOrEmpty(userModel.UserName) && userModel.UserName != existingUser.UserName)
+                {
+                    var userWithSameUsername = await _userRepository.SearchWithoutPagination(new User { UserName = userModel.UserName });
+                    if (userWithSameUsername?.Any() == true)
+                        return (null, ConstantMessage.User.UsernameExists);
+                }
+
+                if (string.IsNullOrEmpty(userModel.UserName))
+                    userModel.UserName = existingUser.UserName;
+
+                _mapper.Map(userModel, existingUser);
+                var updatedUser = await SetBaseEntityToUpdateFunc(existingUser);
+
+                if (userModel.MainImageFile != null)
+                {
+                    if (userModel.MainImageFile.Length > 10 * 1024 * 1024)
+                        return (null, ConstantMessage.User.MainImageSizeExceeded);
+
+                    if (!userModel.MainImageFile.ContentType.StartsWith("image/"))
+                        return (null, ConstantMessage.User.InvalidMainImageFormat);
+
+                    var existingMainImages = await _imageService.GetImagesByTypeAndEntityID("user_main", updatedUser.Id);
+                    if (existingMainImages?.Any() == true)
+                    {
+                        var mainImageModel = new FileModel
+                        {
+                            File = userModel.MainImageFile,
+                            Type = "user_main",
+                            AltText = userModel.UserName ?? userModel.MainImageFile.FileName,
+                            EntityId = updatedUser.Id
+                        };
+
+                        var updateResult = await _imageService.UpdateAnImage(existingMainImages.First().Id, mainImageModel);
+                        if (updateResult.Item1 != 2)
+                            return (null, ConstantMessage.User.MainImageUploadFailed);
+
+                        updatedUser.BaseImgUrl = updateResult.Item2.Url;
+                    }
+                    else
+                    {
+                        var mainImageModel = new FileModel
+                        {
+                            File = userModel.MainImageFile,
+                            Type = "user_main",
+                            AltText = userModel.UserName ?? userModel.MainImageFile.FileName,
+                            EntityId = updatedUser.Id
+                        };
+
+                        var mainImages = await _imageService.AddImages(new List<FileModel> { mainImageModel });
+                        if (mainImages == null)
+                            return (null, ConstantMessage.User.MainImageUploadFailed);
+
+                        updatedUser.BaseImgUrl = mainImages.First().Url;
+                    }
+                }
+
+                if (userModel.AdditionalImageFiles?.Any() == true)
+                {
+                    foreach (var file in userModel.AdditionalImageFiles)
+                    {
+                        if (file.Length > 10 * 1024 * 1024)
+                            return (null, ConstantMessage.User.SubImageSizeExceeded);
+
+                        if (!file.ContentType.StartsWith("image/"))
+                            return (null, ConstantMessage.User.InvalidSubImageFormat);
+                    }
+
+                    var existingAdditionalImages = await _imageService.GetImagesByTypeAndEntityID("user_additional", updatedUser.Id);
+                    if (existingAdditionalImages?.Any() == true)
+                    {
+                        foreach (var image in existingAdditionalImages)
+                        {
+                            var deleteResult = await _imageService.DeleteAnImage(image.Id);
+                            if (deleteResult.Item1 != 2)
+                                return (null, ConstantMessage.User.SubImageUploadFailed);
+                        }
+                    }
+
+                    var additionalImageModels = userModel.AdditionalImageFiles.Select(file => new FileModel
+                    {
+                        File = file,
+                        Type = "user_additional",
+                        AltText = userModel.UserName ?? file.FileName,
+                        EntityId = updatedUser.Id
+                    }).ToList();
+
+                    var additionalImages = await _imageService.AddImages(additionalImageModels);
+                    if (additionalImages == null)
+                        return (null, ConstantMessage.User.SubImageUploadFailed);
+                }
+
+                var result = await _userRepository.Update(updatedUser);
+                if (!result)
+                    return (null, ConstantMessage.User.UpdateFail);
+
+                return (_mapper.Map<UserModel>(updatedUser), ConstantMessage.User.UpdateSuccess);
             }
-
-            userModel.DOB = userModel.DOB.Value.ToLocalTime();
-            _mapper.Map(userModel, entity);
-            entity = await SetBaseEntityToUpdateFunc(entity);
-
-            return await _repository.Update(entity);
+            catch (Exception ex)
+            {
+                return (null, $"Error while updating user: {ex.Message}");
+            }
         }
 
-        public async Task<bool> Delete(Guid id)
+        public async Task<(UserModel?, string)> Delete(Guid userId)
         {
-            var existingUser = await _repository.GetById(id);
-
-            if (existingUser == null)
+            try
             {
-                return false;
-            }
+                if (userId == Guid.Empty)
+                    return (null, ConstantMessage.EmptyId);
 
-            var mappedUser = _mapper.Map<User>(existingUser);
-            return await _repository.Delete(mappedUser);
+                var existingUser = await _userRepository.GetById(userId);
+                if (existingUser == null)
+                    return (null, ConstantMessage.User.NotFoundForDelete);
+
+                var existingMainImages = await _imageService.GetImagesByTypeAndEntityID("user_main", userId);
+                var existingAdditionalImages = await _imageService.GetImagesByTypeAndEntityID("user_additional", userId);
+
+                if (existingMainImages != null)
+                {
+                    foreach (var image in existingMainImages)
+                    {
+                        var deleteResult = await _imageService.DeleteAnImage(image.Id);
+                        if (deleteResult.Item1 != 2)
+                            return (null, ConstantMessage.User.MainImageUploadFailed);
+                    }
+                }
+
+                if (existingAdditionalImages != null)
+                {
+                    foreach (var image in existingAdditionalImages)
+                    {
+                        var deleteResult = await _imageService.DeleteAnImage(image.Id);
+                        if (deleteResult.Item1 != 2)
+                            return (null, ConstantMessage.User.SubImageUploadFailed);
+                    }
+                }
+
+                var result = await _userRepository.Delete(existingUser);
+                if (!result)
+                    return (null, ConstantMessage.User.DeleteFail);
+
+                return (_mapper.Map<UserModel>(existingUser), ConstantMessage.User.DeleteSuccess);
+            }
+            catch (Exception ex)
+            {
+                return (null, $"Error while deleting user: {ex.Message}");
+            }
         }
 
         public async Task<UserModel> Login(AuthModel authModel)
@@ -161,24 +368,22 @@ namespace AIBookStreet.Services.Services.Service
             return userModel;
         }
 
-        public async Task<UserModel> Register(UserModel userModel)
+        public async Task<UserModel?> Register(UserModel userModel)
         {
             if (userModel.Password != null)
             {
                 userModel.Password = BCrypt.Net.BCrypt.HashPassword(userModel.Password);
             }
 
-            bool isUser = await Add(userModel);
-
-            UserModel _userModel = await GetUserByEmailOrUsername(userModel);
-
-            if (!isUser)
+            var (addedUser, message) = await Add(userModel);
+            if (addedUser == null)
             {
                 return null;
             }
 
-            return _userModel;
+            return await GetUserByEmailOrUsername(userModel);
         }
+
 
         public JwtSecurityToken CreateToken(UserModel userModel)
         {

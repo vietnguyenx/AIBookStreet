@@ -158,10 +158,12 @@ namespace AIBookStreet.API.Controllers
                     }).ToList();
                 }
 
-                var (isSuccess, message) = await _bookService.Add(bookModel);
-                return isSuccess
-                    ? StatusCode(ConstantHttpStatus.CREATED, new BaseResponse(true, message))
-                    : StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message));
+                var (result, message) = await _bookService.Add(bookModel);
+                return result switch
+                {
+                    null => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message)),
+                    not null => StatusCode(ConstantHttpStatus.CREATED, new ItemResponse<BookModel>(message, result))
+                };
             }
             catch (Exception ex)
             {
@@ -185,10 +187,12 @@ namespace AIBookStreet.API.Controllers
                 bookModel.MainImageFile = bookRequest.MainImageFile;
                 bookModel.AdditionalImageFiles = bookRequest.AdditionalImageFiles;
 
-                var (isSuccess, message) = await _bookService.Update(bookModel);
-                return isSuccess
-                    ? StatusCode(ConstantHttpStatus.OK, new BaseResponse(true, message))
-                    : StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message));
+                var (result, message) = await _bookService.Update(bookModel);
+                return result switch
+                {
+                    null => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message)),
+                    not null => StatusCode(ConstantHttpStatus.OK, new ItemResponse<BookModel>(message, result))
+                };
             }
             catch (Exception ex)
             {
@@ -207,10 +211,12 @@ namespace AIBookStreet.API.Controllers
                     return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ConstantMessage.EmptyId));
                 }
 
-                var (isSuccess, message) = await _bookService.Delete(id);
-                return isSuccess
-                    ? StatusCode(ConstantHttpStatus.OK, new BaseResponse(true, message))
-                    : StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message));
+                var (result, message) = await _bookService.Delete(id);
+                return result switch
+                {
+                    null => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message)),
+                    not null => StatusCode(ConstantHttpStatus.OK, new ItemResponse<BookModel>(message, result))
+                };
             }
             catch (Exception ex)
             {

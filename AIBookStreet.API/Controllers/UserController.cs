@@ -1,7 +1,7 @@
 ﻿using AIBookStreet.API.RequestModel;
 using AIBookStreet.API.ResponseModel;
 using AIBookStreet.API.SearchModel;
-using AIBookStreet.API.Tool.Constant;
+using AIBookStreet.Services.Common;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AIBookStreet.Services.Services.Service;
@@ -156,43 +156,55 @@ namespace AIBookStreet.API.Controllers
 
         [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> Add(UserRequest user)
+        public async Task<IActionResult> Add([FromForm] UserRequest userRequest)
         {
             try
             {
-                var isUser = await _service.Add(_mapper.Map<UserModel>(user));
+                var userModel = _mapper.Map<UserModel>(userRequest);
+                userModel.MainImageFile = userRequest.MainImageFile;
+                userModel.AdditionalImageFiles = userRequest.AdditionalImageFiles;
 
-                return isUser switch
+
+
+                var (result, message) = await _service.Add(userModel);
+                return result switch
                 {
-                    true => Ok(new BaseResponse(isUser, ConstantMessage.Success)),
-                    _ => Ok(new BaseResponse(isUser, ConstantMessage.Fail))
+                    null => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message)),
+                    not null => StatusCode(ConstantHttpStatus.CREATED, new ItemResponse<UserModel>(message, result))
                 };
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
 
         [Authorize]
         [HttpPut("update")]
-        public async Task<IActionResult> Update(UserRequest user)
+        public async Task<IActionResult> Update(Guid id, [FromForm] UserRequest userRequest)
         {
             try
             {
-                var userModel = _mapper.Map<UserModel>(user);
-
-                var isUser = await _service.Update(userModel);
-
-                return isUser switch
+                if (id == Guid.Empty)
                 {
-                    true => Ok(new BaseResponse(isUser, ConstantMessage.Success)),
-                    _ => Ok(new BaseResponse(isUser, ConstantMessage.Fail))
+                    return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ConstantMessage.EmptyId));
+                }
+
+                var userModel = _mapper.Map<UserModel>(userRequest);
+                userModel.Id = id;
+                userModel.MainImageFile = userRequest.MainImageFile;
+                userModel.AdditionalImageFiles = userRequest.AdditionalImageFiles;
+
+                var (result, message) = await _service.Update(userModel);
+                return result switch
+                {
+                    null => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message)),
+                    not null => StatusCode(ConstantHttpStatus.OK, new ItemResponse<UserModel>(message, result))
                 };
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
 
@@ -202,24 +214,21 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                if (id != Guid.Empty)
+                if (id == Guid.Empty)
                 {
-                    var isUser = await _service.Delete(id);
+                    return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ConstantMessage.EmptyId));
+                }
 
-                    return isUser switch
-                    {
-                        true => Ok(new BaseResponse(isUser, ConstantMessage.Success)),
-                        _ => Ok(new BaseResponse(isUser, ConstantMessage.Fail))
-                    };
-                }
-                else
+                var (result, message) = await _service.Delete(id);
+                return result switch
                 {
-                    return BadRequest("It's not empty");
-                }
+                    null => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message)),
+                    not null => StatusCode(ConstantHttpStatus.OK, new ItemResponse<UserModel>(message, result))
+                };
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
 

@@ -4,7 +4,7 @@ namespace AIBookStreet.API.RequestModel
 {
     public class BookRequest : BaseRequest
     {
-        public string? Code { get; set; }
+        public string Code { get; set; } = null!;
         public string? Title { get; set; }
         public DateTime? PublicationDate { get; set; }
         public decimal? Price { get; set; }

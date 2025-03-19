@@ -1,4 +1,5 @@
 ﻿using AIBookStreet.Repositories.Data.Entities;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,11 +18,14 @@ namespace AIBookStreet.Services.Model
         public string? Address { get; set; }
         public string? Phone { get; set; }
         public string? Gender { get; set; }
-        public string? BaseImgUrl { get; set; }
+        public IFormFile? MainImageFile { get; set; }
+        public List<IFormFile>? AdditionalImageFiles { get; set; }
 
         public StoreModel? Store { get; set; }
         public PublisherModel? Publisher { get; set; }
 
         public IList<UserRoleModel> UserRoles { get; set; }
+
+        public IList<Image>? Images { get; set; }
     }
 }
