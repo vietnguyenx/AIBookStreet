@@ -1,13 +1,14 @@
 ﻿using AIBookStreet.API.RequestModel;
 using AIBookStreet.API.ResponseModel;
 using AIBookStreet.API.SearchModel;
-using AIBookStreet.API.Tool.Constant;
 using AIBookStreet.Repositories.Data.Entities;
+using AIBookStreet.Services.Common;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AIBookStreet.API.Controllers
@@ -26,11 +27,11 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var result = await _service.AddASouvenir(model);
-                return result == null ? Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!")) : Ok(new ItemResponse<SouvenirRequest>("Đã thêm", _mapper.Map<SouvenirRequest>(result)));
+                return result == null ? StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, "Đã xảy ra lỗi")) : StatusCode(ConstantHttpStatus.CREATED, new ItemResponse<SouvenirRequest>("Đã thêm", _mapper.Map<SouvenirRequest>(result)));
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
         [Authorize]
@@ -43,14 +44,14 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
-                    2 => Ok(new ItemResponse<SouvenirRequest>("Đã cập nhật thông tin!", _mapper.Map<SouvenirRequest>(result.Item2))),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    1 => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, "Không tồn tại!!!")),
+                    2 => StatusCode(ConstantHttpStatus.OK,new ItemResponse<SouvenirRequest>("Đã cập nhật thông tin!", _mapper.Map<SouvenirRequest>(result.Item2))),
+                    _ => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
         [Authorize]
@@ -63,14 +64,14 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
-                    2 => Ok(new ItemResponse<SouvenirRequest>("Đã xóa thành công!", _mapper.Map<SouvenirRequest>(result.Item2))),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    1 => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, "Không tồn tại!!!")),
+                    2 => StatusCode(ConstantHttpStatus.OK, new ItemResponse<SouvenirRequest>("Đã xóa thành công!", _mapper.Map<SouvenirRequest>(result.Item2))),
+                    _ => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
         [AllowAnonymous]
@@ -83,14 +84,14 @@ namespace AIBookStreet.API.Controllers
 
                 return souvenir switch
                 {
-                    null => Ok(new ItemResponse<Souvenir>(ConstantMessage.NotFound)),
-                    not null => Ok(new ItemResponse<Souvenir>(ConstantMessage.Success, souvenir))
+                    null => StatusCode(ConstantHttpStatus.NOT_FOUND, new ItemResponse<BookModel>(ConstantMessage.NotFound)),
+                    not null => StatusCode(ConstantHttpStatus.OK, new ItemResponse<Souvenir>(ConstantMessage.Success, souvenir))
                 };
             }
             catch (Exception ex)
             {
 
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             };
         }
         [AllowAnonymous]
@@ -103,14 +104,14 @@ namespace AIBookStreet.API.Controllers
 
                 return souvenir.Item2 switch
                 {
-                    0 => Ok(new PaginatedListResponse<SouvenirRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new PaginatedListResponse<SouvenirRequest>(ConstantMessage.Success, _mapper.Map<List<SouvenirRequest>>(souvenir.Item1), souvenir.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? 1 : -1))
+                    0 => StatusCode(ConstantHttpStatus.NOT_FOUND, new PaginatedListResponse<SouvenirRequest>(ConstantMessage.Success, null)),
+                    _ => StatusCode(ConstantHttpStatus.OK, new PaginatedListResponse<SouvenirRequest>(ConstantMessage.Success, _mapper.Map<List<SouvenirRequest>>(souvenir.Item1), souvenir.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? 1 : -1))
                 };
             }
             catch (Exception ex)
             {
 
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             };
         }
     }
