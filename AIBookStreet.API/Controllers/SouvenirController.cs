@@ -99,12 +99,12 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var souvenir = await _service.GetAllSouvenirsPagination(request != null && request.Result != null ? request.Result.SouvenirName : null, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null ? request.SortOrder == 0 : false);
+                var souvenir = await _service.GetAllSouvenirsPagination(request != null && request.Result != null ? request.Result.SouvenirName : null, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder == -1);
 
                 return souvenir.Item2 switch
                 {
                     0 => Ok(new PaginatedListResponse<SouvenirRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new PaginatedListResponse<SouvenirRequest>(ConstantMessage.Success, _mapper.Map<List<SouvenirRequest>>(souvenir.Item1), souvenir.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != 0 ? 0 : 1))
+                    _ => Ok(new PaginatedListResponse<SouvenirRequest>(ConstantMessage.Success, _mapper.Map<List<SouvenirRequest>>(souvenir.Item1), souvenir.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? 1 : -1))
                 };
             }
             catch (Exception ex)

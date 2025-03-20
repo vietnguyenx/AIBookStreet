@@ -118,12 +118,12 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var zones = await _service.GetAllZonesPagination(request.Result.ZoneName, request.Result.StreetId, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
+                var zones = await _service.GetAllZonesPagination(request != null && request.Result != null ? request.Result.ZoneName : null, request != null && request.Result != null ? request.Result.StreetId : null, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder == -1);
 
                 return zones.Item2 switch
                 {
                     0 => Ok(new PaginatedListResponse<ZoneRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new PaginatedListResponse<ZoneRequest>(ConstantMessage.Success, _mapper.Map<List<ZoneRequest>>(zones.Item1), zones.Item2, request.PageNumber, request.PageSize, request.SortField, request.SortOrder))
+                    _ => Ok(new PaginatedListResponse<ZoneRequest>(ConstantMessage.Success, _mapper.Map<List<ZoneRequest>>(zones.Item1), zones.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? 1 : -1))
                 };
             }
             catch (Exception ex)
