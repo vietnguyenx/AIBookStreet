@@ -33,32 +33,32 @@ namespace AIBookStreet.Services.Services.Service
             }
             return (null, 3);//fail
         }
-        public async Task<(long, BookCategory?)> UpdateABookCategory(Guid? id, BookCategoryModel model)
+        public async Task<(long, BookCategory?)> UpdateABookCategory(BookCategoryModel model)
         {
-            var existed = await _repository.BookCategoryRepository.GetByID(id);
+            var existed = await _repository.BookCategoryRepository.GetByElement(model.BookId, model.CategoryId);
             if (existed == null)
             {
                 return (1, null); //khong ton tai
             }
-            if (existed.IsDeleted)
+            if (existed[0].IsDeleted)
             {
                 return (3, null);
             }
-            existed.BookId = model.BookId;
-            existed.CategoryId = model.CategoryId;
-            existed = await SetBaseEntityToUpdateFunc(existed);
-            return await _repository.BookCategoryRepository.Update(existed) ? (2, existed) //update thanh cong
+            existed[0].BookId = model.BookId;
+            existed[0].CategoryId = model.CategoryId;
+            existed[0] = await SetBaseEntityToUpdateFunc(existed[0]);
+            return await _repository.BookCategoryRepository.Update(existed[0]) ? (2, existed[0]) //update thanh cong
                                                                           : (3, null);       //update fail
         }
-        public async Task<(long, BookCategory?)> DeleteABookCategory(Guid id)
+        public async Task<(long, BookCategory?)> DeleteABookCategory(BookCategoryModel model)
         {
-            var existed = await _repository.BookCategoryRepository.GetByID(id);
+            var existed = await _repository.BookCategoryRepository.GetByElement(model.BookId, model.CategoryId);
             if (existed == null)
             {
                 return (1, null); //khong ton tai
             }
-            existed = await SetBaseEntityToUpdateFunc(existed);
-            return await _repository.BookCategoryRepository.Delete(existed) ? (2, existed) //delete thanh cong
+            existed[0] = await SetBaseEntityToUpdateFunc(existed[0]);
+            return await _repository.BookCategoryRepository.Delete(existed[0]) ? (2, existed[0]) //delete thanh cong
                                                                           : (3, null);       //delete fail
         }
         public async Task<BookCategory?> GetABookCategoryById(Guid id)
