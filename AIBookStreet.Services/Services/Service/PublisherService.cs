@@ -96,7 +96,7 @@ namespace AIBookStreet.Services.Services.Service
             try
             {
                 if (publisherModel == null)
-                    return (null, ConstantMessage.Publisher.EmptyInfo);
+                    return (null, ConstantMessage.Common.EmptyInfo);
 
                 if (string.IsNullOrEmpty(publisherModel.PublisherName))
                     return (null, ConstantMessage.Publisher.EmptyPublisherName);
@@ -111,10 +111,10 @@ namespace AIBookStreet.Services.Services.Service
                 if (publisherModel.MainImageFile != null)
                 {
                     if (publisherModel.MainImageFile.Length > 10 * 1024 * 1024)
-                        return (null, ConstantMessage.Publisher.MainImageSizeExceeded);
+                        return (null, ConstantMessage.Image.MainImageSizeExceeded);
 
                     if (!publisherModel.MainImageFile.ContentType.StartsWith("image/"))
-                        return (null, ConstantMessage.Publisher.InvalidMainImageFormat);
+                        return (null, ConstantMessage.Image.InvalidMainImageFormat);
 
                     var mainImageModel = new FileModel
                     {
@@ -126,7 +126,7 @@ namespace AIBookStreet.Services.Services.Service
 
                     var mainImages = await _imageService.AddImages(new List<FileModel> { mainImageModel });
                     if (mainImages == null || !mainImages.Any())
-                        return (null, ConstantMessage.Publisher.MainImageUploadFailed);
+                        return (null, ConstantMessage.Image.MainImageUploadFailed);
 
                     newPublisher.BaseImgUrl = mainImages.First().Url;
                 }
@@ -136,10 +136,10 @@ namespace AIBookStreet.Services.Services.Service
                     foreach (var file in publisherModel.AdditionalImageFiles)
                     {
                         if (file.Length > 10 * 1024 * 1024)
-                            return (null, ConstantMessage.Publisher.SubImageSizeExceeded);
+                            return (null, ConstantMessage.Image.SubImageSizeExceeded);
 
                         if (!file.ContentType.StartsWith("image/"))
-                            return (null, ConstantMessage.Publisher.InvalidSubImageFormat);
+                            return (null, ConstantMessage.Image.InvalidSubImageFormat);
                     }
 
                     var additionalImageModels = publisherModel.AdditionalImageFiles.Select(file => new FileModel
@@ -152,14 +152,14 @@ namespace AIBookStreet.Services.Services.Service
 
                     var additionalImages = await _imageService.AddImages(additionalImageModels);
                     if (additionalImages == null)
-                        return (null, ConstantMessage.Publisher.SubImageUploadFailed);
+                        return (null, ConstantMessage.Image.SubImageUploadFailed);
                 }
 
                 var result = await _publisherRepository.Add(newPublisher);
                 if (!result)
-                    return (null, ConstantMessage.Publisher.AddFail);
+                    return (null, ConstantMessage.Common.AddFail);
 
-                return (_mapper.Map<PublisherModel>(newPublisher), ConstantMessage.Publisher.AddSuccess);
+                return (_mapper.Map<PublisherModel>(newPublisher), ConstantMessage.Common.AddSuccess);
             }
             catch (Exception ex)
             {
@@ -172,14 +172,14 @@ namespace AIBookStreet.Services.Services.Service
             try
             {
                 if (publisherModel == null)
-                    return (null, ConstantMessage.Publisher.EmptyInfo);
+                    return (null, ConstantMessage.Common.EmptyInfo);
 
                 if (publisherModel.Id == Guid.Empty)
                     return (null, ConstantMessage.EmptyId);
 
                 var existingPublisher = await _publisherRepository.GetById(publisherModel.Id);
                 if (existingPublisher == null)
-                    return (null, ConstantMessage.Publisher.NotFoundForUpdate);
+                    return (null, ConstantMessage.Common.NotFoundForUpdate);
 
                 if (!string.IsNullOrEmpty(publisherModel.PublisherName) && publisherModel.PublisherName != existingPublisher.PublisherName)
                 {
@@ -197,10 +197,10 @@ namespace AIBookStreet.Services.Services.Service
                 if (publisherModel.MainImageFile != null)
                 {
                     if (publisherModel.MainImageFile.Length > 10 * 1024 * 1024)
-                        return (null, ConstantMessage.Publisher.MainImageSizeExceeded);
+                        return (null, ConstantMessage.Image.MainImageSizeExceeded);
 
                     if (!publisherModel.MainImageFile.ContentType.StartsWith("image/"))
-                        return (null, ConstantMessage.Publisher.InvalidMainImageFormat);
+                        return (null, ConstantMessage.Image.InvalidMainImageFormat);
 
                     var existingMainImages = await _imageService.GetImagesByTypeAndEntityID("publisher_main", updatedPublisher.Id);
                     if (existingMainImages?.Any() == true)
@@ -215,7 +215,7 @@ namespace AIBookStreet.Services.Services.Service
 
                         var updateResult = await _imageService.UpdateAnImage(existingMainImages.First().Id, mainImageModel);
                         if (updateResult.Item1 != 2)
-                            return (null, ConstantMessage.Publisher.MainImageUploadFailed);
+                            return (null, ConstantMessage.Image.MainImageUploadFailed);
 
                         updatedPublisher.BaseImgUrl = updateResult.Item2.Url;
                     }
@@ -231,7 +231,7 @@ namespace AIBookStreet.Services.Services.Service
 
                         var mainImages = await _imageService.AddImages(new List<FileModel> { mainImageModel });
                         if (mainImages == null)
-                            return (null, ConstantMessage.Publisher.MainImageUploadFailed);
+                            return (null, ConstantMessage.Image.MainImageUploadFailed);
 
                         updatedPublisher.BaseImgUrl = mainImages.First().Url;
                     }
@@ -242,10 +242,10 @@ namespace AIBookStreet.Services.Services.Service
                     foreach (var file in publisherModel.AdditionalImageFiles)
                     {
                         if (file.Length > 10 * 1024 * 1024)
-                            return (null, ConstantMessage.Publisher.SubImageSizeExceeded);
+                            return (null, ConstantMessage.Image.SubImageSizeExceeded);
 
                         if (!file.ContentType.StartsWith("image/"))
-                            return (null, ConstantMessage.Publisher.InvalidSubImageFormat);
+                            return (null, ConstantMessage.Image.InvalidSubImageFormat);
                     }
 
                     var existingAdditionalImages = await _imageService.GetImagesByTypeAndEntityID("publisher_additional", updatedPublisher.Id);
@@ -255,7 +255,7 @@ namespace AIBookStreet.Services.Services.Service
                         {
                             var deleteResult = await _imageService.DeleteAnImage(image.Id);
                             if (deleteResult.Item1 != 2)
-                                return (null, ConstantMessage.Publisher.SubImageUploadFailed);
+                                return (null, ConstantMessage.Image.SubImageUploadFailed);
                         }
                     }
 
@@ -269,14 +269,14 @@ namespace AIBookStreet.Services.Services.Service
 
                     var additionalImages = await _imageService.AddImages(additionalImageModels);
                     if (additionalImages == null)
-                        return (null, ConstantMessage.Publisher.SubImageUploadFailed);
+                        return (null, ConstantMessage.Image.SubImageUploadFailed);
                 }
 
                 var result = await _publisherRepository.Update(updatedPublisher);
                 if (!result)
-                    return (null, ConstantMessage.Publisher.UpdateFail);
+                    return (null, ConstantMessage.Common.UpdateFail);
 
-                return (_mapper.Map<PublisherModel>(updatedPublisher), ConstantMessage.Publisher.UpdateSuccess);
+                return (_mapper.Map<PublisherModel>(updatedPublisher), ConstantMessage.Common.UpdateSuccess);
             }
             catch (Exception ex)
             {
@@ -293,7 +293,7 @@ namespace AIBookStreet.Services.Services.Service
 
                 var existingPublisher = await _publisherRepository.GetById(publisherId);
                 if (existingPublisher == null)
-                    return (null, ConstantMessage.Publisher.NotFoundForDelete);
+                    return (null, ConstantMessage.Common.NotFoundForDelete);
 
                 var existingMainImages = await _imageService.GetImagesByTypeAndEntityID("publisher_main", publisherId);
                 var existingAdditionalImages = await _imageService.GetImagesByTypeAndEntityID("publisher_additional", publisherId);
@@ -304,7 +304,7 @@ namespace AIBookStreet.Services.Services.Service
                     {
                         var deleteResult = await _imageService.DeleteAnImage(image.Id);
                         if (deleteResult.Item1 != 2)
-                            return (null, ConstantMessage.Publisher.MainImageUploadFailed);
+                            return (null, ConstantMessage.Image.MainImageUploadFailed);
                     }
                 }
 
@@ -314,15 +314,15 @@ namespace AIBookStreet.Services.Services.Service
                     {
                         var deleteResult = await _imageService.DeleteAnImage(image.Id);
                         if (deleteResult.Item1 != 2)
-                            return (null, ConstantMessage.Publisher.SubImageUploadFailed);
+                            return (null, ConstantMessage.Image.SubImageUploadFailed);
                     }
                 }
 
                 var result = await _publisherRepository.Delete(existingPublisher);
                 if (!result)
-                    return (null, ConstantMessage.Publisher.DeleteFail);
+                    return (null, ConstantMessage.Common.DeleteFail);
 
-                return (_mapper.Map<PublisherModel>(existingPublisher), ConstantMessage.Publisher.DeleteSuccess);
+                return (_mapper.Map<PublisherModel>(existingPublisher), ConstantMessage.Common.DeleteSuccess);
             }
             catch (Exception ex)
             {
