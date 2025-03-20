@@ -19,7 +19,7 @@ namespace AIBookStreet.Repositories.Repositories.UnitOfWork.Repository
         public IBookAuthorRepository BookAuthorRepository => GetRepository<IBookAuthorRepository>();
         public IBookCategoryRepository BookCategoryRepository => GetRepository<IBookCategoryRepository>();
         public IBookRepository BookRepository => GetRepository<IBookRepository>();
-        public IStoreRepository BookStoreRepository => GetRepository<IStoreRepository>();
+        public IStoreRepository StoreRepository => GetRepository<IStoreRepository>();
         public ICategoryRepository CategoryRepository => GetRepository<ICategoryRepository>();
         public IEventRepository EventRepository => GetRepository<IEventRepository>();
         public IInventoryRepository InventoryRepository => GetRepository<IInventoryRepository>();

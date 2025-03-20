@@ -13,7 +13,7 @@ namespace AIBookStreet.Repositories.Repositories.UnitOfWork.Interface
         IBookAuthorRepository BookAuthorRepository { get; }
         IBookCategoryRepository BookCategoryRepository { get; }
         IBookRepository BookRepository { get; }
-        IStoreRepository BookStoreRepository { get; }
+        IStoreRepository StoreRepository { get; }
         ICategoryRepository CategoryRepository { get; }
         IEventRepository EventRepository { get; }
         IInventoryRepository InventoryRepository { get; }

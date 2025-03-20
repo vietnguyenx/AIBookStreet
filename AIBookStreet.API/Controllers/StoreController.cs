@@ -1,9 +1,10 @@
 ﻿using AIBookStreet.API.RequestModel;
 using AIBookStreet.API.ResponseModel;
 using AIBookStreet.API.SearchModel;
-using AIBookStreet.API.Tool.Constant;
+using AIBookStreet.Services.Common;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
+using AIBookStreet.Services.Services.Service;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -11,18 +12,18 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/bookStore")]
+    [Route("api/store")]
     [ApiController]
     
 
     public class StoreController : ControllerBase
     {
-        private readonly IStoreService _bookStoreService;
+        private readonly IStoreService _storeService;
         private readonly IMapper _mapper;
 
-        public StoreController(IStoreService bookStoreService, IMapper mapper)
+        public StoreController(IStoreService storeService, IMapper mapper)
         {
-            _bookStoreService = bookStoreService;
+            _storeService = storeService;
             _mapper = mapper;
         }
 
@@ -31,12 +32,12 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var bookStores = await _bookStoreService.GetAll();
+                var stores = await _storeService.GetAll();
 
-                return bookStores switch
+                return stores switch
                 {
                     null => Ok(new ItemListResponse<StoreModel>(ConstantMessage.Fail, null)),
-                    not null => Ok(new ItemListResponse<StoreModel>(ConstantMessage.Success, bookStores))
+                    not null => Ok(new ItemListResponse<StoreModel>(ConstantMessage.Success, stores))
                 };
             }
             catch (Exception ex)
@@ -50,12 +51,12 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var bookStores = await _bookStoreService.GetAllPagination(paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
-                long totalOrigin = await _bookStoreService.GetTotalCount();
-                return bookStores switch
+                var stores = await _storeService.GetAllPagination(paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
+                long totalOrigin = await _storeService.GetTotalCount();
+                return stores switch
                 {
                     null => Ok(new PaginatedListResponse<StoreModel>(ConstantMessage.NotFound)),
-                    not null => Ok(new PaginatedListResponse<StoreModel>(ConstantMessage.Success, bookStores, totalOrigin, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField))
+                    not null => Ok(new PaginatedListResponse<StoreModel>(ConstantMessage.Success, stores, totalOrigin, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField))
                 };
             }
             catch (Exception ex)
@@ -74,12 +75,12 @@ namespace AIBookStreet.API.Controllers
                 {
                     return BadRequest("Id is empty");
                 }
-                var bookStoreModel = await _bookStoreService.GetById(id);
+                var storeModel = await _storeService.GetById(id);
 
-                return bookStoreModel switch
+                return storeModel switch
                 {
                     null => Ok(new ItemResponse<StoreModel>(ConstantMessage.NotFound)),
-                    not null => Ok(new ItemResponse<StoreModel>(ConstantMessage.Success, bookStoreModel))
+                    not null => Ok(new ItemResponse<StoreModel>(ConstantMessage.Success, storeModel))
                 };
             }
             catch (Exception ex)
@@ -90,17 +91,17 @@ namespace AIBookStreet.API.Controllers
         }
 
         [HttpPost("search-pagination")]
-        public async Task<IActionResult> SearchPagination(PaginatedRequest<BookStoreSearchRequest> paginatedRequest)
+        public async Task<IActionResult> SearchPagination(PaginatedRequest<StoreSearchRequest> paginatedRequest)
         {
             try
             {
-                var bookStore = _mapper.Map<StoreModel>(paginatedRequest.Result);
-                var bookStores = await _bookStoreService.SearchPagination(bookStore, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
+                var store = _mapper.Map<StoreModel>(paginatedRequest.Result);
+                var stores = await _storeService.SearchPagination(store, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
 
-                return bookStores.Item1 switch
+                return stores.Item1 switch
                 {
-                    null => Ok(new PaginatedListResponse<StoreModel>(ConstantMessage.NotFound, bookStores.Item1, bookStores.Item2, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField)),
-                    not null => Ok(new PaginatedListResponse<StoreModel>(ConstantMessage.Success, bookStores.Item1, bookStores.Item2, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField))
+                    null => Ok(new PaginatedListResponse<StoreModel>(ConstantMessage.NotFound, stores.Item1, stores.Item2, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField)),
+                    not null => Ok(new PaginatedListResponse<StoreModel>(ConstantMessage.Success, stores.Item1, stores.Item2, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField))
                 };
             }
             catch (Exception ex)
@@ -111,16 +112,16 @@ namespace AIBookStreet.API.Controllers
         }
 
         [HttpPost("search-without-pagination")]
-        public async Task<IActionResult> SearchWithoutPagination(BookStoreSearchRequest searchRequest)
+        public async Task<IActionResult> SearchWithoutPagination(StoreSearchRequest searchRequest)
         {
             try
             {
-                var bookStoreModel = _mapper.Map<StoreModel>(searchRequest);
-                var bookStores = await _bookStoreService.SearchWithoutPagination(bookStoreModel);
+                var storeModel = _mapper.Map<StoreModel>(searchRequest);
+                var stores = await _storeService.SearchWithoutPagination(storeModel);
 
-                return bookStores == null
+                return stores == null
                     ? Ok(new ItemListResponse<StoreModel>(ConstantMessage.NotFound, null))
-                    : Ok(new ItemListResponse<StoreModel>(ConstantMessage.Success, bookStores));
+                    : Ok(new ItemListResponse<StoreModel>(ConstantMessage.Success, stores));
             }
             catch (Exception ex)
             {
@@ -131,70 +132,77 @@ namespace AIBookStreet.API.Controllers
 
         [Authorize]
         [HttpPost("add")]
-        public async Task<IActionResult> Add(StoreRequest bookStoreRequest)
+        public async Task<IActionResult> Add([FromForm] StoreRequest storeRequest)
         {
             try
             {
-                var isBookStore = await _bookStoreService.Add(_mapper.Map<StoreModel>(bookStoreRequest));
+                var storeModel = _mapper.Map<StoreModel>(storeRequest);
+                storeModel.MainImageFile = storeRequest.MainImageFile;
+                storeModel.AdditionalImageFiles = storeRequest.AdditionalImageFiles;
 
-                return isBookStore switch
+                var (result, message) = await _storeService.Add(storeModel);
+                return result switch
                 {
-                    true => Ok(new BaseResponse(isBookStore, ConstantMessage.Success)),
-                    _ => Ok(new BaseResponse(isBookStore, ConstantMessage.Fail))
+                    null => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message)),
+                    not null => StatusCode(ConstantHttpStatus.CREATED, new ItemResponse<StoreModel>(message, result))
                 };
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
 
         [Authorize]
         [HttpPut("update")]
-        public async Task<IActionResult> Update(StoreRequest bookStoreRequest)
+        public async Task<IActionResult> Update(Guid id, [FromForm] StoreRequest storeRequest)
         {
             try
             {
-                var bookStoreModel = _mapper.Map<StoreModel>(bookStoreRequest);
-
-                var isBookStore = await _bookStoreService.Update(bookStoreModel);
-
-                return isBookStore switch
+                if (id == Guid.Empty)
                 {
-                    true => Ok(new BaseResponse(isBookStore, ConstantMessage.Success)),
-                    _ => Ok(new BaseResponse(isBookStore, ConstantMessage.Fail))
+                    return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ConstantMessage.EmptyId));
+                }
+
+                var storeModel = _mapper.Map<StoreModel>(storeRequest);
+                storeModel.Id = id;
+                storeModel.MainImageFile = storeRequest.MainImageFile;
+                storeModel.AdditionalImageFiles = storeRequest.AdditionalImageFiles;
+
+                var (result, message) = await _storeService.Update(storeModel);
+                return result switch
+                {
+                    null => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message)),
+                    not null => StatusCode(ConstantHttpStatus.OK, new ItemResponse<StoreModel>(message, result))
                 };
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
 
         [Authorize]
-        [HttpPut("delete")]
+        [HttpDelete("delete/{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             try
             {
-                if (id != Guid.Empty)
+                if (id == Guid.Empty)
                 {
-                    var isBookStore = await _bookStoreService.Delete(id);
+                    return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ConstantMessage.EmptyId));
+                }
 
-                    return isBookStore switch
-                    {
-                        true => Ok(new BaseResponse(isBookStore, ConstantMessage.Success)),
-                        _ => Ok(new BaseResponse(isBookStore, ConstantMessage.Fail))
-                    };
-                }
-                else
+                var (result, message) = await _storeService.Delete(id);
+                return result switch
                 {
-                    return BadRequest("It's not empty");
-                }
+                    null => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message)),
+                    not null => StatusCode(ConstantHttpStatus.OK, new ItemResponse<StoreModel>(message, result))
+                };
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
     }

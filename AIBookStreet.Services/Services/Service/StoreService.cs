@@ -3,6 +3,7 @@ using AIBookStreet.Repositories.Repositories.Repositories.Interface;
 using AIBookStreet.Repositories.Repositories.Repositories.Repository;
 using AIBookStreet.Repositories.Repositories.UnitOfWork.Interface;
 using AIBookStreet.Services.Base;
+using AIBookStreet.Services.Common;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
@@ -17,109 +18,316 @@ namespace AIBookStreet.Services.Services.Service
 {
     public class StoreService : BaseService<Store>, IStoreService
     {
-        private readonly IStoreRepository _bookStoreRepository;
+        private readonly IStoreRepository _storeRepository;
+        private readonly IImageService _imageService;
 
-        public StoreService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor) : base(mapper, unitOfWork, httpContextAccessor)
+        public StoreService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IImageService imageService) : base(mapper, unitOfWork, httpContextAccessor)
         {
-            _bookStoreRepository = unitOfWork.BookStoreRepository;
+            _storeRepository = unitOfWork.StoreRepository;
+            _imageService = imageService;
         }
 
         public async Task<List<StoreModel>> GetAll()
         {
-            var bookStores = await _bookStoreRepository.GetAll();
+            var stores = await _storeRepository.GetAll();
 
-            if (!bookStores.Any())
+            if (!stores.Any())
             {
                 return null;
             }
 
-            return _mapper.Map<List<StoreModel>>(bookStores);
+            return _mapper.Map<List<StoreModel>>(stores);
         }
 
         public async Task<List<StoreModel>?> GetAllPagination(int pageNumber, int pageSize, string sortField, int sortOrder)
         {
-            var bookStores = await _bookStoreRepository.GetAllPagination(pageNumber, pageSize, sortField, sortOrder);
+            var stores = await _storeRepository.GetAllPagination(pageNumber, pageSize, sortField, sortOrder);
 
-            if (!bookStores.Any())
+            if (!stores.Any())
             {
                 return null;
             }
 
-            return _mapper.Map<List<StoreModel>>(bookStores);
+            return _mapper.Map<List<StoreModel>>(stores);
         }
 
         public async Task<StoreModel?> GetById(Guid id)
         {
-            var bookStore = await _bookStoreRepository.GetById(id);
+            var store = await _storeRepository.GetById(id);
 
-            if (bookStore == null)
+            if (store == null)
             {
                 return null;
             }
 
-            return _mapper.Map<StoreModel>(bookStore);
+            return _mapper.Map<StoreModel>(store);
         }
 
-        public async Task<(List<StoreModel>?, long)> SearchPagination(StoreModel bookStoreModel, int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<(List<StoreModel>?, long)> SearchPagination(StoreModel storeModel, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
-            var bookStores = _mapper.Map<Store>(bookStoreModel);
-            var bookStoresWithTotalOrigin = await _bookStoreRepository.SearchPagination(bookStores, pageNumber, pageSize, sortField, sortOrder);
+            var stores = _mapper.Map<Store>(storeModel);
+            var storesWithTotalOrigin = await _storeRepository.SearchPagination(stores, pageNumber, pageSize, sortField, sortOrder);
 
-            if (!bookStoresWithTotalOrigin.Item1.Any())
+            if (!storesWithTotalOrigin.Item1.Any())
             {
-                return (null, bookStoresWithTotalOrigin.Item2);
+                return (null, storesWithTotalOrigin.Item2);
             }
-            var bookStoreModels = _mapper.Map<List<StoreModel>>(bookStoresWithTotalOrigin.Item1);
+            var storeModels = _mapper.Map<List<StoreModel>>(storesWithTotalOrigin.Item1);
 
-            return (bookStoreModels, bookStoresWithTotalOrigin.Item2);
+            return (storeModels, storesWithTotalOrigin.Item2);
         }
 
-        public async Task<List<StoreModel>?> SearchWithoutPagination(StoreModel bookStoreModel)
+        public async Task<List<StoreModel>?> SearchWithoutPagination(StoreModel storeModel)
         {
-            var bookStore = _mapper.Map<Store>(bookStoreModel);
-            var bookStores = await _bookStoreRepository.SearchWithoutPagination(bookStore);
+            var store = _mapper.Map<Store>(storeModel);
+            var stores = await _storeRepository.SearchWithoutPagination(store);
 
-            if (!bookStores.Any())
+            if (!stores.Any())
             {
                 return null;
             }
 
-            return _mapper.Map<List<StoreModel>>(bookStores);
+            return _mapper.Map<List<StoreModel>>(stores);
         }
 
 
-        public async Task<bool> Add(StoreModel bookStoreModel)
+        public async Task<(StoreModel?, string)> Add(StoreModel storeModel)
         {
-            var mappedBookStore = _mapper.Map<Store>(bookStoreModel);
-            var newBookStore = await SetBaseEntityToCreateFunc(mappedBookStore);
-            return await _bookStoreRepository.Add(newBookStore);
-        }
-
-        public async Task<bool> Update(StoreModel bookStoreModel)
-        {
-            var existingBookStore = await _bookStoreRepository.GetById(bookStoreModel.Id);
-
-            if (existingBookStore == null)
+            try
             {
-                return false;
+                if (storeModel == null)
+                    return (null, ConstantMessage.Store.EmptyInfo);
+
+                if (string.IsNullOrEmpty(storeModel.StoreName))
+                    return (null, ConstantMessage.Store.EmptyStoreName);
+
+                var existingStore = await _storeRepository.SearchWithoutPagination(new Store { StoreName = storeModel.StoreName });
+                if (existingStore?.Any() == true)
+                    return (null, ConstantMessage.Store.StoreNameExists);
+
+                var mappedStore = _mapper.Map<Store>(storeModel);
+                var newStore = await SetBaseEntityToCreateFunc(mappedStore);
+
+                if (storeModel.MainImageFile != null)
+                {
+                    if (storeModel.MainImageFile.Length > 10 * 1024 * 1024)
+                        return (null, ConstantMessage.Store.MainImageSizeExceeded);
+
+                    if (!storeModel.MainImageFile.ContentType.StartsWith("image/"))
+                        return (null, ConstantMessage.Store.InvalidMainImageFormat);
+
+                    var mainImageModel = new FileModel
+                    {
+                        File = storeModel.MainImageFile,
+                        Type = "store_main",
+                        AltText = storeModel.StoreName ?? storeModel.MainImageFile.Name,
+                        EntityId = newStore.Id
+                    };
+
+                    var mainImages = await _imageService.AddImages(new List<FileModel> { mainImageModel });
+                    if (mainImages == null || !mainImages.Any())
+                        return (null, ConstantMessage.Store.MainImageUploadFailed);
+
+                    newStore.BaseImgUrl = mainImages.First().Url;
+                }
+
+                if (storeModel.AdditionalImageFiles?.Any() == true)
+                {
+                    foreach (var file in storeModel.AdditionalImageFiles)
+                    {
+                        if (file.Length > 10 * 1024 * 1024)
+                            return (null, ConstantMessage.Store.SubImageSizeExceeded);
+
+                        if (!file.ContentType.StartsWith("image/"))
+                            return (null, ConstantMessage.Store.InvalidSubImageFormat);
+                    }
+
+                    var additionalImageModels = storeModel.AdditionalImageFiles.Select(file => new FileModel
+                    {
+                        File = file,
+                        Type = "store_additional",
+                        AltText = storeModel.StoreName ?? file.FileName,
+                        EntityId = newStore.Id
+                    }).ToList();
+
+                    var additionalImages = await _imageService.AddImages(additionalImageModels);
+                    if (additionalImages == null)
+                        return (null, ConstantMessage.Store.SubImageUploadFailed);
+                }
+
+                var result = await _storeRepository.Add(newStore);
+                if (!result)
+                    return (null, ConstantMessage.Store.AddFail);
+
+                return (_mapper.Map<StoreModel>(newStore), ConstantMessage.Store.AddSuccess);
             }
-
-            _mapper.Map(bookStoreModel, existingBookStore);
-            var updatedBookStore = await SetBaseEntityToUpdateFunc(existingBookStore);
-
-            return await _bookStoreRepository.Update(updatedBookStore);
+            catch (Exception ex)
+            {
+                return (null, $"Error while adding store: {ex.Message}");
+            }
         }
 
-        public async Task<bool> Delete(Guid bookStoreId)
+        public async Task<(StoreModel?, string)> Update(StoreModel storeModel)
         {
-            var existingBookStore = await _bookStoreRepository.GetById(bookStoreId);
-            if (existingBookStore == null)
+            try
             {
-                return false;
-            }
+                if (storeModel == null)
+                    return (null, ConstantMessage.Store.EmptyInfo);
 
-            var mappedBookStore = _mapper.Map<Store>(existingBookStore);
-            return await _bookStoreRepository.Delete(mappedBookStore);
+                if (storeModel.Id == Guid.Empty)
+                    return (null, ConstantMessage.EmptyId);
+
+                var existingStore = await _storeRepository.GetById(storeModel.Id);
+                if (existingStore == null)
+                    return (null, ConstantMessage.Store.NotFoundForUpdate);
+
+                if (!string.IsNullOrEmpty(storeModel.StoreName) && storeModel.StoreName != existingStore.StoreName)
+                {
+                    var storeWithSameName = await _storeRepository.SearchWithoutPagination(new Store { StoreName = storeModel.StoreName });
+                    if (storeWithSameName?.Any() == true)
+                        return (null, ConstantMessage.Store.StoreNameExists);
+                }
+
+                if (string.IsNullOrEmpty(storeModel.StoreName))
+                    storeModel.StoreName = existingStore.StoreName;
+
+                _mapper.Map(storeModel, existingStore);
+                var updatedStore = await SetBaseEntityToUpdateFunc(existingStore);
+
+                if (storeModel.MainImageFile != null)
+                {
+                    if (storeModel.MainImageFile.Length > 10 * 1024 * 1024)
+                        return (null, ConstantMessage.Store.MainImageSizeExceeded);
+
+                    if (!storeModel.MainImageFile.ContentType.StartsWith("image/"))
+                        return (null, ConstantMessage.Store.InvalidMainImageFormat);
+
+                    var existingMainImages = await _imageService.GetImagesByTypeAndEntityID("store_main", updatedStore.Id);
+                    if (existingMainImages?.Any() == true)
+                    {
+                        var mainImageModel = new FileModel
+                        {
+                            File = storeModel.MainImageFile,
+                            Type = "store_main",
+                            AltText = storeModel.StoreName ?? storeModel.MainImageFile.FileName,
+                            EntityId = updatedStore.Id
+                        };
+
+                        var updateResult = await _imageService.UpdateAnImage(existingMainImages.First().Id, mainImageModel);
+                        if (updateResult.Item1 != 2)
+                            return (null, ConstantMessage.Store.MainImageUploadFailed);
+
+                        updatedStore.BaseImgUrl = updateResult.Item2.Url;
+                    }
+                    else
+                    {
+                        var mainImageModel = new FileModel
+                        {
+                            File = storeModel.MainImageFile,
+                            Type = "store_main",
+                            AltText = storeModel.StoreName ?? storeModel.MainImageFile.FileName,
+                            EntityId = updatedStore.Id
+                        };
+
+                        var mainImages = await _imageService.AddImages(new List<FileModel> { mainImageModel });
+                        if (mainImages == null)
+                            return (null, ConstantMessage.Store.MainImageUploadFailed);
+
+                        updatedStore.BaseImgUrl = mainImages.First().Url;
+                    }
+                }
+
+                if (storeModel.AdditionalImageFiles?.Any() == true)
+                {
+                    foreach (var file in storeModel.AdditionalImageFiles)
+                    {
+                        if (file.Length > 10 * 1024 * 1024)
+                            return (null, ConstantMessage.Store.SubImageSizeExceeded);
+
+                        if (!file.ContentType.StartsWith("image/"))
+                            return (null, ConstantMessage.Store.InvalidSubImageFormat);
+                    }
+
+                    var existingAdditionalImages = await _imageService.GetImagesByTypeAndEntityID("store_additional", updatedStore.Id);
+                    if (existingAdditionalImages?.Any() == true)
+                    {
+                        foreach (var image in existingAdditionalImages)
+                        {
+                            var deleteResult = await _imageService.DeleteAnImage(image.Id);
+                            if (deleteResult.Item1 != 2)
+                                return (null, ConstantMessage.Store.SubImageUploadFailed);
+                        }
+                    }
+
+                    var additionalImageModels = storeModel.AdditionalImageFiles.Select(file => new FileModel
+                    {
+                        File = file,
+                        Type = "store_additional",
+                        AltText = storeModel.StoreName ?? file.FileName,
+                        EntityId = updatedStore.Id
+                    }).ToList();
+
+                    var additionalImages = await _imageService.AddImages(additionalImageModels);
+                    if (additionalImages == null)
+                        return (null, ConstantMessage.Store.SubImageUploadFailed);
+                }
+
+                var result = await _storeRepository.Update(updatedStore);
+                if (!result)
+                    return (null, ConstantMessage.Store.UpdateFail);
+
+                return (_mapper.Map<StoreModel>(updatedStore), ConstantMessage.Store.UpdateSuccess);
+            }
+            catch (Exception ex)
+            {
+                return (null, $"Error while updating store: {ex.Message}");
+            }
+        }
+
+        public async Task<(StoreModel?, string)> Delete(Guid storeId)
+        {
+            try
+            {
+                if (storeId == Guid.Empty)
+                    return (null, ConstantMessage.EmptyId);
+
+                var existingStore = await _storeRepository.GetById(storeId);
+                if (existingStore == null)
+                    return (null, ConstantMessage.Store.NotFoundForDelete);
+
+                var existingMainImages = await _imageService.GetImagesByTypeAndEntityID("store_main", storeId);
+                var existingAdditionalImages = await _imageService.GetImagesByTypeAndEntityID("store_additional", storeId);
+
+                if (existingMainImages != null)
+                {
+                    foreach (var image in existingMainImages)
+                    {
+                        var deleteResult = await _imageService.DeleteAnImage(image.Id);
+                        if (deleteResult.Item1 != 2)
+                            return (null, ConstantMessage.Store.MainImageUploadFailed);
+                    }
+                }
+
+                if (existingAdditionalImages != null)
+                {
+                    foreach (var image in existingAdditionalImages)
+                    {
+                        var deleteResult = await _imageService.DeleteAnImage(image.Id);
+                        if (deleteResult.Item1 != 2)
+                            return (null, ConstantMessage.Store.SubImageUploadFailed);
+                    }
+                }
+
+                var result = await _storeRepository.Delete(existingStore);
+                if (!result)
+                    return (null, ConstantMessage.Store.DeleteFail);
+
+                return (_mapper.Map<StoreModel>(existingStore), ConstantMessage.Store.DeleteSuccess);
+            }
+            catch (Exception ex)
+            {
+                return (null, $"Error while deleting store: {ex.Message}");
+            }
         }
     }
 }
