@@ -54,7 +54,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("delete")]
+        [HttpPut("delete/{id}")]
         public async Task<IActionResult> DeleteAZone([FromRoute] Guid id)
         {
             try

@@ -11,8 +11,8 @@ namespace AIBookStreet.Services.Services.Interface
     public interface IBookAuthorService
     {
         Task<(BookAuthor?, long)> AddABookAuthor(BookAuthorModel model);
-        Task<(long, BookAuthor?)> UpdateABookAuthor(Guid? bookAuthorID, BookAuthorModel bookAuthorModel);
-        Task<(long, BookAuthor?)> DeleteABookAuthor(Guid id);
+        Task<(long, BookAuthor?)> UpdateABookAuthor(BookAuthorModel bookAuthorModel);
+        Task<(long, BookAuthor?)> DeleteABookAuthor(BookAuthorModel bookAuthorModel);
         Task<BookAuthor?> GetABookAuthorById(Guid id);
         Task<List<BookAuthor>?> GetBookAuthorByElement(Guid? bookID, Guid? authorID);
         Task<List<BookAuthor>?> GetAllActiveBookAuthors();
