@@ -103,7 +103,7 @@ namespace AIBookStreet.Services.Services.Service
             try
             {
                 if (userModel == null)
-                    return (null, ConstantMessage.User.EmptyInfo);
+                    return (null, ConstantMessage.Common.EmptyInfo);
 
                 if (string.IsNullOrEmpty(userModel.UserName))
                     return (null, ConstantMessage.User.EmptyUsername);
@@ -121,10 +121,10 @@ namespace AIBookStreet.Services.Services.Service
                 if (userModel.MainImageFile != null)
                 {
                     if (userModel.MainImageFile.Length > 10 * 1024 * 1024)
-                        return (null, ConstantMessage.User.MainImageSizeExceeded);
+                        return (null, ConstantMessage.Image.MainImageSizeExceeded);
 
                     if (!userModel.MainImageFile.ContentType.StartsWith("image/"))
-                        return (null, ConstantMessage.User.InvalidMainImageFormat);
+                        return (null, ConstantMessage.Image.InvalidMainImageFormat);
 
                     var mainImageModel = new FileModel
                     {
@@ -136,7 +136,7 @@ namespace AIBookStreet.Services.Services.Service
 
                     var mainImages = await _imageService.AddImages(new List<FileModel> { mainImageModel });
                     if (mainImages == null || !mainImages.Any())
-                        return (null, ConstantMessage.User.MainImageUploadFailed);
+                        return (null, ConstantMessage.Image.MainImageUploadFailed);
 
                     newUser.BaseImgUrl = mainImages.First().Url;
                 }
@@ -146,10 +146,10 @@ namespace AIBookStreet.Services.Services.Service
                     foreach (var file in userModel.AdditionalImageFiles)
                     {
                         if (file.Length > 10 * 1024 * 1024)
-                            return (null, ConstantMessage.User.SubImageSizeExceeded);
+                            return (null, ConstantMessage.Image.SubImageSizeExceeded);
 
                         if (!file.ContentType.StartsWith("image/"))
-                            return (null, ConstantMessage.User.InvalidSubImageFormat);
+                            return (null, ConstantMessage.Image.InvalidSubImageFormat);
                     }
 
                     var additionalImageModels = userModel.AdditionalImageFiles.Select(file => new FileModel
@@ -162,14 +162,14 @@ namespace AIBookStreet.Services.Services.Service
 
                     var additionalImages = await _imageService.AddImages(additionalImageModels);
                     if (additionalImages == null)
-                        return (null, ConstantMessage.User.SubImageUploadFailed);
+                        return (null, ConstantMessage.Image.SubImageUploadFailed);
                 }
 
                 var result = await _userRepository.Add(newUser);
                 if (!result)
-                    return (null, ConstantMessage.User.AddFail);
+                    return (null, ConstantMessage.Common.AddFail);
 
-                return (_mapper.Map<UserModel>(newUser), ConstantMessage.User.AddSuccess);
+                return (_mapper.Map<UserModel>(newUser), ConstantMessage.Common.AddSuccess);
             }
             catch (Exception ex)
             {
@@ -182,14 +182,14 @@ namespace AIBookStreet.Services.Services.Service
             try
             {
                 if (userModel == null)
-                    return (null, ConstantMessage.User.EmptyInfo);
+                    return (null, ConstantMessage.Common.EmptyInfo);
 
                 if (userModel.Id == Guid.Empty)
                     return (null, ConstantMessage.EmptyId);
 
                 var existingUser = await _userRepository.GetById(userModel.Id);
                 if (existingUser == null)
-                    return (null, ConstantMessage.User.NotFoundForUpdate);
+                    return (null, ConstantMessage.Common.NotFoundForUpdate);
 
                 if (!string.IsNullOrEmpty(userModel.UserName) && userModel.UserName != existingUser.UserName)
                 {
@@ -207,10 +207,10 @@ namespace AIBookStreet.Services.Services.Service
                 if (userModel.MainImageFile != null)
                 {
                     if (userModel.MainImageFile.Length > 10 * 1024 * 1024)
-                        return (null, ConstantMessage.User.MainImageSizeExceeded);
+                        return (null, ConstantMessage.Image.MainImageSizeExceeded);
 
                     if (!userModel.MainImageFile.ContentType.StartsWith("image/"))
-                        return (null, ConstantMessage.User.InvalidMainImageFormat);
+                        return (null, ConstantMessage.Image.InvalidMainImageFormat);
 
                     var existingMainImages = await _imageService.GetImagesByTypeAndEntityID("user_main", updatedUser.Id);
                     if (existingMainImages?.Any() == true)
@@ -225,7 +225,7 @@ namespace AIBookStreet.Services.Services.Service
 
                         var updateResult = await _imageService.UpdateAnImage(existingMainImages.First().Id, mainImageModel);
                         if (updateResult.Item1 != 2)
-                            return (null, ConstantMessage.User.MainImageUploadFailed);
+                            return (null, ConstantMessage.Image.MainImageUploadFailed);
 
                         updatedUser.BaseImgUrl = updateResult.Item2.Url;
                     }
@@ -241,7 +241,7 @@ namespace AIBookStreet.Services.Services.Service
 
                         var mainImages = await _imageService.AddImages(new List<FileModel> { mainImageModel });
                         if (mainImages == null)
-                            return (null, ConstantMessage.User.MainImageUploadFailed);
+                            return (null, ConstantMessage.Image.MainImageUploadFailed);
 
                         updatedUser.BaseImgUrl = mainImages.First().Url;
                     }
@@ -252,10 +252,10 @@ namespace AIBookStreet.Services.Services.Service
                     foreach (var file in userModel.AdditionalImageFiles)
                     {
                         if (file.Length > 10 * 1024 * 1024)
-                            return (null, ConstantMessage.User.SubImageSizeExceeded);
+                            return (null, ConstantMessage.Image.SubImageSizeExceeded);
 
                         if (!file.ContentType.StartsWith("image/"))
-                            return (null, ConstantMessage.User.InvalidSubImageFormat);
+                            return (null, ConstantMessage.Image.InvalidSubImageFormat);
                     }
 
                     var existingAdditionalImages = await _imageService.GetImagesByTypeAndEntityID("user_additional", updatedUser.Id);
@@ -265,7 +265,7 @@ namespace AIBookStreet.Services.Services.Service
                         {
                             var deleteResult = await _imageService.DeleteAnImage(image.Id);
                             if (deleteResult.Item1 != 2)
-                                return (null, ConstantMessage.User.SubImageUploadFailed);
+                                return (null, ConstantMessage.Image.SubImageUploadFailed);
                         }
                     }
 
@@ -279,14 +279,14 @@ namespace AIBookStreet.Services.Services.Service
 
                     var additionalImages = await _imageService.AddImages(additionalImageModels);
                     if (additionalImages == null)
-                        return (null, ConstantMessage.User.SubImageUploadFailed);
+                        return (null, ConstantMessage.Image.SubImageUploadFailed);
                 }
 
                 var result = await _userRepository.Update(updatedUser);
                 if (!result)
-                    return (null, ConstantMessage.User.UpdateFail);
+                    return (null, ConstantMessage.Common.UpdateFail);
 
-                return (_mapper.Map<UserModel>(updatedUser), ConstantMessage.User.UpdateSuccess);
+                return (_mapper.Map<UserModel>(updatedUser), ConstantMessage.Common.UpdateSuccess);
             }
             catch (Exception ex)
             {
@@ -303,7 +303,7 @@ namespace AIBookStreet.Services.Services.Service
 
                 var existingUser = await _userRepository.GetById(userId);
                 if (existingUser == null)
-                    return (null, ConstantMessage.User.NotFoundForDelete);
+                    return (null, ConstantMessage.Common.NotFoundForDelete);
 
                 var existingMainImages = await _imageService.GetImagesByTypeAndEntityID("user_main", userId);
                 var existingAdditionalImages = await _imageService.GetImagesByTypeAndEntityID("user_additional", userId);
@@ -314,7 +314,7 @@ namespace AIBookStreet.Services.Services.Service
                     {
                         var deleteResult = await _imageService.DeleteAnImage(image.Id);
                         if (deleteResult.Item1 != 2)
-                            return (null, ConstantMessage.User.MainImageUploadFailed);
+                            return (null, ConstantMessage.Image.MainImageUploadFailed);
                     }
                 }
 
@@ -324,15 +324,15 @@ namespace AIBookStreet.Services.Services.Service
                     {
                         var deleteResult = await _imageService.DeleteAnImage(image.Id);
                         if (deleteResult.Item1 != 2)
-                            return (null, ConstantMessage.User.SubImageUploadFailed);
+                            return (null, ConstantMessage.Image.SubImageUploadFailed);
                     }
                 }
 
                 var result = await _userRepository.Delete(existingUser);
                 if (!result)
-                    return (null, ConstantMessage.User.DeleteFail);
+                    return (null, ConstantMessage.Common.DeleteFail);
 
-                return (_mapper.Map<UserModel>(existingUser), ConstantMessage.User.DeleteSuccess);
+                return (_mapper.Map<UserModel>(existingUser), ConstantMessage.Common.DeleteSuccess);
             }
             catch (Exception ex)
             {

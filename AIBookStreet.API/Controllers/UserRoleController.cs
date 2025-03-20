@@ -101,7 +101,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("delete")]
+        [HttpPut("delete/{idUser}/{idRole}")]
         public async Task<IActionResult> Delete(Guid idUser, Guid idRole)
         {
             try
@@ -118,7 +118,7 @@ namespace AIBookStreet.API.Controllers
                 }
                 else
                 {
-                    return BadRequest("It's not empty");
+                    return BadRequest("IDs must not be empty");
                 }
             }
             catch (Exception ex)
@@ -126,5 +126,6 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
     }
 }

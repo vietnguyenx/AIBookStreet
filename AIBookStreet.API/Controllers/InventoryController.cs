@@ -101,7 +101,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("delete")]
+        [HttpPut("delete/{idBook}/{idBookStore}")]
         public async Task<IActionResult> Delete(Guid idBook, Guid idBookStore)
         {
             try
@@ -126,6 +126,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
 
     }
 }

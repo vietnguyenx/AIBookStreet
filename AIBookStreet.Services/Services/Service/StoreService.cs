@@ -96,7 +96,7 @@ namespace AIBookStreet.Services.Services.Service
             try
             {
                 if (storeModel == null)
-                    return (null, ConstantMessage.Store.EmptyInfo);
+                    return (null, ConstantMessage.Common.EmptyInfo);
 
                 if (string.IsNullOrEmpty(storeModel.StoreName))
                     return (null, ConstantMessage.Store.EmptyStoreName);
@@ -111,10 +111,10 @@ namespace AIBookStreet.Services.Services.Service
                 if (storeModel.MainImageFile != null)
                 {
                     if (storeModel.MainImageFile.Length > 10 * 1024 * 1024)
-                        return (null, ConstantMessage.Store.MainImageSizeExceeded);
+                        return (null, ConstantMessage.Image.MainImageSizeExceeded);
 
                     if (!storeModel.MainImageFile.ContentType.StartsWith("image/"))
-                        return (null, ConstantMessage.Store.InvalidMainImageFormat);
+                        return (null, ConstantMessage.Image.InvalidMainImageFormat);
 
                     var mainImageModel = new FileModel
                     {
@@ -126,7 +126,7 @@ namespace AIBookStreet.Services.Services.Service
 
                     var mainImages = await _imageService.AddImages(new List<FileModel> { mainImageModel });
                     if (mainImages == null || !mainImages.Any())
-                        return (null, ConstantMessage.Store.MainImageUploadFailed);
+                        return (null, ConstantMessage.Image.MainImageUploadFailed);
 
                     newStore.BaseImgUrl = mainImages.First().Url;
                 }
@@ -136,10 +136,10 @@ namespace AIBookStreet.Services.Services.Service
                     foreach (var file in storeModel.AdditionalImageFiles)
                     {
                         if (file.Length > 10 * 1024 * 1024)
-                            return (null, ConstantMessage.Store.SubImageSizeExceeded);
+                            return (null, ConstantMessage.Image.SubImageSizeExceeded);
 
                         if (!file.ContentType.StartsWith("image/"))
-                            return (null, ConstantMessage.Store.InvalidSubImageFormat);
+                            return (null, ConstantMessage.Image.InvalidSubImageFormat);
                     }
 
                     var additionalImageModels = storeModel.AdditionalImageFiles.Select(file => new FileModel
@@ -152,14 +152,14 @@ namespace AIBookStreet.Services.Services.Service
 
                     var additionalImages = await _imageService.AddImages(additionalImageModels);
                     if (additionalImages == null)
-                        return (null, ConstantMessage.Store.SubImageUploadFailed);
+                        return (null, ConstantMessage.Image.SubImageUploadFailed);
                 }
 
                 var result = await _storeRepository.Add(newStore);
                 if (!result)
-                    return (null, ConstantMessage.Store.AddFail);
+                    return (null, ConstantMessage.Common.AddFail);
 
-                return (_mapper.Map<StoreModel>(newStore), ConstantMessage.Store.AddSuccess);
+                return (_mapper.Map<StoreModel>(newStore), ConstantMessage.Common.AddSuccess);
             }
             catch (Exception ex)
             {
@@ -172,14 +172,14 @@ namespace AIBookStreet.Services.Services.Service
             try
             {
                 if (storeModel == null)
-                    return (null, ConstantMessage.Store.EmptyInfo);
+                    return (null, ConstantMessage.Common.EmptyInfo);
 
                 if (storeModel.Id == Guid.Empty)
                     return (null, ConstantMessage.EmptyId);
 
                 var existingStore = await _storeRepository.GetById(storeModel.Id);
                 if (existingStore == null)
-                    return (null, ConstantMessage.Store.NotFoundForUpdate);
+                    return (null, ConstantMessage.Common.NotFoundForUpdate);
 
                 if (!string.IsNullOrEmpty(storeModel.StoreName) && storeModel.StoreName != existingStore.StoreName)
                 {
@@ -197,10 +197,10 @@ namespace AIBookStreet.Services.Services.Service
                 if (storeModel.MainImageFile != null)
                 {
                     if (storeModel.MainImageFile.Length > 10 * 1024 * 1024)
-                        return (null, ConstantMessage.Store.MainImageSizeExceeded);
+                        return (null, ConstantMessage.Image.MainImageSizeExceeded);
 
                     if (!storeModel.MainImageFile.ContentType.StartsWith("image/"))
-                        return (null, ConstantMessage.Store.InvalidMainImageFormat);
+                        return (null, ConstantMessage.Image.InvalidMainImageFormat);
 
                     var existingMainImages = await _imageService.GetImagesByTypeAndEntityID("store_main", updatedStore.Id);
                     if (existingMainImages?.Any() == true)
@@ -215,7 +215,7 @@ namespace AIBookStreet.Services.Services.Service
 
                         var updateResult = await _imageService.UpdateAnImage(existingMainImages.First().Id, mainImageModel);
                         if (updateResult.Item1 != 2)
-                            return (null, ConstantMessage.Store.MainImageUploadFailed);
+                            return (null, ConstantMessage.Image.MainImageUploadFailed);
 
                         updatedStore.BaseImgUrl = updateResult.Item2.Url;
                     }
@@ -231,7 +231,7 @@ namespace AIBookStreet.Services.Services.Service
 
                         var mainImages = await _imageService.AddImages(new List<FileModel> { mainImageModel });
                         if (mainImages == null)
-                            return (null, ConstantMessage.Store.MainImageUploadFailed);
+                            return (null, ConstantMessage.Image.MainImageUploadFailed);
 
                         updatedStore.BaseImgUrl = mainImages.First().Url;
                     }
@@ -242,10 +242,10 @@ namespace AIBookStreet.Services.Services.Service
                     foreach (var file in storeModel.AdditionalImageFiles)
                     {
                         if (file.Length > 10 * 1024 * 1024)
-                            return (null, ConstantMessage.Store.SubImageSizeExceeded);
+                            return (null, ConstantMessage.Image.SubImageSizeExceeded);
 
                         if (!file.ContentType.StartsWith("image/"))
-                            return (null, ConstantMessage.Store.InvalidSubImageFormat);
+                            return (null, ConstantMessage.Image.InvalidSubImageFormat);
                     }
 
                     var existingAdditionalImages = await _imageService.GetImagesByTypeAndEntityID("store_additional", updatedStore.Id);
@@ -255,7 +255,7 @@ namespace AIBookStreet.Services.Services.Service
                         {
                             var deleteResult = await _imageService.DeleteAnImage(image.Id);
                             if (deleteResult.Item1 != 2)
-                                return (null, ConstantMessage.Store.SubImageUploadFailed);
+                                return (null, ConstantMessage.Image.SubImageUploadFailed);
                         }
                     }
 
@@ -269,14 +269,14 @@ namespace AIBookStreet.Services.Services.Service
 
                     var additionalImages = await _imageService.AddImages(additionalImageModels);
                     if (additionalImages == null)
-                        return (null, ConstantMessage.Store.SubImageUploadFailed);
+                        return (null, ConstantMessage.Image.SubImageUploadFailed);
                 }
 
                 var result = await _storeRepository.Update(updatedStore);
                 if (!result)
-                    return (null, ConstantMessage.Store.UpdateFail);
+                    return (null, ConstantMessage.Common.UpdateFail);
 
-                return (_mapper.Map<StoreModel>(updatedStore), ConstantMessage.Store.UpdateSuccess);
+                return (_mapper.Map<StoreModel>(updatedStore), ConstantMessage.Common.UpdateSuccess);
             }
             catch (Exception ex)
             {
@@ -293,7 +293,7 @@ namespace AIBookStreet.Services.Services.Service
 
                 var existingStore = await _storeRepository.GetById(storeId);
                 if (existingStore == null)
-                    return (null, ConstantMessage.Store.NotFoundForDelete);
+                    return (null, ConstantMessage.Common.NotFoundForDelete);
 
                 var existingMainImages = await _imageService.GetImagesByTypeAndEntityID("store_main", storeId);
                 var existingAdditionalImages = await _imageService.GetImagesByTypeAndEntityID("store_additional", storeId);
@@ -304,7 +304,7 @@ namespace AIBookStreet.Services.Services.Service
                     {
                         var deleteResult = await _imageService.DeleteAnImage(image.Id);
                         if (deleteResult.Item1 != 2)
-                            return (null, ConstantMessage.Store.MainImageUploadFailed);
+                            return (null, ConstantMessage.Image.MainImageUploadFailed);
                     }
                 }
 
@@ -314,15 +314,15 @@ namespace AIBookStreet.Services.Services.Service
                     {
                         var deleteResult = await _imageService.DeleteAnImage(image.Id);
                         if (deleteResult.Item1 != 2)
-                            return (null, ConstantMessage.Store.SubImageUploadFailed);
+                            return (null, ConstantMessage.Image.SubImageUploadFailed);
                     }
                 }
 
                 var result = await _storeRepository.Delete(existingStore);
                 if (!result)
-                    return (null, ConstantMessage.Store.DeleteFail);
+                    return (null, ConstantMessage.Common.DeleteFail);
 
-                return (_mapper.Map<StoreModel>(existingStore), ConstantMessage.Store.DeleteSuccess);
+                return (_mapper.Map<StoreModel>(existingStore), ConstantMessage.Common.DeleteSuccess);
             }
             catch (Exception ex)
             {
