@@ -10,7 +10,8 @@ namespace AIBookStreet.API.RequestModel
         public string? Email { get; set; }
         public DateTime? OpeningTime { get; set; }
         public DateTime? ClosingTime { get; set; }
-        public string? BaseImgUrl { get; set; }
+        public IFormFile? MainImageFile { get; set; }
+        public List<IFormFile>? AdditionalImageFiles { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
         public string? Type { get; set; }

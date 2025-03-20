@@ -12,7 +12,7 @@ namespace AIBookStreet.API.Tool.Mapping
         {
             CreateMap<Store, StoreModel>().ReverseMap();
             CreateMap<StoreModel, StoreRequest>().ReverseMap();
-            CreateMap<StoreModel, BookStoreSearchRequest>().ReverseMap();
+            CreateMap<StoreModel, StoreSearchRequest>().ReverseMap();
         }
     }
 }

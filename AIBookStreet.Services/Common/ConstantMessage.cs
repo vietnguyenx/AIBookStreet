@@ -66,5 +66,47 @@ namespace AIBookStreet.Services.Common
             public const string ImageProcessingError = "Error processing image";
             public const string UnauthorizedAccess = "You are not authorized to perform this action";
         }
+
+        public static class Publisher
+        {
+            public const string EmptyInfo = "Publisher information cannot be empty";
+            public const string EmptyPublisherName = "Publisher name cannot be empty";
+            public const string PublisherNameExists = "Publisher name already exists";
+            public const string MainImageSizeExceeded = "Main image size must not exceed 10MB";
+            public const string InvalidMainImageFormat = "Invalid main image format";
+            public const string MainImageUploadFailed = "Failed to upload main image";
+            public const string SubImageSizeExceeded = "Sub image size must not exceed 10MB";
+            public const string InvalidSubImageFormat = "Invalid sub image format";
+            public const string SubImageUploadFailed = "Failed to upload sub image";
+            public const string AddSuccess = "Publisher added successfully";
+            public const string AddFail = "Failed to add publisher";
+            public const string UpdateSuccess = "Publisher updated successfully";
+            public const string UpdateFail = "Failed to update publisher";
+            public const string DeleteSuccess = "Publisher deleted successfully";
+            public const string DeleteFail = "Failed to delete publisher";
+            public const string NotFoundForUpdate = "Publisher not found for update";
+            public const string NotFoundForDelete = "Publisher not found for deletion";
+        }
+
+        public static class Store
+        {
+            public const string EmptyInfo = "Store information cannot be empty";
+            public const string EmptyStoreName = "Store name cannot be empty";
+            public const string StoreNameExists = "Store name already exists";
+            public const string MainImageSizeExceeded = "Main image size must not exceed 10MB";
+            public const string InvalidMainImageFormat = "Invalid main image format";
+            public const string MainImageUploadFailed = "Failed to upload main image";
+            public const string SubImageSizeExceeded = "Sub image size must not exceed 10MB";
+            public const string InvalidSubImageFormat = "Invalid sub image format";
+            public const string SubImageUploadFailed = "Failed to upload sub image";
+            public const string AddSuccess = "Store added successfully";
+            public const string AddFail = "Failed to add store";
+            public const string UpdateSuccess = "Store updated successfully";
+            public const string UpdateFail = "Failed to update store";
+            public const string DeleteSuccess = "Store deleted successfully";
+            public const string DeleteFail = "Failed to delete store";
+            public const string NotFoundForUpdate = "Store not found for update";
+            public const string NotFoundForDelete = "Store not found for deletion";
+        }
     }
 } 

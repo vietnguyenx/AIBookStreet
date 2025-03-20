@@ -14,9 +14,9 @@ namespace AIBookStreet.Services.Services.Interface
         Task<StoreModel?> GetById(Guid id);
         Task<(List<StoreModel>?, long)> SearchPagination(StoreModel bookStoreModel, int pageNumber, int pageSize, string sortField, int sortOrder);
         Task<List<StoreModel>?> SearchWithoutPagination(StoreModel bookStoreModel);
-        Task<bool> Add(StoreModel bookStoreModel);
-        Task<bool> Update(StoreModel bookStoreModel);
-        Task<bool> Delete(Guid id);
+        Task<(StoreModel?, string)> Add(StoreModel storeModel);
+        Task<(StoreModel?, string)> Update(StoreModel storeModel);
+        Task<(StoreModel?, string)> Delete(Guid storeId);
         Task<long> GetTotalCount();
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace AIBookStreet.API.SearchModel
 {
-    public class BookStoreSearchRequest
+    public class StoreSearchRequest
     {
         public string? BookStoreName { get; set; }
         public string? Address { get; set; }

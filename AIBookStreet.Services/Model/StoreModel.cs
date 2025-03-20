@@ -1,4 +1,5 @@
 ﻿using AIBookStreet.Repositories.Data.Entities;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,8 @@ namespace AIBookStreet.Services.Model
         public string? Email { get; set; }
         public DateTime? OpeningTime { get; set; }
         public DateTime? ClosingTime { get; set; }
-        public string? BaseImgUrl { get; set; }
+        public IFormFile? MainImageFile { get; set; }
+        public List<IFormFile>? AdditionalImageFiles { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
         public string? Type { get; set; }
@@ -27,5 +29,6 @@ namespace AIBookStreet.Services.Model
         public ZoneModel? Zone { get; set; }
 
         public IList<InventoryModel>? Inventories { get; set; }
+        public IList<Image>? Images { get; set; }
     }
 }
