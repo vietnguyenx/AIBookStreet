@@ -33,32 +33,32 @@ namespace AIBookStreet.Services.Services.Service
             }
             return (null, 3);//fail
         }
-        public async Task<(long, BookAuthor?)> UpdateABookAuthor(Guid? id, BookAuthorModel model)
+        public async Task<(long, BookAuthor?)> UpdateABookAuthor(BookAuthorModel model)
         {
-            var existed = await _repository.BookAuthorRepository.GetByID(id);
+            var existed = await _repository.BookAuthorRepository.GetByElement(model.BookId, model.AuthorId);
             if (existed == null)
             {
                 return (1, null); //khong ton tai
             }
-            if (existed.IsDeleted)
+            if (existed[0].IsDeleted)
             {
                 return (3, null);
             }
-            existed.BookId = model.BookId;
-            existed.AuthorId = model.AuthorId;
-            existed = await SetBaseEntityToUpdateFunc(existed);
-            return await _repository.BookAuthorRepository.Update(existed) ? (2, existed) //update thanh cong
+            existed[0].BookId = model.BookId;
+            existed[0].AuthorId = model.AuthorId;
+            existed[0] = await SetBaseEntityToUpdateFunc(existed[0]);
+            return await _repository.BookAuthorRepository.Update(existed[0]) ? (2, existed[0]) //update thanh cong
                                                                           : (3, null);       //update fail
         }
-        public async Task<(long, BookAuthor?)> DeleteABookAuthor(Guid id)
+        public async Task<(long, BookAuthor?)> DeleteABookAuthor(BookAuthorModel model)
         {
-            var existed = await _repository.BookAuthorRepository.GetByID(id);
+            var existed = await _repository.BookAuthorRepository.GetByElement(model.BookId, model.AuthorId);
             if (existed == null)
             {
                 return (1, null); //khong ton tai
             }
-            existed = await SetBaseEntityToUpdateFunc(existed);
-            return await _repository.BookAuthorRepository.Delete(existed) ? (2, existed) //delete thanh cong
+            existed[0] = await SetBaseEntityToUpdateFunc(existed[0]);
+            return await _repository.BookAuthorRepository.Delete(existed[0]) ? (2, existed[0]) //delete thanh cong
                                                                           : (3, null);       //delete fail
         }
         public async Task<BookAuthor?> GetABookAuthorById(Guid id)

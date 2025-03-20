@@ -37,33 +37,43 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [Authorize]
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdateABookAuthor(BookAuthorModel model)
-        {
-            try
-            {
-                var result = await _service.UpdateABookAuthor(model.Id, model);
+        //[Authorize]
+        //[HttpPut("update/authorId={authorId}&bookId={bookId}")]
+        //public async Task<IActionResult> UpdateABookAuthor([FromRoute] Guid authorId,[FromRoute] Guid bookId)
+        //{
+        //    try
+        //    {
+        //        var model = new BookAuthorModel
+        //        {
+        //            AuthorId = authorId,
+        //            BookId = bookId
+        //        };
+        //        var result = await _service.UpdateABookAuthor(model);
 
-                return result.Item1 switch
-                {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã cập nhật thông tin!")),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
-                };
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        //        return result.Item1 switch
+        //        {
+        //            1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+        //            2 => Ok(new BaseResponse(true, "Đã cập nhật thông tin!")),
+        //            _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
         [Authorize]
-        [HttpPut("delete")]
-        public async Task<IActionResult> DeleteABookAuthor(Guid id)
+        [HttpPut("delete/authorId={authorId}&bookId={bookId}")]
+        public async Task<IActionResult> DeleteABookAuthor([FromRoute] Guid authorId,[FromRoute] Guid bookId)
         {
             try
             {
-                var result = await _service.DeleteABookAuthor(id);
+                var model = new BookAuthorModel
+                {
+                    AuthorId = authorId,
+                    BookId = bookId
+                };
+                var result = await _service.DeleteABookAuthor(model);
 
                 return result.Item1 switch
                 {
@@ -124,12 +134,12 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var bookAuthors = await _service.GetAllBookAuthorsPagination(request.Result.Key, request.Result.BookId, request.Result.AuthorId, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == 0);
+                var bookAuthors = await _service.GetAllBookAuthorsPagination(request != null && request.Result != null ? request.Result.Key : null, request != null && request.Result != null ? request.Result.BookId : null, request != null && request.Result != null ? request.Result.AuthorId : null, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder == 0);
 
                 return bookAuthors.Item2 switch
                 {
                     0 => Ok(new PaginatedListResponse<BookAuthorRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new PaginatedListResponse<BookAuthorRequest>(ConstantMessage.Success, _mapper.Map<List<BookAuthorRequest>>(bookAuthors.Item1), bookAuthors.Item2, request.PageNumber,request.PageSize, request.SortField, request.SortOrder))
+                    _ => Ok(new PaginatedListResponse<BookAuthorRequest>(ConstantMessage.Success, _mapper.Map<List<BookAuthorRequest>>(bookAuthors.Item1), bookAuthors.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize: 10, request != null ? request.SortField : "CreatedDate", request != null ? request.SortOrder : 0))
                 };
             }
             catch (Exception ex)
