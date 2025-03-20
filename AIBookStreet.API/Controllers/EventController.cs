@@ -59,8 +59,8 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("delete")]
-        public async Task<IActionResult> DeleteAnEvent(Guid id)
+        [HttpPut("delete/{id}")]
+        public async Task<IActionResult> DeleteAnEvent([FromRoute]Guid id)
         {
             try
             {
