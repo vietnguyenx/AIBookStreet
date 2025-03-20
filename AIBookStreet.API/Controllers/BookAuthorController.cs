@@ -134,12 +134,12 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var bookAuthors = await _service.GetAllBookAuthorsPagination(request != null && request.Result != null ? request.Result.Key : null, request != null && request.Result != null ? request.Result.BookId : null, request != null && request.Result != null ? request.Result.AuthorId : null, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder == 0);
+                var bookAuthors = await _service.GetAllBookAuthorsPagination(request != null && request.Result != null ? request.Result.Key : null, request != null && request.Result != null ? request.Result.BookId : null, request != null && request.Result != null ? request.Result.AuthorId : null, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder == -1);
 
                 return bookAuthors.Item2 switch
                 {
                     0 => Ok(new PaginatedListResponse<BookAuthorRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new PaginatedListResponse<BookAuthorRequest>(ConstantMessage.Success, _mapper.Map<List<BookAuthorRequest>>(bookAuthors.Item1), bookAuthors.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize: 10, request != null ? request.SortField : "CreatedDate", request != null ? request.SortOrder : 0))
+                    _ => Ok(new PaginatedListResponse<BookAuthorRequest>(ConstantMessage.Success, _mapper.Map<List<BookAuthorRequest>>(bookAuthors.Item1), bookAuthors.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize: 10, request != null ? request.SortField : "CreatedDate", request != null ? request.SortOrder : 1))
                 };
             }
             catch (Exception ex)
