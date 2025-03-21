@@ -289,7 +289,11 @@ namespace AIBookStreet.API.Controllers
         public IActionResult GoogleLogin()
         {
             var redirectUrl = Url.Action(nameof(GoogleResponse), "User");
-            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+            //var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+            var properties = new AuthenticationProperties { 
+                RedirectUri = redirectUrl,
+                IsPersistent = true
+            };
             return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
 
@@ -331,12 +335,31 @@ namespace AIBookStreet.API.Controllers
 
             JwtSecurityToken token = _service.CreateToken(existingUser);
 
-            return Ok(new LoginResponse<UserModel>(
-                ConstantMessage.Success,
-                existingUser,
-                new JwtSecurityTokenHandler().WriteToken(token),
-                token.ValidTo.ToString()
-            ));
+            //return Ok(new LoginResponse<UserModel>(
+            //    ConstantMessage.Success,
+            //    existingUser,
+            //    new JwtSecurityTokenHandler().WriteToken(token),
+            //    token.ValidTo.ToString()
+            //));
+
+            return Content($@"
+                <html>
+                    <body>
+                        <script>
+                            window.opener.postMessage({{
+                                type: 'google-login-success',
+                                data: {{
+                                    message: '{ConstantMessage.Success}',
+                                    result: {System.Text.Json.JsonSerializer.Serialize(existingUser)},
+                                    token: '{new JwtSecurityTokenHandler().WriteToken(token)}',
+                                    expiration: '{token.ValidTo.ToString()}'
+                                }}
+                            }}, '*');
+                            window.close();
+                        </script>
+                    </body>
+                </html>
+            ", "text/html");
         }
     }
 }
