@@ -15,7 +15,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/events")]
     [ApiController]
     public class EventController(IEventService service, IMapper mapper) : ControllerBase
     {
@@ -23,7 +23,7 @@ namespace AIBookStreet.API.Controllers
         private readonly IMapper _mapper = mapper;
 
         [Authorize]
-        [HttpPost("add")]
+        [HttpPost("")]
         public async Task<IActionResult> AddAnEvent([FromForm]EventModel model)
         {
             try
@@ -39,7 +39,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("update/{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAnEvent([FromRoute] Guid id, [FromForm]EventModel model)
         {
             try
@@ -59,7 +59,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("delete/{id}")]
+        [HttpPatch("{id}")]
         public async Task<IActionResult> DeleteAnEvent([FromRoute]Guid id)
         {
             try
@@ -79,7 +79,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpGet("get-by-id/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetAnEventById([FromRoute] Guid id)
         {
             try
@@ -99,7 +99,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
         [AllowAnonymous]
-        [HttpGet("get-event-coming")]
+        [HttpGet("events-coming")]
         public async Task<IActionResult> GetEventsComing(int number)
         {
             try
@@ -118,7 +118,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpPost("pagination-and-search")]
+        [HttpPost("pagination-search")]
         public async Task<IActionResult> GetAllEventsPagination(PaginatedRequest<EventSearchRequest> request)
         {
             try
@@ -138,7 +138,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
         [AllowAnonymous]
-        [HttpGet("get-date-have-event-in-month")]
+        [HttpGet("event-dates-in-month")]
         public async Task<IActionResult> GetEventDatesInMonth(int? month)
         {
             try
@@ -160,7 +160,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpGet("get-events-by-date")]
+        [HttpGet("events-in-date")]
         public async Task<IActionResult> GetEventsByDate(DateTime? date)
         {
             try

@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/categories")]
     [ApiController]
     public class CategoryController(ICategoryService service, IMapper mapper) : ControllerBase
     {
@@ -20,7 +20,7 @@ namespace AIBookStreet.API.Controllers
         private readonly IMapper _mapper = mapper;
 
         [Authorize]
-        [HttpPost("add")]
+        [HttpPost("")]
         public async Task<IActionResult> AddACategory(CategoryModel model)
         {
             try
@@ -34,12 +34,12 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdateACategory(CategoryModel model)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateACategory([FromRoute] Guid id, CategoryModel model)
         {
             try
             {
-                var result = await _service.UpdateACategory(model.Id, model);
+                var result = await _service.UpdateACategory(id, model);
 
                 return result.Item1 switch
                 {
@@ -54,7 +54,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("delete/{id}")]
+        [HttpPatch("{id}")]
         public async Task<IActionResult> DeleteACategory([FromRoute] Guid id)
         {
             try
@@ -74,7 +74,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpGet("get-by-id/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetACategoryById([FromRoute] Guid id)
         {
             try
@@ -94,7 +94,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
         [AllowAnonymous]
-        [HttpPost("search-not-pagination")]
+        [HttpPost("search")]
         public async Task<IActionResult> GetAllActiveCategories(CategorySearchRequest request)
         {
             try
@@ -113,7 +113,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpPost("pagination-and-search")]
+        [HttpPost("pagination-search")]
         public async Task<IActionResult> GetAllCategoriesPagination(PaginatedRequest<CategorySearchRequest> request)
         {
             try

@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/zone")]
     [ApiController]
     public class ZoneController(IZoneService service, IMapper mapper) : ControllerBase
     {
@@ -20,7 +20,7 @@ namespace AIBookStreet.API.Controllers
         private readonly IMapper _mapper = mapper;
 
         [Authorize]
-        [HttpPost("add")]
+        [HttpPost("")]
         public async Task<IActionResult> AddAZone(ZoneModel model)
         {
             try
@@ -34,12 +34,12 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdateAZone(ZoneModel model)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateAZone([FromRoute] Guid id, ZoneModel model)
         {
             try
             {
-                var result = await _service.UpdateAZone(model.Id, model);
+                var result = await _service.UpdateAZone(id, model);
 
                 return result.Item1 switch
                 {
@@ -54,7 +54,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("delete/{id}")]
+        [HttpPatch("{id}")]
         public async Task<IActionResult> DeleteAZone([FromRoute] Guid id)
         {
             try
@@ -74,7 +74,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpGet("get-by-id/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetAZoneById([FromRoute] Guid id)
         {
             try
@@ -94,7 +94,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
         [AllowAnonymous]
-        [HttpGet("get-all-active")]
+        [HttpGet("non-deleted")]
         public async Task<IActionResult> GetAllActiveCategories()
         {
             try
@@ -113,7 +113,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpPost("pagination-and-search")]
+        [HttpPost("pagination-search")]
         public async Task<IActionResult> GetAllZonesPagination(PaginatedRequest<ZoneSearchRequest> request)
         {
             try

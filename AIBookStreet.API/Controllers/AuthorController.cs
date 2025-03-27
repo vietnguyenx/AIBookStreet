@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/authors")]
     [ApiController]
     public class AuthorController(IAuthorService service, IMapper mapper) : ControllerBase
     {
@@ -20,7 +20,7 @@ namespace AIBookStreet.API.Controllers
         private readonly IMapper _mapper = mapper;
 
         [Authorize]
-        [HttpPost("add")]
+        [HttpPost("")]
         public async Task<IActionResult> AddAnAuthor([FromForm]AuthorModel author)
         {
             try
@@ -34,7 +34,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("update/{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAnAuthor([FromRoute]Guid id, [FromForm]AuthorModel author)
         {
             try
@@ -54,7 +54,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("delete/{id}")]
+        [HttpPatch("{id}")]
         public async Task<IActionResult> DeleteAnAuthor([FromRoute]Guid id)
         {
             try
@@ -74,7 +74,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpGet("get-by-id/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetAnAuthorById([FromRoute]Guid id)
         {
             try
@@ -98,7 +98,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
         [AllowAnonymous]
-        [HttpPost("search-not-pagination")]
+        [HttpPost("search")]
         public async Task<IActionResult> GetAllActiveAuthors(AuthorSearchRequest request)
         {
             try
@@ -117,12 +117,12 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpPost("pagination-and-search")]
+        [HttpPost("pagination-search")]
         public async Task<IActionResult> GetAllAuthorPagination(PaginatedRequest<AuthorSearchRequest> request)
         {
             try
             {
-                var authors = await _service.GetAllAuthorsPagination(request != null && request.Result != null ? request.Result.AuthorName : null, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder == -1);
+                var authors = await _service.GetAllAuthorsPagination(request != null && request.Result != null ? request.Result.AuthorName : null, request != null && request.Result != null ? request.Result.CategoryId : null, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder == -1);
 
                 return authors.Item2 switch
                 {

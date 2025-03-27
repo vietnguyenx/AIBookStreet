@@ -10,7 +10,6 @@ namespace AIBookStreet.Services.Model
 {
     public class ZoneModel
     {
-        public Guid? Id { get; set; }
         public string ZoneName { get; set; } = null!;
         public string? Description { get; set; }
         public decimal? Latitude { get; set; }

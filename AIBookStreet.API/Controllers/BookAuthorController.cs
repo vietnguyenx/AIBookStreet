@@ -14,7 +14,7 @@ using System.Drawing.Printing;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/book-authors")]
     [ApiController]
     public class BookAuthorController(IBookAuthorService service, IMapper mapper) : ControllerBase
     {
@@ -22,7 +22,7 @@ namespace AIBookStreet.API.Controllers
         private readonly IMapper _mapper = mapper;
 
         [Authorize]
-        [HttpPost("add")]
+        [HttpPost("")]
         public async Task<IActionResult> AddABookAuthor(BookAuthorModel model)
         {
             try
@@ -63,7 +63,7 @@ namespace AIBookStreet.API.Controllers
         //    }
         //}
         [Authorize]
-        [HttpPut("delete/authorId={authorId}&bookId={bookId}")]
+        [HttpPatch("{bookId}/{authorId}")]
         public async Task<IActionResult> DeleteABookAuthor([FromRoute] Guid authorId,[FromRoute] Guid bookId)
         {
             try
@@ -87,28 +87,33 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [AllowAnonymous]
-        [HttpGet("get-by-id/{id}")]
-        public async Task<IActionResult> GetABookAuthorById([FromRoute] Guid id)
-        {
-            try
-            {
-                var bookAuthor = await _service.GetABookAuthorById(id);
+        //[AllowAnonymous]
+        //[HttpGet("/{bookId}/{authorId}")]
+        //public async Task<IActionResult> GetABookAuthorById([FromRoute] Guid bookId, [FromRoute] Guid authorId)
+        //{
+        //    try
+        //    {
+        //        var model = new BookAuthorModel
+        //        {
+        //            AuthorId = authorId,
+        //            BookId = bookId
+        //        };
+        //        var bookAuthor = await _service.GetABookAuthorById(model);
 
-                return bookAuthor switch
-                {
-                    null => Ok(new ItemResponse<BookAuthor>(ConstantMessage.NotFound)),
-                    not null => Ok(new ItemResponse<BookAuthor>(ConstantMessage.Success, bookAuthor))
-                };
-            }
-            catch (Exception ex)
-            {
+        //        return bookAuthor switch
+        //        {
+        //            null => Ok(new ItemResponse<BookAuthor>(ConstantMessage.NotFound)),
+        //            not null => Ok(new ItemResponse<BookAuthor>(ConstantMessage.Success, bookAuthor))
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
 
-                return BadRequest(ex.Message);
-            };
-        }
+        //        return BadRequest(ex.Message);
+        //    };
+        //}
         [AllowAnonymous]
-        [HttpGet("get-all-active")]
+        [HttpGet("non-deleted")]
         public async Task<IActionResult> GetAllActiveBookAuthors()
         {
             try
@@ -129,7 +134,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpPost("pagination-and-search")]
+        [HttpPost("pagination-search")]
         public async Task<IActionResult> GetAllBookAuthorsPagination(PaginatedRequest<BookAuthorSearchRequest> request)
         {
             try
@@ -148,7 +153,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
         [AllowAnonymous]
-        [HttpPost("get-all-by-element")]
+        [HttpPost("filter")]
         public async Task<IActionResult> GetABookAuthorByElement(BookAuthorSearchRequest request)
         {
             try

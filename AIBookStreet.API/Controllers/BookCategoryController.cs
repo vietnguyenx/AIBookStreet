@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/book-categories")]
     [ApiController]
     public class BookCategoryController(IBookCategoryService service, IMapper mapper) : ControllerBase
     {
@@ -20,7 +20,7 @@ namespace AIBookStreet.API.Controllers
         private readonly IMapper _mapper = mapper;
 
         [Authorize]
-        [HttpPost("add")]
+        [HttpPost("")]
         public async Task<IActionResult> AddABookCategory(BookCategoryModel model)
         {
             try
@@ -61,7 +61,7 @@ namespace AIBookStreet.API.Controllers
         //    }
         //}
         [Authorize]
-        [HttpPut("delete/categoryId={categoryId}&bookId={bookId}")]
+        [HttpPatch("{bookId}/{categoryId}")]
         public async Task<IActionResult> DeleteABookCategory([FromRoute] Guid bookId, [FromRoute] Guid categoryId)
         {
             try
@@ -85,28 +85,28 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [AllowAnonymous]
-        [HttpGet("get-by-id/{id}")]
-        public async Task<IActionResult> GetABookCategoryById([FromRoute] Guid id)
-        {
-            try
-            {
-                var bookCategory = await _service.GetABookCategoryById(id);
+        //[AllowAnonymous]
+        //[HttpGet("get-by-id/{id}")]
+        //public async Task<IActionResult> GetABookCategoryById([FromRoute] Guid id)
+        //{
+        //    try
+        //    {
+        //        var bookCategory = await _service.GetABookCategoryById(id);
 
-                return bookCategory switch
-                {
-                    null => Ok(new ItemResponse<BookCategory>(ConstantMessage.NotFound)),
-                    not null => Ok(new ItemResponse<BookCategory>(ConstantMessage.Success, bookCategory))
-                };
-            }
-            catch (Exception ex)
-            {
+        //        return bookCategory switch
+        //        {
+        //            null => Ok(new ItemResponse<BookCategory>(ConstantMessage.NotFound)),
+        //            not null => Ok(new ItemResponse<BookCategory>(ConstantMessage.Success, bookCategory))
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
 
-                return BadRequest(ex.Message);
-            };
-        }
+        //        return BadRequest(ex.Message);
+        //    };
+        //}
         [AllowAnonymous]
-        [HttpGet("get-all-active")]
+        [HttpGet("non-deleted")]
         public async Task<IActionResult> GetAllActiveBookCategories()
         {
             try
@@ -125,7 +125,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpPost("pagination-and-search")]
+        [HttpPost("pagination-search")]
         public async Task<IActionResult> GetAllBookcategoriesPagination(PaginatedRequest<BookCategorySearchRequest> request)
         {
             try
@@ -146,7 +146,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
         [AllowAnonymous]
-        [HttpPost("get-all-by-element")]
+        [HttpPost("filter")]
         public async Task<IActionResult> GetBookCategoriesByElement(BookCategorySearchRequest request)
         {
             try

@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/souvenirs")]
     [ApiController]
     public class SouvenirController(ISouvenirService service, IMapper mapper) : ControllerBase
     {
@@ -21,7 +21,7 @@ namespace AIBookStreet.API.Controllers
         private readonly IMapper _mapper = mapper;
 
         [Authorize]
-        [HttpPost("add")]
+        [HttpPost("")]
         public async Task<IActionResult> AddASouvenir([FromForm]SouvenirModel model)
         {
             try
@@ -35,7 +35,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("update/{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateASouvenir([FromRoute] Guid id, [FromForm]SouvenirModel model)
         {
             try
@@ -55,7 +55,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("delete/{id}")]
+        [HttpPatch("{id}")]
         public async Task<IActionResult> DeleteASouvenir([FromRoute] Guid id)
         {
             try
@@ -75,7 +75,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpGet("get-by-id/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetASouvenirById([FromRoute] Guid id)
         {
             try
@@ -95,7 +95,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
         [AllowAnonymous]
-        [HttpPost("pagination-and-search")]
+        [HttpPost("pagination-search")]
         public async Task<IActionResult> GetAllSouvenirsPagination(PaginatedRequest<SouvenirSearchRequest> request)
         {
             try

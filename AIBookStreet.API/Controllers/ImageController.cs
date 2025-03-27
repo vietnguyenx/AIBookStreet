@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/images")]
     [ApiController]
     public class ImageController : ControllerBase
     {
@@ -29,7 +29,7 @@ namespace AIBookStreet.API.Controllers
         /// Add one or multiple images
         /// </summary>
         [Authorize]
-        [HttpPost("add")]
+        [HttpPost("")]
         public async Task<IActionResult> AddImages(
             [FromForm] List<IFormFile> files,
             [FromForm] string? type,
@@ -61,7 +61,7 @@ namespace AIBookStreet.API.Controllers
         /// Update an image
         /// </summary>
         [Authorize]
-        [HttpPut("update/{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAnImage(
             [FromRoute] Guid id,
             [FromForm] UpdateImageRequest request)
@@ -92,7 +92,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("delete/{id}")]
+        [HttpPatch("{id}")]
         public async Task<IActionResult> DeleteAnImage([FromRoute]Guid id)
         {
             try
@@ -113,7 +113,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("get-by-id/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetAnImageById([FromRoute] Guid id)
         {
             try
@@ -160,7 +160,7 @@ namespace AIBookStreet.API.Controllers
         /// Get all images
         /// </summary>
         [AllowAnonymous]
-        [HttpGet("get-all")]
+        [HttpGet("list")]
         public async Task<IActionResult> GetAllImages()
         {
             try
