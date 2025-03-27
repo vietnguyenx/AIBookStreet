@@ -11,8 +11,8 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
     public interface IAuthorRepository : IBaseRepository<Author>
     {
         Task<List<Author>> GetAll(string? authorName);
-        Task<(List<Author>, long)> GetAllPagination(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc);
-        Task<(List<Author>, long)> GetAllPaginationForAdmin(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc);
+        Task<(List<Author>, long)> GetAllPagination(string? key, List<Guid>? authorIds, int? pageNumber, int? pageSize, string? sortField, bool? desc);
+        Task<(List<Author>, long)> GetAllPaginationForAdmin(string? key, List<Guid>? authorIds, int? pageNumber, int? pageSize, string? sortField, bool? desc);
         Task<Author?> GetByID(Guid? id);
     }
 }

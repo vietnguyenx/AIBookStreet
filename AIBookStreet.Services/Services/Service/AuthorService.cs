@@ -145,7 +145,7 @@ namespace AIBookStreet.Services.Services.Service
 
             return authors.Count == 0 ? null : authors;
         }
-        public async Task<(List<Author>?, long)> GetAllAuthorsPagination(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<(List<Author>?, long)> GetAllAuthorsPagination(string? key, Guid? categoryId, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             var user = await GetUserInfo();
             var isAdmin = false;
@@ -158,8 +158,35 @@ namespace AIBookStreet.Services.Services.Service
                     }
                 }
             }
-            var authors = isAdmin ? await _repository.AuthorRepository.GetAllPaginationForAdmin(key, pageNumber, pageSize, sortField, desc) 
-                                        : await _repository.AuthorRepository.GetAllPagination(key, pageNumber, pageSize, sortField, desc);
+            var bookCategories = await _repository.BookCategoryRepository.GetByElement(null, categoryId);
+            var bookAuthors = new List<BookAuthor>();
+            var authorIds = new List<Guid>();
+
+            if (bookCategories != null)
+            {
+                foreach (var bookCategory in bookCategories)
+                {
+                    var bas = await _repository.BookAuthorRepository.GetByElement(bookCategory.BookId, null);
+                    if (bas != null)
+                    {
+                        foreach( var ba in bas)
+                        {
+                            bookAuthors.Add(ba);
+                        }
+                    }
+                }
+            }
+
+            if (bookAuthors != null)
+            {
+                foreach (var bookAuthor in bookAuthors)
+                {
+                    authorIds.Add(bookAuthor.AuthorId);
+                }
+            }
+
+            var authors = isAdmin ? await _repository.AuthorRepository.GetAllPaginationForAdmin(key, authorIds, pageNumber, pageSize, sortField, desc) 
+                                        : await _repository.AuthorRepository.GetAllPagination(key, authorIds, pageNumber, pageSize, sortField, desc);
             return authors.Item1.Count > 0 ? (authors.Item1, authors.Item2) : (null, 0);
         }
     }

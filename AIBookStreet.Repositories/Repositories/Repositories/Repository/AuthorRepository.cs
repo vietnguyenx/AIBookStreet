@@ -29,7 +29,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var authors = await queryable.ToListAsync();
             return authors;
         }
-        public async Task<(List<Author>, long)> GetAllPagination(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<(List<Author>, long)> GetAllPagination(string? key, List<Guid>? authorIds, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             var queryable = GetQueryable();
             string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
@@ -45,6 +45,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                                                    || (!string.IsNullOrEmpty(at.Nationality) && at.Nationality.ToLower().Trim().Contains(key.ToLower().Trim()))
                                                    || (!string.IsNullOrEmpty(at.Biography) && at.Biography.ToLower().Trim().Contains(key.ToLower().Trim())));
                 }
+                if (authorIds != null )
+                {
+                    queryable = queryable.Where(at => authorIds.Contains(at.Id));
+                }
             }
             var totalOrigin = queryable.Count();
 
@@ -57,7 +61,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return (authors, totalOrigin);
         }
-        public async Task<(List<Author>, long)> GetAllPaginationForAdmin(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<(List<Author>, long)> GetAllPaginationForAdmin(string? key, List<Guid>? authorIds, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             var queryable = GetQueryable();
             string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
@@ -71,6 +75,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                     queryable = queryable.Where(at => at.AuthorName.ToLower().Trim().Contains(key.ToLower().Trim())
                                                    || (!string.IsNullOrEmpty(at.Nationality) && at.Nationality.ToLower().Trim().Contains(key.ToLower().Trim()))
                                                    || (!string.IsNullOrEmpty(at.Biography) && at.Biography.ToLower().Trim().Contains(key.ToLower().Trim())));
+                }
+                if (authorIds != null)
+                {
+                    queryable = queryable.Where(at => authorIds.Contains(at.Id));
                 }
             }
             var totalOrigin = queryable.Count();
