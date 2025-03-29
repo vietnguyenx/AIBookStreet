@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/zone")]
+    [Route("api/zones")]
     [ApiController]
     public class ZoneController(IZoneService service, IMapper mapper) : ControllerBase
     {
@@ -113,7 +113,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpPost("pagination-search")]
+        [HttpPost("search/paginated")]
         public async Task<IActionResult> GetAllZonesPagination(PaginatedRequest<ZoneSearchRequest> request)
         {
             try

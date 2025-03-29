@@ -14,7 +14,7 @@ using System.Drawing.Printing;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/book-authors")]
+    [Route("api/book-author")]
     [ApiController]
     public class BookAuthorController(IBookAuthorService service, IMapper mapper) : ControllerBase
     {
@@ -134,7 +134,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpPost("pagination-search")]
+        [HttpPost("search/paginated")]
         public async Task<IActionResult> GetAllBookAuthorsPagination(PaginatedRequest<BookAuthorSearchRequest> request)
         {
             try

@@ -118,7 +118,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpPost("pagination-search")]
+        [HttpPost("search/paginated")]
         public async Task<IActionResult> GetAllEventsPagination(PaginatedRequest<EventSearchRequest> request)
         {
             try
