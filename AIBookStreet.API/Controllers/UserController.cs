@@ -285,88 +285,84 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [HttpGet("google-login-url")]
+        public IActionResult GetGoogleLoginUrl()
+        {
+            var redirectUrl = Url.Action(nameof(GoogleCallback), null, null, Request.Scheme);
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = redirectUrl
+            };
+
+            var url = Url.Action(nameof(GoogleLogin), null, null, Request.Scheme);
+            return Ok(new { url });
+        }
+
         [HttpGet("google-login")]
         public IActionResult GoogleLogin()
         {
-            var redirectUrl = Url.Action(nameof(GoogleResponse), "User");
-            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
-            //var properties = new AuthenticationProperties { 
-            //    RedirectUri = redirectUrl,
-            //    IsPersistent = true
-            //};
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action(nameof(GoogleCallback))
+            };
+
             return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
 
-        [HttpGet("google-response")]
-        public async Task<IActionResult> GoogleResponse()
+        [HttpGet("signin-google")]
+        public async Task<IActionResult> GoogleCallback()
         {
-            try
+            var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+            if (!result.Succeeded)
             {
-                var authResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                if (!authResult.Succeeded)
-                {
-                    return Unauthorized(new { message = "Google authentication failed", details = authResult.Failure?.Message });
-                }
-
-                var claims = authResult.Principal.Identities.FirstOrDefault()?.Claims;
-                var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-                var name = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
-
-                if (string.IsNullOrEmpty(email) || !email.Contains("@"))
-                {
-                    return BadRequest(new { message = "Invalid email received from Google" });
-                }
-
-                var existingUser = await _service.GetUserByEmail(new UserModel { Email = email });
-                if (existingUser == null)
-                {
-                    var newUser = new UserModel
-                    {
-                        Email = email,
-                        FullName = name ?? email.Split('@')[0],
-                        UserName = email.Split('@')[0],
-                        Password = Guid.NewGuid().ToString()
-                    };
-                    existingUser = await _service.Register(newUser);
-                }
-
-                if (existingUser == null)
-                {
-                    return BadRequest(new { message = "Failed to create or retrieve user" });
-                }
-
-                JwtSecurityToken token = _service.CreateToken(existingUser);
-                var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-
-                // Tạo HTML response với script xử lý token và chuyển hướng
-                return Content($@"
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>Đăng nhập thành công</title>
-                    </head>
-                    <body>
-                        <script>
-                            // Lưu token vào localStorage
-                            localStorage.setItem('token', '{tokenString}');
-                            localStorage.setItem('user', {System.Text.Json.JsonSerializer.Serialize(existingUser)});
-                            
-                            // Xác định URL chuyển hướng dựa trên môi trường
-                            const redirectUrl = window.location.hostname === 'localhost' 
-                                ? 'http://localhost:3000'
-                                : 'https://smart-book-street-next-aso3.vercel.app';
-                            
-                            // Chuyển hướng người dùng
-                            window.location.href = redirectUrl;
-                        </script>
-                    </body>
-                    </html>
-                ", "text/html");
+                return Redirect("http://localhost:3000/login?error=google_auth_failed");
             }
-            catch (Exception ex)
+
+            var claims = result.Principal.Claims;
+            var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var name = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+
+            if (string.IsNullOrEmpty(email))
             {
-                return BadRequest(new { message = "An error occurred during Google authentication", details = ex.Message });
+                return Redirect("http://localhost:3000/login?error=email_not_found");
             }
+
+            // Check if user exists
+            var userModel = await _service.GetUserByEmail(new UserModel { Email = email });
+            
+            if (userModel == null)
+            {
+                // Create new user if doesn't exist
+                userModel = new UserModel
+                {
+                    Email = email,
+                    UserName = email.Split('@')[0], // Use part before @ as username
+                    FullName = name,
+                    Password = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()) // Random password for Google users
+                };
+                
+                var (newUser, message) = await _service.Add(userModel);
+                if (newUser == null)
+                {
+                    return Redirect("http://localhost:3000/login?error=user_creation_failed");
+                }
+                userModel = newUser;
+            }
+
+            // Create JWT token
+            var token = _service.CreateToken(userModel);
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+            // Set cookie with token
+            Response.Cookies.Append("auth_token", tokenString, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddDays(0.5)
+            });
+
+            return Redirect("http://localhost:3000/dashboard");
         }
     }
 }
