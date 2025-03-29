@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/book")]
+    [Route("api/books")]
     [ApiController]
     public class BookController : ControllerBase
     {
@@ -26,7 +26,7 @@ namespace AIBookStreet.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("get-all")]
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -44,7 +44,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpPost("get-all-pagination")]
+        [HttpPost("paginated")]
         public async Task<IActionResult> GetAllPagination(PaginatedRequest paginatedRequest)
         {
             try
@@ -63,7 +63,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpGet("get-by-id/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             try
@@ -86,7 +86,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpPost("search-pagination")]
+        [HttpPost("search/paginated")]
         public async Task<IActionResult> SearchPagination(PaginatedRequest<BookSearchRequest> paginatedRequest)
         {
             try
@@ -109,7 +109,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpPost("search-without-pagination")]
+        [HttpPost("search")]
         public async Task<IActionResult> SearchWithoutPagination(BookSearchRequest searchRequest)
         {
             try
@@ -133,7 +133,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPost("add")]
+        [HttpPost]
         public async Task<IActionResult> Add([FromForm] BookRequest bookRequest)
         {
             try
@@ -172,7 +172,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("update/{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromForm] BookRequest bookRequest)
         {
             try
@@ -201,7 +201,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("delete/{id}")]
+        [HttpPatch("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             try

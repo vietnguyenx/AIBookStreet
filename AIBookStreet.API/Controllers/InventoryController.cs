@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/inventory")]
+    [Route("api/inventories")]
     [ApiController]
     
     public class InventoryController : ControllerBase
@@ -25,7 +25,7 @@ namespace AIBookStreet.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("get-all")]
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -44,7 +44,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpGet("get-by-book/{bookId}")]
+        [HttpGet("{bookId}")]
         public async Task<IActionResult> GetByBookId(Guid bookId)
         {
             try
@@ -62,12 +62,12 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpGet("get-by-bookstore/{bookStoreId}")]
-        public async Task<IActionResult> GetByBookStoreId(Guid bookStoreId)
+        [HttpGet("{storeId}")]
+        public async Task<IActionResult> GetByStoreId(Guid storeId)
         {
             try
             {
-                var inventories = await _inventoryService.GetByBookStoreId(bookStoreId);
+                var inventories = await _inventoryService.GetByStoreId(storeId);
                 return inventories switch
                 {
                     null => Ok(new ItemListResponse<InventoryModel>(ConstantMessage.NotFound)),
@@ -81,7 +81,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPost("add")]
+        [HttpPost]
         public async Task<IActionResult> Add(InventoryRequest inventoryRequest)
         {
             try
@@ -101,14 +101,14 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("delete/{idBook}/{idBookStore}")]
-        public async Task<IActionResult> Delete(Guid idBook, Guid idBookStore)
+        [HttpPatch("{idBook}/{idStore}")]
+        public async Task<IActionResult> Delete(Guid idBook, Guid idStore)
         {
             try
             {
-                if (idBook != Guid.Empty && idBookStore != Guid.Empty)
+                if (idBook != Guid.Empty && idStore != Guid.Empty)
                 {
-                    var isInventory = await _inventoryService.Delete(idBook, idBookStore);
+                    var isInventory = await _inventoryService.Delete(idBook, idStore);
 
                     return isInventory switch
                     {

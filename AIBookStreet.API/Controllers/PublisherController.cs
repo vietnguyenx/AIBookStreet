@@ -27,7 +27,7 @@ namespace AIBookStreet.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("get-all")]
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -46,7 +46,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpPost("get-all-pagination")]
+        [HttpPost("paginated")]
         public async Task<IActionResult> GetAllPagination(PaginatedRequest paginatedRequest)
         {
             try
@@ -66,7 +66,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
-        [HttpGet("get-by-id/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             try
@@ -90,7 +90,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
-        [HttpPost("search-pagination")]
+        [HttpPost("search/paginated")]
         public async Task<IActionResult> SearchPagination(PaginatedRequest<PublisherSearchRequest> paginatedRequest)
         {
             try
@@ -111,7 +111,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
-        [HttpPost("search-without-pagination")]
+        [HttpPost("search")]
         public async Task<IActionResult> SearchWithoutPagination([FromBody] PublisherSearchRequest searchRequest)
         {
             try
@@ -132,7 +132,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPost("add")]
+        [HttpPost]
         public async Task<IActionResult> Add([FromForm] PublisherRequest publisherRequest)
         {
             try
@@ -155,7 +155,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("update")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromForm] PublisherRequest publisherRequest)
         {
             try
@@ -184,7 +184,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("delete/{id}")]
+        [HttpPatch("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             try
