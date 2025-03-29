@@ -95,6 +95,15 @@ namespace AIBookStreet.API.Controllers
                 var startDate = paginatedRequest.Result.StartDate;
                 var endDate = paginatedRequest.Result.EndDate;
 
+                // Add category to book model if CategoryId is provided
+                if (paginatedRequest.Result.CategoryId.HasValue)
+                {
+                    book.BookCategories = new List<BookCategoryModel>
+                    {
+                        new BookCategoryModel { CategoryId = paginatedRequest.Result.CategoryId.Value }
+                    };
+                }
+
                 var books = await _bookService.SearchPagination(book, startDate, endDate, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
 
                 return books.Item1 switch

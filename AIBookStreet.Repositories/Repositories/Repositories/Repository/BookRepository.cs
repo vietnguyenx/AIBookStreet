@@ -101,6 +101,12 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                     queryable = queryable.Where(b =>
                         EF.Functions.Collate(b.Status, "Latin1_General_CI_AI").Contains(book.Status));
                 }
+
+                if (book.BookCategories != null && book.BookCategories.Any())
+                {
+                    var categoryIds = book.BookCategories.Select(bc => bc.CategoryId).ToList();
+                    queryable = queryable.Where(b => b.BookCategories.Any(bc => categoryIds.Contains(bc.CategoryId)));
+                }
             }
             var totalOrigin = queryable.Count();
 
@@ -108,6 +114,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             var books = await queryable
                 .Include(b => b.Images)
+                .Include(b => b.BookCategories)
                 .ToListAsync();
 
             return (books, totalOrigin);
