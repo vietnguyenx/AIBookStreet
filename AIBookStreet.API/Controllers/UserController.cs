@@ -17,7 +17,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/user")]
+    [Route("api/users")]
     [ApiController]
     
     public class UserController : ControllerBase
@@ -31,7 +31,7 @@ namespace AIBookStreet.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("get-all")]
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -50,7 +50,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpPost("get-all-pagination")]
+        [HttpPost("paginated")]
         public async Task<IActionResult> GetAllPagination(PaginatedRequest paginatedRequest)
         {
             try
@@ -70,7 +70,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
-        [HttpGet("get-by-id/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             try
@@ -94,7 +94,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
-        [HttpGet("get-by-email/{email}")]
+        [HttpGet("{email}")]
         public async Task<IActionResult> GetUserByEmail(string email)
         {
             try
@@ -113,7 +113,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
-        [HttpPost("search-pagination")]
+        [HttpPost("search/paginated")]
         public async Task<IActionResult> SearchPagination(PaginatedRequest<UserSearchRequest> paginatedRequest)
         {
             try
@@ -134,7 +134,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
-        [HttpPost("search-without-pagination")]
+        [HttpPost("search")]
         public async Task<IActionResult> SearchWithoutPagination(UserSearchRequest userSearchRequest)
         {
             try
@@ -155,7 +155,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPost("add")]
+        [HttpPost]
         public async Task<IActionResult> Add([FromForm] UserRequest userRequest)
         {
             try
@@ -180,7 +180,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("update")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromForm] UserRequest userRequest)
         {
             try
@@ -209,7 +209,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("delete/{id}")]
+        [HttpPatch("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             try

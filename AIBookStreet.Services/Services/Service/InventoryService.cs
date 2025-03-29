@@ -43,25 +43,25 @@ namespace AIBookStreet.Services.Services.Service
             return _mapper.Map<List<InventoryModel>>(inventories);
         }
 
-        public async Task<List<InventoryModel>?> GetByBookStoreId(Guid bookStoreId)
+        public async Task<List<InventoryModel>?> GetByStoreId(Guid storeId)
         {
-            var inventories = await _inventoryRepository.GetByBookStoreId(bookStoreId);
+            var inventories = await _inventoryRepository.GetByStoreId(storeId);
             if (!inventories.Any()) return null;
             return _mapper.Map<List<InventoryModel>>(inventories);
         }
 
         public async Task<bool> Add(InventoryModel inventoryModel)
         {
-            var inventory = await _inventoryRepository.GetByBookIdAndBookStoreId(inventoryModel.EntityId, inventoryModel.StoreId);
+            var inventory = await _inventoryRepository.GetByBookIdAndStoreId(inventoryModel.EntityId, inventoryModel.StoreId);
             if (inventory != null) { return false; }
             var mappedInventory = _mapper.Map<Inventory>(inventoryModel);
             var newInventory = await SetBaseEntityToCreateFunc(mappedInventory);
             return await _inventoryRepository.Add(newInventory);
         }
 
-        public async Task<bool> Delete(Guid bookId, Guid bookStoreId)
+        public async Task<bool> Delete(Guid bookId, Guid storeId)
         {
-            var inventory = await _inventoryRepository.GetByBookIdAndBookStoreId(bookId, bookStoreId);
+            var inventory = await _inventoryRepository.GetByBookIdAndStoreId(bookId, storeId);
             if (inventory == null)
             {
                 return false;

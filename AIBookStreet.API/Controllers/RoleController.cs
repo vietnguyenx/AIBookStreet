@@ -25,7 +25,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("get-all")]
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -45,7 +45,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPost("add")]
+        [HttpPost]
         public async Task<IActionResult> Add(RoleRequest roleRequest)
         {
             try
@@ -65,7 +65,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("delete/{id}")]
+        [HttpPatch("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             try

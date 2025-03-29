@@ -25,7 +25,7 @@ namespace AIBookStreet.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("get-all")]
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -44,7 +44,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpGet("get-by-user/{userId}")]
+        [HttpGet("{userId}")]
         public async Task<IActionResult> GetByUserId(Guid userId)
         {
             try
@@ -62,7 +62,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpGet("get-by-role/{roleId}")]
+        [HttpGet("{roleId}")]
         public async Task<IActionResult> GetByRoleId(Guid roleId)
         {
             try
@@ -81,7 +81,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPost("add")]
+        [HttpPost]
         public async Task<IActionResult> Add(UserRoleRequest userRoleRequest)
         {
             try
@@ -101,7 +101,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("delete/{idUser}/{idRole}")]
+        [HttpPatch("{idUser}/{idRole}")]
         public async Task<IActionResult> Delete(Guid idUser, Guid idRole)
         {
             try
