@@ -289,77 +289,84 @@ namespace AIBookStreet.API.Controllers
         public IActionResult GoogleLogin()
         {
             var redirectUrl = Url.Action(nameof(GoogleResponse), "User");
-            //var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
-            var properties = new AuthenticationProperties { 
-                RedirectUri = redirectUrl,
-                IsPersistent = true
-            };
+            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+            //var properties = new AuthenticationProperties { 
+            //    RedirectUri = redirectUrl,
+            //    IsPersistent = true
+            //};
             return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
 
         [HttpGet("google-response")]
         public async Task<IActionResult> GoogleResponse()
         {
-            var authResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            if (!authResult.Succeeded)
+            try
             {
-                return Unauthorized(new { message = "Google authentication failed" });
-            }
-
-            var claims = authResult.Principal.Identities.FirstOrDefault()?.Claims;
-            var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var name = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
-
-            if (string.IsNullOrEmpty(email))
-            {
-                return BadRequest(new { message = "Unable to retrieve email from Google login" });
-            }
-
-            var existingUser = await _service.GetUserByEmail(new UserModel { Email = email });
-            if (existingUser == null)
-            {
-                var newUser = new UserModel
+                var authResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                if (!authResult.Succeeded)
                 {
-                    Email = email,
-                    FullName = name,
-                    UserName = email.Split('@')[0],
-                    Password = Guid.NewGuid().ToString()
-                };
-                existingUser = await _service.Register(newUser);
-            }
+                    return Unauthorized(new { message = "Google authentication failed", details = authResult.Failure?.Message });
+                }
 
-            if (existingUser == null)
-            {
-                return BadRequest(new { message = "User registration failed" });
-            }
+                var claims = authResult.Principal.Identities.FirstOrDefault()?.Claims;
+                var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+                var name = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
 
-            JwtSecurityToken token = _service.CreateToken(existingUser);
+                if (string.IsNullOrEmpty(email) || !email.Contains("@"))
+                {
+                    return BadRequest(new { message = "Invalid email received from Google" });
+                }
 
-            //return Ok(new LoginResponse<UserModel>(
-            //    ConstantMessage.Success,
-            //    existingUser,
-            //    new JwtSecurityTokenHandler().WriteToken(token),
-            //    token.ValidTo.ToString()
-            //));
+                var existingUser = await _service.GetUserByEmail(new UserModel { Email = email });
+                if (existingUser == null)
+                {
+                    var newUser = new UserModel
+                    {
+                        Email = email,
+                        FullName = name ?? email.Split('@')[0],
+                        UserName = email.Split('@')[0],
+                        Password = Guid.NewGuid().ToString()
+                    };
+                    existingUser = await _service.Register(newUser);
+                }
 
-            return Content($@"
-                <html>
+                if (existingUser == null)
+                {
+                    return BadRequest(new { message = "Failed to create or retrieve user" });
+                }
+
+                JwtSecurityToken token = _service.CreateToken(existingUser);
+                var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+                // Tạo HTML response với script xử lý token và chuyển hướng
+                return Content($@"
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Đăng nhập thành công</title>
+                    </head>
                     <body>
                         <script>
-                            window.opener.postMessage({{
-                                type: 'google-login-success',
-                                data: {{
-                                    message: '{ConstantMessage.Success}',
-                                    result: {System.Text.Json.JsonSerializer.Serialize(existingUser)},
-                                    token: '{new JwtSecurityTokenHandler().WriteToken(token)}',
-                                    expiration: '{token.ValidTo.ToString()}'
-                                }}
-                            }}, '*');
-                            window.close();
+                            // Lưu token vào localStorage
+                            localStorage.setItem('token', '{tokenString}');
+                            localStorage.setItem('user', {System.Text.Json.JsonSerializer.Serialize(existingUser)});
+                            
+                            // Xác định URL chuyển hướng dựa trên môi trường
+                            const redirectUrl = window.location.hostname === 'localhost' 
+                                ? 'http://localhost:3000'
+                                : 'https://smart-book-street-next-aso3.vercel.app';
+                            
+                            // Chuyển hướng người dùng
+                            window.location.href = redirectUrl;
                         </script>
                     </body>
-                </html>
-            ", "text/html");
+                    </html>
+                ", "text/html");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "An error occurred during Google authentication", details = ex.Message });
+            }
         }
     }
 }
