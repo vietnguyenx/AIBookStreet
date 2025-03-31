@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AIBookStreet.Repositories.Data.Entities;
 
 namespace AIBookStreet.Services.Services.Interface
 {
@@ -25,6 +26,6 @@ namespace AIBookStreet.Services.Services.Interface
         JwtSecurityToken CreateToken(UserModel userModel);
         Task<UserModel?> GetUserByEmailOrUsername(UserModel userModel);
         Task<UserModel?> GetUserByEmail(UserModel userModel);
-
+        Task<User?> GetUserInfo();
     }
 }
