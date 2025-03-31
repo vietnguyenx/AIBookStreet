@@ -94,6 +94,8 @@ namespace AIBookStreet.API.Controllers
                 var book = _mapper.Map<BookModel>(paginatedRequest.Result);
                 var startDate = paginatedRequest.Result.StartDate;
                 var endDate = paginatedRequest.Result.EndDate;
+                var minPrice = paginatedRequest.Result.MinPrice;
+                var maxPrice = paginatedRequest.Result.MaxPrice;
 
                 // Add category to book model if CategoryId is provided
                 if (paginatedRequest.Result.CategoryId.HasValue)
@@ -104,7 +106,7 @@ namespace AIBookStreet.API.Controllers
                     };
                 }
 
-                var books = await _bookService.SearchPagination(book, startDate, endDate, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
+                var books = await _bookService.SearchPagination(book, startDate, endDate, minPrice, maxPrice, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
 
                 return books.Item1 switch
                 {
@@ -126,8 +128,10 @@ namespace AIBookStreet.API.Controllers
                 var bookModel = _mapper.Map<BookModel>(searchRequest);
                 var startDate = searchRequest.StartDate;
                 var endDate = searchRequest.EndDate;
+                var minPrice = searchRequest.MinPrice;
+                var maxPrice = searchRequest.MaxPrice;
 
-                var books = await _bookService.SearchWithoutPagination(bookModel, startDate, endDate);
+                var books = await _bookService.SearchWithoutPagination(bookModel, startDate, endDate, minPrice, maxPrice);
 
                 return books switch
                 {

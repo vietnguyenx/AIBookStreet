@@ -370,7 +370,7 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpGet("current")]
+        [HttpGet("profile")]
         public async Task<IActionResult> GetCurrentUser()
         {
             try
