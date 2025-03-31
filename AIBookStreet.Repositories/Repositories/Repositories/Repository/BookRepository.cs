@@ -46,7 +46,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             return book;
         }
 
-        public async Task<(List<Book>, long)> SearchPagination(Book book, DateTime? startDate, DateTime? endDate, int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<(List<Book>, long)> SearchPagination(Book book, DateTime? startDate, DateTime? endDate, decimal? minPrice, decimal? maxPrice, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
             var queryable = GetQueryable()
                 .Where(b => !b.IsDeleted);
@@ -79,9 +79,21 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                     queryable = queryable.Where(b => b.PublicationDate <= endDate.Value);
                 }
 
-                if (book.Price.HasValue && book.Price > 0)
+                // Handle price range search
+                if (minPrice.HasValue && maxPrice.HasValue)
                 {
-                    queryable = queryable.Where(m => m.Price == book.Price);
+                    // Search between min and max price
+                    queryable = queryable.Where(m => m.Price >= minPrice && m.Price <= maxPrice);
+                }
+                else if (minPrice.HasValue)
+                {
+                    // Search for price >= minPrice
+                    queryable = queryable.Where(m => m.Price >= minPrice);
+                }
+                else if (maxPrice.HasValue)
+                {
+                    // Search for price <= maxPrice
+                    queryable = queryable.Where(m => m.Price <= maxPrice);
                 }
 
                 if (!string.IsNullOrEmpty(book.Languages))
@@ -120,7 +132,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             return (books, totalOrigin);
         }
 
-        public async Task<List<Book>> SearchWithoutPagination(Book book, DateTime? startDate, DateTime? endDate)
+        public async Task<List<Book>> SearchWithoutPagination(Book book, DateTime? startDate, DateTime? endDate, decimal? minPrice, decimal? maxPrice)
         {
             var queryable = GetQueryable()
                 .Where(b => !b.IsDeleted);
@@ -150,9 +162,21 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 queryable = queryable.Where(b => b.PublicationDate <= endDate.Value);
             }
 
-            if (book.Price.HasValue && book.Price > 0)
+            // Handle price range search
+            if (minPrice.HasValue && maxPrice.HasValue)
             {
-                queryable = queryable.Where(m => m.Price == book.Price);
+                // Search between min and max price
+                queryable = queryable.Where(m => m.Price >= minPrice && m.Price <= maxPrice);
+            }
+            else if (minPrice.HasValue)
+            {
+                // Search for price >= minPrice
+                queryable = queryable.Where(m => m.Price >= minPrice);
+            }
+            else if (maxPrice.HasValue)
+            {
+                // Search for price <= maxPrice
+                queryable = queryable.Where(m => m.Price <= maxPrice);
             }
 
             if (!string.IsNullOrEmpty(book.Languages))

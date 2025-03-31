@@ -44,17 +44,17 @@ namespace AIBookStreet.Services.Services.Service
             return book == null ? null : _mapper.Map<BookModel>(book);
         }
 
-        public async Task<(List<BookModel>?, long)> SearchPagination(BookModel bookModel, DateTime? startDate, DateTime? endDate, int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<(List<BookModel>?, long)> SearchPagination(BookModel bookModel, DateTime? startDate, DateTime? endDate, decimal? minPrice, decimal? maxPrice, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
             var books = _mapper.Map<Book>(bookModel);
-            var (bookList, total) = await _bookRepository.SearchPagination(books, startDate, endDate, pageNumber, pageSize, sortField, sortOrder);
+            var (bookList, total) = await _bookRepository.SearchPagination(books, startDate, endDate, minPrice, maxPrice, pageNumber, pageSize, sortField, sortOrder);
             return !bookList.Any() ? (null, total) : (_mapper.Map<List<BookModel>>(bookList), total);
         }
 
-        public async Task<List<BookModel>?> SearchWithoutPagination(BookModel bookModel, DateTime? startDate, DateTime? endDate)
+        public async Task<List<BookModel>?> SearchWithoutPagination(BookModel bookModel, DateTime? startDate, DateTime? endDate, decimal? minPrice, decimal? maxPrice)
         {
             var bookEntity = _mapper.Map<Book>(bookModel);
-            var books = await _bookRepository.SearchWithoutPagination(bookEntity, startDate, endDate);
+            var books = await _bookRepository.SearchWithoutPagination(bookEntity, startDate, endDate, minPrice, maxPrice);
             return !books.Any() ? null : _mapper.Map<List<BookModel>>(books);
         }
 
@@ -71,7 +71,7 @@ namespace AIBookStreet.Services.Services.Service
                 if (string.IsNullOrEmpty(bookModel.Title))
                     return (null, ConstantMessage.Book.EmptyTitle);
 
-                var existingBook = await _bookRepository.SearchWithoutPagination(new Book { Code = bookModel.Code }, null, null);
+                var existingBook = await _bookRepository.SearchWithoutPagination(new Book { Code = bookModel.Code }, null, null, null, null);
                 if (existingBook?.Any() == true)
                     return (null, ConstantMessage.Book.CodeExists);
 
@@ -185,7 +185,7 @@ namespace AIBookStreet.Services.Services.Service
 
                 if (!string.IsNullOrEmpty(bookModel.Code) && bookModel.Code != existingBook.Code)
                 {
-                    var bookWithSameCode = await _bookRepository.SearchWithoutPagination(new Book { Code = bookModel.Code }, null, null);
+                    var bookWithSameCode = await _bookRepository.SearchWithoutPagination(new Book { Code = bookModel.Code }, null, null, null, null);
                     if (bookWithSameCode?.Any() == true)
                         return (null, ConstantMessage.Book.CodeExists);
                 }

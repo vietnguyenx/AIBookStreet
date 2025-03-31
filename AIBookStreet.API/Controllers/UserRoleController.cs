@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/user-roles")]
     [ApiController]
     
     public class UserRoleController : ControllerBase

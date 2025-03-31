@@ -364,5 +364,26 @@ namespace AIBookStreet.API.Controllers
 
             return Redirect("http://localhost:3000/dashboard");
         }
+
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            try
+            {
+                var user = await _service.GetUserInfo();
+                if (user == null)
+                {
+                    return Ok(new ItemResponse<UserModel>(ConstantMessage.NotFound));
+                }
+
+                var userModel = _mapper.Map<UserModel>(user);
+                return Ok(new ItemResponse<UserModel>(ConstantMessage.Success, userModel));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

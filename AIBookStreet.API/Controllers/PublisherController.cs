@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/publisher")]
+    [Route("api/publishers")]
     [ApiController]
     
 
