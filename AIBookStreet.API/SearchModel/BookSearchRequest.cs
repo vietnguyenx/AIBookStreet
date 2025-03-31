@@ -4,7 +4,8 @@
     {
         public string? Code { get; set; }
         public string? Title { get; set; }
-        public decimal? Price { get; set; }
+        public decimal? MinPrice { get; set; }
+        public decimal? MaxPrice { get; set; }
         public string? Languages { get; set; }
         public string? Size { get; set; }
         public string? Status { get; set; }

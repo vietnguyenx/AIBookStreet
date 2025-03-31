@@ -14,7 +14,7 @@ using System.Drawing.Printing;
 
 namespace AIBookStreet.API.Controllers
 {
-    [Route("api/book-author")]
+    [Route("api/book-authors")]
     [ApiController]
     public class BookAuthorController(IBookAuthorService service, IMapper mapper) : ControllerBase
     {
