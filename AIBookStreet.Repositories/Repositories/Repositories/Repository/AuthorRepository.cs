@@ -45,7 +45,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                                                    || (!string.IsNullOrEmpty(at.Nationality) && at.Nationality.ToLower().Trim().Contains(key.ToLower().Trim()))
                                                    || (!string.IsNullOrEmpty(at.Biography) && at.Biography.ToLower().Trim().Contains(key.ToLower().Trim())));
                 }
-                if (authorIds != null )
+                if (authorIds != null && authorIds.Count > 0)
                 {
                     queryable = queryable.Where(at => authorIds.Contains(at.Id));
                 }
@@ -76,7 +76,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                                                    || (!string.IsNullOrEmpty(at.Nationality) && at.Nationality.ToLower().Trim().Contains(key.ToLower().Trim()))
                                                    || (!string.IsNullOrEmpty(at.Biography) && at.Biography.ToLower().Trim().Contains(key.ToLower().Trim())));
                 }
-                if (authorIds != null)
+                if (authorIds != null && authorIds.Count > 0)
                 {
                     queryable = queryable.Where(at => authorIds.Contains(at.Id));
                 }

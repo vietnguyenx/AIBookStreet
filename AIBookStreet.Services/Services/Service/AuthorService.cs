@@ -158,30 +158,34 @@ namespace AIBookStreet.Services.Services.Service
                     }
                 }
             }
-            var bookCategories = await _repository.BookCategoryRepository.GetByElement(null, categoryId);
             var bookAuthors = new List<BookAuthor>();
             var authorIds = new List<Guid>();
-
-            if (bookCategories != null)
+            if (categoryId != null)
             {
-                foreach (var bookCategory in bookCategories)
+                var bookCategories = await _repository.BookCategoryRepository.GetByElement(null, categoryId);
+                
+
+                if (bookCategories != null)
                 {
-                    var bas = await _repository.BookAuthorRepository.GetByElement(bookCategory.BookId, null);
-                    if (bas != null)
+                    foreach (var bookCategory in bookCategories)
                     {
-                        foreach( var ba in bas)
+                        var bas = await _repository.BookAuthorRepository.GetByElement(bookCategory.BookId, null);
+                        if (bas != null)
                         {
-                            bookAuthors.Add(ba);
+                            foreach (var ba in bas)
+                            {
+                                bookAuthors.Add(ba);
+                            }
                         }
                     }
                 }
-            }
 
-            if (bookAuthors != null)
-            {
-                foreach (var bookAuthor in bookAuthors)
+                if (bookAuthors != null)
                 {
-                    authorIds.Add(bookAuthor.AuthorId);
+                    foreach (var bookAuthor in bookAuthors)
+                    {
+                        authorIds.Add(bookAuthor.AuthorId);
+                    }
                 }
             }
 
