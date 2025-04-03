@@ -20,6 +20,7 @@ namespace AIBookStreet.API.Tool.Mapping
             StreetMapping();
             UserMapping();
             UserRoleMapping();
+            UserStoreMapping();
             ZoneMapping();
             RoleMapping();
             SouvenirMapping();

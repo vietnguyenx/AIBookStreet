@@ -19,13 +19,13 @@ namespace AIBookStreet.Repositories.Data.Entities
         public decimal? Longitude { get; set; }
         public string? Type { get; set; }
 
-        public Guid? ManagerId { get; set; } 
-        public virtual User? Manager { get; set; } 
 
         public Guid? ZoneId { get; set; }
         public virtual Zone? Zone { get; set; }
 
         public virtual ICollection<Inventory>? Inventories { get; set; }
         public virtual ICollection<Image>? Images { get; set; }
+        public virtual ICollection<UserStore> UserStores { get; set; }
+
     }
 }

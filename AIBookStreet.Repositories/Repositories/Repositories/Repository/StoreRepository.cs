@@ -38,7 +38,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var bookStore = await query
                 .Include(bs => bs.Images)
                 .Include(bs => bs.Inventories)
-                .Include(bs => bs.Manager)
+                .Include(bs => bs.UserStores)
                 .Include(bs => bs.Zone)
                 .SingleOrDefaultAsync();
 
