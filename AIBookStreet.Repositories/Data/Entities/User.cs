@@ -18,10 +18,10 @@ namespace AIBookStreet.Repositories.Data.Entities
         public string? Gender { get; set; }
         public string? BaseImgUrl { get; set; }
 
-        public virtual Store? Store { get; set; }
         public virtual Publisher? Publisher { get; set; }
 
         public virtual ICollection<UserRole> UserRoles { get; set; }
         public virtual ICollection<Image>? Images { get; set; }
+        public virtual ICollection<UserStore> UserStores { get; set; }
     }
 }

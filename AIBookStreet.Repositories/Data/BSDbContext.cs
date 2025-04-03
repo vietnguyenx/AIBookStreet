@@ -53,6 +53,7 @@ namespace AIBookStreet.Repositories.Data
         public virtual DbSet<BookCategory> BookCategories { get; set; } = null!;
         public virtual DbSet<Inventory> Inventories { get; set; } = null!;
         public virtual DbSet<UserRole> UserRoles { get; set; } = null!;
+        public virtual DbSet<UserStore> UserStores { get; set; } = null!;
         public virtual DbSet<Souvenir> Souvenirs { get; set; } = null!;
         #endregion  
 
@@ -181,11 +182,11 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.Latitude).IsRequired(false);
                 e.Property(x => x.Type).HasMaxLength(2000).IsRequired(false);
 
-                // 1-1 voi user
-                e.HasOne(x => x.Manager)
+                // 1-n voi userStore
+                e.HasMany(x => x.UserStores)
                  .WithOne(x => x.Store)
-                 .HasForeignKey<Store>(x => x.ManagerId)
-                 .OnDelete(DeleteBehavior.SetNull); // neu user bi xoa, store se co managerId = null
+                 .HasForeignKey(x => x.StoreId)
+                 .OnDelete(DeleteBehavior.Cascade); // neu store bi xoa, userStore lien quan bi xoa
 
                 // 1-n voi zone
                 e.HasOne(x => x.Zone)
@@ -347,11 +348,11 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.Gender).HasMaxLength(50).IsRequired(false);
                 e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
 
-                // 1-1 voi bookStore
-                e.HasOne(x => x.Store)
-                 .WithOne(x => x.Manager)
-                 .HasForeignKey<Store>(x => x.ManagerId)
-                 .OnDelete(DeleteBehavior.SetNull); // neu xoa user, store co managerId = null
+                // 1-n voi userStore
+                e.HasMany(x => x.UserStores)
+                    .WithOne(ur => ur.User)
+                    .HasForeignKey(ur => ur.UserId)
+                    .OnDelete(DeleteBehavior.Cascade); // neu xoa user, userStore lien quan cung se xoa
 
                 e.HasOne(x => x.Publisher)
                  .WithOne(x => x.Manager)
@@ -387,6 +388,24 @@ namespace AIBookStreet.Repositories.Data
                  .WithMany(r => r.UserRoles)
                  .HasForeignKey(x => x.RoleId)
                  .OnDelete(DeleteBehavior.Cascade); // xoa userRole khi role bi xoa
+            });
+
+            modelBuilder.Entity<UserStore>(e =>
+            {
+                e.ToTable("UserStores");
+                e.HasKey(us => new { us.UserId, us.StoreId });
+
+                // n-1 voi user
+                e.HasOne(us => us.User)
+                 .WithMany(u => u.UserStores)
+                 .HasForeignKey(us => us.UserId)
+                 .OnDelete(DeleteBehavior.Cascade); // xoa userStore khi user bi xoa
+
+                // n-1 voi store
+                e.HasOne(us => us.Store)
+                 .WithMany(s => s.UserStores)
+                 .HasForeignKey(us => us.StoreId)
+                 .OnDelete(DeleteBehavior.Cascade); // xoa userStore khi store bi xoa
             });
 
             modelBuilder.Entity<Zone>(e =>

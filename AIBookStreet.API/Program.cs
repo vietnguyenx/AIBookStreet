@@ -77,6 +77,7 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IStreetRepository, StreetRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+builder.Services.AddScoped<IUserStoreRepository, UserStoreRepository>();
 builder.Services.AddScoped<IZoneRepository, ZoneRepository>();
 builder.Services.AddScoped<ISouvenirRepository, SouvenirRepository>();
 
@@ -94,6 +95,7 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IStreetService, StreetService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+builder.Services.AddScoped<IUserStoreService, UserStoreService>();
 builder.Services.AddScoped<IZoneService, ZoneService>();
 builder.Services.AddScoped<ISouvenirService, SouvenirService>();
 
