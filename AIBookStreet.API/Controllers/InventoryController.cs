@@ -44,7 +44,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpGet("{bookId}")]
+        [HttpGet("book/{bookId}")]
         public async Task<IActionResult> GetByBookId(Guid bookId)
         {
             try
@@ -62,7 +62,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpGet("{storeId}")]
+        [HttpGet("store/{storeId}")]
         public async Task<IActionResult> GetByStoreId(Guid storeId)
         {
             try
@@ -127,6 +127,36 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [HttpPatch("scan")]
+        public async Task<IActionResult> UpdateQuantityByBarcode([FromBody] BookScanRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.BookCode))
+                {
+                    return BadRequest(new BaseResponse(false, "Book code is required"));
+                }
 
+                if (request.StoreId == Guid.Empty)
+                {
+                    return BadRequest(new BaseResponse(false, "Store ID is required"));
+                }
+
+                if (request.Quantity <= 0)
+                {
+                    return BadRequest(new BaseResponse(false, "Quantity must be greater than zero"));
+                }
+
+                var (success, message) = await _inventoryService.UpdateQuantityByCode(request.BookCode, request.StoreId, request.Quantity);
+                
+                return success 
+                    ? Ok(new BaseResponse(true, message)) 
+                    : BadRequest(new BaseResponse(false, message));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BaseResponse(false, ex.Message));
+            }
+        }
     }
 }

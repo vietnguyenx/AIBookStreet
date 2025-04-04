@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIBookStreet Scanner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #scanner-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            height: 480px;
+            margin: 0 auto;
+            border: 2px solid #ccc;
+            overflow: hidden;
+        }
+        #interactive.viewport {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        #interactive.viewport > canvas, #interactive.viewport > video {
+            max-width: 100%;
+            width: 100%;
+        }
+        canvas.drawing, canvas.drawingBuffer {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        .button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .button.stop {
+            background-color: #f44336;
+        }
+        .button.cancel {
+            background-color: #ff9800;
+        }
+        .button.undo {
+            background-color: #2196F3;
+        }
+        
+        /* Manual input form for testing */
+        .manual-input {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        /* Store selection screen styles */
+        #store-selection-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .store-selection-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .store-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #selected-store-info {
+            background-color: #e8f5e9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+        }
+
+        .store-selection-container h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        /* Scanner overlay */
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .scanner-target {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 30%;
+            border: 2px solid #4CAF50;
+            box-shadow: 0 0 0 5000px rgba(0, 0, 0, 0.5);
+        }
+        
+        .scanner-target::before, .scanner-target::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: #4CAF50;
+            border-style: solid;
+        }
+        
+        .scanner-target::before {
+            top: -2px;
+            left: -2px;
+            border-width: 2px 0 0 2px;
+        }
+        
+        .scanner-target::after {
+            bottom: -2px;
+            right: -2px;
+            border-width: 0 2px 2px 0;
+        }
+        
+        /* Scanner settings */
+        .scanner-settings {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        
+        .scanner-settings h3 {
+            margin-top: 0;
+        }
+        
+        .scanner-settings .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .scanner-settings label {
+            margin-bottom: 0;
+            margin-right: 10px;
+            width: auto;
+        }
+        
+        .scanner-settings input[type="checkbox"] {
+            width: auto;
+            margin-right: 5px;
+        }
+        
+        .scanner-settings select {
+            width: auto;
+            margin-right: 10px;
+        }
+        
+        .scanner-settings .button {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        /* Scan history */
+        .scan-history {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .scan-history h3 {
+            margin-top: 0;
+        }
+        
+        .scan-history-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .scan-history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .scan-history-item .code {
+            font-weight: bold;
+        }
+        
+        .scan-history-item .time {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .scan-history-item .success {
+            color: #4CAF50;
+        }
+        
+        .scan-history-item .error {
+            color: #f44336;
+        }
+        
+        /* Action buttons for scan history items */
+        .scan-history-item .actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .scan-history-item .actions button {
+            padding: 2px 5px;
+            font-size: 12px;
+            border-radius: 3px;
+        }
+        
+        /* Current transaction */
+        .current-transaction {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        
+        .current-transaction h3 {
+            margin-top: 0;
+        }
+        
+        .transaction-items {
+            margin-bottom: 15px;
+        }
+        
+        .transaction-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .transaction-item .book-info {
+            flex-grow: 1;
+        }
+        
+        .transaction-item .book-code {
+            font-weight: bold;
+        }
+        
+        .transaction-item .book-quantity {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .transaction-item .remove-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 5px;
+            cursor: pointer;
+        }
+        
+        .transaction-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        
+        .transaction-actions .button {
+            flex: 1;
+            margin: 0 5px;
+        }
+        
+        .transaction-actions .button:first-child {
+            margin-left: 0;
+        }
+        
+        .transaction-actions .button:last-child {
+            margin-right: 0;
+        }
+        
+        /* Confirmation dialog */
+        .confirmation-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            display: none;
+        }
+        
+        .confirmation-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .confirmation-container h3 {
+            margin-top: 0;
+        }
+        
+        .confirmation-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .confirmation-actions button {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Store Selection Screen -->
+    <div id="store-selection-screen">
+        <div class="store-selection-container">
+            <div class="store-header">
+                <h2>AIBookStreet Scanner</h2>
+                <p>Please select a store before scanning books</p>
+            </div>
+            
+            <div class="input-group">
+                <label for="store-id-input">Store ID:</label>
+                <input type="text" id="store-id-input" placeholder="Enter store GUID">
+            </div>
+            
+            <button class="button" id="store-continue-btn">Continue</button>
+        </div>
+    </div>
+
+    <div id="selected-store-info">
+        Current Store: <span id="current-store-id"></span>
+        <button id="change-store-btn" class="button" style="padding: 5px 10px; margin-left: 10px;">Change</button>
+    </div>
+    
+    <h1>AIBookStreet Book Scanner</h1>
+    <p>Use this scanner to quickly update inventory when books are sold</p>
+    
+    <div class="controls">
+        <button class="button" id="start-button">Start Scanner</button>
+        <button class="button stop" id="stop-button" style="display:none">Stop Scanner</button>
+    </div>
+    
+    <div id="scanner-container">
+        <div id="interactive" class="viewport"></div>
+        <div class="scanner-overlay">
+            <div class="scanner-target"></div>
+        </div>
+    </div>
+    
+    <div id="result">
+        <h3>Scan Result:</h3>
+        <p>No book scanned yet</p>
+    </div>
+    
+    <!-- Current Transaction Section -->
+    <div class="current-transaction">
+        <h3>Current Transaction</h3>
+        <div class="transaction-items" id="transaction-items">
+            <p>No items in current transaction</p>
+        </div>
+        <div class="transaction-actions">
+            <button class="button cancel" id="cancel-transaction-btn">Cancel Transaction</button>
+            <button class="button" id="complete-transaction-btn">Complete Transaction</button>
+        </div>
+    </div>
+    
+    <div class="scanner-settings">
+        <h3>Scanner Settings</h3>
+        <div class="input-group">
+            <label for="scanner-type">Scanner Type:</label>
+            <select id="scanner-type">
+                <option value="ean">EAN (ISBN)</option>
+                <option value="code128">Code 128</option>
+                <option value="code39">Code 39</option>
+                <option value="upc">UPC</option>
+                <option value="all">All Formats</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="scanner-frequency">Scan Frequency:</label>
+            <select id="scanner-frequency">
+                <option value="high">High (may be less accurate)</option>
+                <option value="medium" selected>Medium</option>
+                <option value="low">Low (more accurate)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="scanner-debug">Debug Mode:</label>
+            <input type="checkbox" id="scanner-debug">
+        </div>
+        <div class="input-group">
+            <label for="scanner-repeat">Repeat Detection:</label>
+            <input type="checkbox" id="scanner-repeat" checked>
+        </div>
+        <div class="input-group">
+            <label for="scanner-repeat-count">Repeat Count:</label>
+            <input type="number" id="scanner-repeat-count" value="3" min="1" max="10">
+        </div>
+        <button class="button" id="apply-settings">Apply Settings</button>
+    </div>
+    
+    <div class="scan-history">
+        <h3>Scan History</h3>
+        <div id="scan-history-list">
+            <!-- Scan history items will be added here -->
+        </div>
+    </div>
+    
+    <div class="manual-input">
+        <h3>Manual Input (For Testing)</h3>
+        <div class="input-group">
+            <label for="book-code">Book Code:</label>
+            <input type="text" id="book-code" placeholder="Enter book code">
+        </div>
+        
+        <div class="input-group">
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" value="1" min="1">
+        </div>
+        
+        <button class="button" id="manual-submit">Submit Manually</button>
+    </div>
+    
+    <!-- Confirmation Dialog -->
+    <div class="confirmation-dialog" id="confirmation-dialog">
+        <div class="confirmation-container">
+            <h3 id="confirmation-title">Confirm Action</h3>
+            <p id="confirmation-message">Are you sure you want to proceed?</p>
+            <div class="confirmation-actions">
+                <button class="button cancel" id="confirmation-cancel">Cancel</button>
+                <button class="button" id="confirmation-confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Load Quagga from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const resultArea = document.querySelector('#result p');
+            let scannerIsRunning = false;
+            let currentStoreId = '';
+            let scanHistory = [];
+            let lastScannedCode = '';
+            let repeatCount = 0;
+            let scannerConfig = {
+                type: 'ean',
+                frequency: 'medium',
+                debug: false,
+                repeat: true,
+                repeatCount: 3
+            };
+            
+            // Current transaction
+            let currentTransaction = [];
+            
+            // Confirmation dialog
+            const confirmationDialog = document.getElementById('confirmation-dialog');
+            const confirmationTitle = document.getElementById('confirmation-title');
+            const confirmationMessage = document.getElementById('confirmation-message');
+            const confirmationCancel = document.getElementById('confirmation-cancel');
+            const confirmationConfirm = document.getElementById('confirmation-confirm');
+            let confirmationCallback = null;
+            
+            // Store selection screen handling
+            const storeSelectionScreen = document.getElementById('store-selection-screen');
+            const storeContinueBtn = document.getElementById('store-continue-btn');
+            const storeIdInput = document.getElementById('store-id-input');
+            const selectedStoreInfo = document.getElementById('selected-store-info');
+            const currentStoreIdSpan = document.getElementById('current-store-id');
+            const changeStoreBtn = document.getElementById('change-store-btn');
+            
+            // Scanner settings
+            const scannerTypeSelect = document.getElementById('scanner-type');
+            const scannerFrequencySelect = document.getElementById('scanner-frequency');
+            const scannerDebugCheckbox = document.getElementById('scanner-debug');
+            const scannerRepeatCheckbox = document.getElementById('scanner-repeat');
+            const scannerRepeatCountInput = document.getElementById('scanner-repeat-count');
+            const applySettingsButton = document.getElementById('apply-settings');
+            
+            // Transaction buttons
+            const cancelTransactionBtn = document.getElementById('cancel-transaction-btn');
+            const completeTransactionBtn = document.getElementById('complete-transaction-btn');
+            
+            // Check if we have a stored storeId in localStorage
+            const savedStoreId = localStorage.getItem('currentStoreId');
+            if (savedStoreId) {
+                currentStoreId = savedStoreId;
+                storeIdInput.value = savedStoreId;
+                currentStoreIdSpan.textContent = currentStoreId;
+                selectedStoreInfo.style.display = 'block';
+                storeSelectionScreen.style.display = 'none';
+            }
+            
+            // Store selection continue button
+            storeContinueBtn.addEventListener('click', function() {
+                const storeId = storeIdInput.value.trim();
+                if (!storeId) {
+                    alert('Please enter a valid Store ID');
+                    return;
+                }
+                
+                // Save and display the selected store ID
+                currentStoreId = storeId;
+                localStorage.setItem('currentStoreId', storeId);
+                currentStoreIdSpan.textContent = storeId;
+                selectedStoreInfo.style.display = 'block';
+                
+                // Hide the selection screen
+                storeSelectionScreen.style.display = 'none';
+            });
+            
+            // Change store button
+            changeStoreBtn.addEventListener('click', function() {
+                storeSelectionScreen.style.display = 'flex';
+            });
+            
+            // Apply scanner settings
+            applySettingsButton.addEventListener('click', function() {
+                scannerConfig.type = scannerTypeSelect.value;
+                scannerConfig.frequency = scannerFrequencySelect.value;
+                scannerConfig.debug = scannerDebugCheckbox.checked;
+                scannerConfig.repeat = scannerRepeatCheckbox.checked;
+                scannerConfig.repeatCount = parseInt(scannerRepeatCountInput.value);
+                
+                if (scannerIsRunning) {
+                    stopScanner();
+                    startScanner();
+                }
+                
+                alert('Scanner settings applied. Restart scanner to take effect.');
+            });
+            
+            // Start scanner button
+            document.getElementById('start-button').addEventListener('click', function() {
+                if (!currentStoreId) {
+                    alert('Please select a store first');
+                    storeSelectionScreen.style.display = 'flex';
+                    return;
+                }
+                
+                startScanner();
+                document.getElementById('start-button').style.display = 'none';
+                document.getElementById('stop-button').style.display = 'inline-block';
+            });
+            
+            // Stop scanner button
+            document.getElementById('stop-button').addEventListener('click', function() {
+                stopScanner();
+                document.getElementById('start-button').style.display = 'inline-block';
+                document.getElementById('stop-button').style.display = 'none';
+            });
+            
+            // Manual submit button
+            document.getElementById('manual-submit').addEventListener('click', function() {
+                if (!currentStoreId) {
+                    alert('Please select a store first');
+                    storeSelectionScreen.style.display = 'flex';
+                    return;
+                }
+                
+                const bookCode = document.getElementById('book-code').value;
+                const quantity = document.getElementById('quantity').value;
+                
+                if (!bookCode || !quantity) {
+                    alert('Please fill in all fields');
+                    return;
+                }
+                
+                addToTransaction(bookCode, currentStoreId, parseInt(quantity));
+            });
+            
+            // Cancel transaction button
+            cancelTransactionBtn.addEventListener('click', function() {
+                if (currentTransaction.length === 0) {
+                    alert('No transaction to cancel');
+                    return;
+                }
+                
+                showConfirmationDialog(
+                    'Cancel Transaction',
+                    'Are you sure you want to cancel the current transaction? This will undo all inventory changes.',
+                    function() {
+                        undoTransaction();
+                    }
+                );
+            });
+            
+            // Complete transaction button
+            completeTransactionBtn.addEventListener('click', function() {
+                if (currentTransaction.length === 0) {
+                    alert('No transaction to complete');
+                    return;
+                }
+                
+                showConfirmationDialog(
+                    'Complete Transaction',
+                    'Are you sure you want to complete the current transaction? This will finalize all inventory changes.',
+                    function() {
+                        completeTransaction();
+                    }
+                );
+            });
+            
+            // Confirmation dialog handlers
+            confirmationCancel.addEventListener('click', function() {
+                hideConfirmationDialog();
+            });
+            
+            confirmationConfirm.addEventListener('click', function() {
+                if (confirmationCallback) {
+                    confirmationCallback();
+                }
+                hideConfirmationDialog();
+            });
+            
+            function showConfirmationDialog(title, message, callback) {
+                confirmationTitle.textContent = title;
+                confirmationMessage.textContent = message;
+                confirmationCallback = callback;
+                confirmationDialog.style.display = 'flex';
+            }
+            
+            function hideConfirmationDialog() {
+                confirmationDialog.style.display = 'none';
+                confirmationCallback = null;
+            }
+            
+            function startScanner() {
+                // Configure scanner based on settings
+                const config = getScannerConfig();
+                
+                Quagga.init(config, function(err) {
+                    if (err) {
+                        console.error(err);
+                        alert("Error initializing scanner: " + err);
+                        return;
+                    }
+                    
+                    Quagga.start();
+                    scannerIsRunning = true;
+                });
+                
+                Quagga.onDetected(function(result) {
+                    const code = result.codeResult.code;
+                    
+                    // Handle repeat detection if enabled
+                    if (scannerConfig.repeat) {
+                        if (code === lastScannedCode) {
+                            repeatCount++;
+                            if (repeatCount >= scannerConfig.repeatCount) {
+                                // We've seen this code enough times, process it
+                                Quagga.pause();
+                                addToTransaction(code, currentStoreId, 1);
+                                setTimeout(() => {
+                                    Quagga.start();
+                                    repeatCount = 0;
+                                }, 2000);
+                            }
+                        } else {
+                            // New code detected, reset counter
+                            lastScannedCode = code;
+                            repeatCount = 1;
+                        }
+                    } else {
+                        // No repeat detection, process immediately
+                        Quagga.pause();
+                        addToTransaction(code, currentStoreId, 1);
+                        setTimeout(() => Quagga.start(), 2000);
+                    }
+                });
+            }
+            
+            function getScannerConfig() {
+                // Base configuration
+                const config = {
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: document.querySelector('#interactive'),
+                        constraints: {
+                            width: 640,
+                            height: 480,
+                            facingMode: "environment"
+                        },
+                    },
+                    decoder: {
+                        readers: []
+                    }
+                };
+                
+                // Add readers based on scanner type
+                switch (scannerConfig.type) {
+                    case 'ean':
+                        config.decoder.readers = ["ean_reader", "ean_8_reader"];
+                        break;
+                    case 'code128':
+                        config.decoder.readers = ["code_128_reader"];
+                        break;
+                    case 'code39':
+                        config.decoder.readers = ["code_39_reader", "code_39_vin_reader"];
+                        break;
+                    case 'upc':
+                        config.decoder.readers = ["upc_reader", "upc_e_reader"];
+                        break;
+                    case 'all':
+                        config.decoder.readers = [
+                            "code_128_reader",
+                            "ean_reader",
+                            "ean_8_reader",
+                            "code_39_reader",
+                            "code_39_vin_reader",
+                            "codabar_reader",
+                            "upc_reader",
+                            "upc_e_reader",
+                            "i2of5_reader"
+                        ];
+                        break;
+                }
+                
+                // Configure debug mode
+                if (scannerConfig.debug) {
+                    config.decoder.debug = {
+                        showCanvas: true,
+                        showPatches: true,
+                        showFoundPatches: true,
+                        showSkeleton: true,
+                        showLabels: true,
+                        showPatchLabels: true,
+                        showRemainingPatchLabels: true,
+                        boxFromPatches: {
+                            showTransformed: true,
+                            showTransformedBox: true,
+                            showBB: true
+                        }
+                    };
+                }
+                
+                // Configure frequency
+                switch (scannerConfig.frequency) {
+                    case 'high':
+                        config.decoder.multiple = false;
+                        config.decoder.halfSample = false;
+                        break;
+                    case 'medium':
+                        config.decoder.multiple = false;
+                        config.decoder.halfSample = true;
+                        break;
+                    case 'low':
+                        config.decoder.multiple = true;
+                        config.decoder.halfSample = true;
+                        break;
+                }
+                
+                return config;
+            }
+            
+            function stopScanner() {
+                if (scannerIsRunning) {
+                    Quagga.stop();
+                    scannerIsRunning = false;
+                }
+            }
+            
+            function addToTransaction(code, storeId, quantity) {
+                resultArea.textContent = `Processing: ${code} (Store: ${storeId}, Qty: ${quantity})`;
+                
+                // Add to scan history
+                const historyItem = {
+                    code: code,
+                    time: new Date().toLocaleTimeString(),
+                    status: 'pending'
+                };
+                scanHistory.unshift(historyItem);
+                updateScanHistory();
+                
+                // Send the data to your API
+                fetch('/api/inventories/scan', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bookCode: code,
+                        storeId: storeId,
+                        quantity: parseInt(quantity)
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.text().then(text => {
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            console.error('Error parsing JSON:', text);
+                            throw new Error('Invalid JSON response from server');
+                        }
+                    });
+                })
+                .then(data => {
+                    if (data.isSuccess) {
+                        resultArea.innerHTML = `<strong>Success:</strong> ${data.message}`;
+                        historyItem.status = 'success';
+                        historyItem.message = data.message;
+                        
+                        // Add to current transaction
+                        const transactionItem = {
+                            id: Date.now(), // Unique ID for the transaction item
+                            code: code,
+                            storeId: storeId,
+                            quantity: quantity,
+                            message: data.message
+                        };
+                        currentTransaction.push(transactionItem);
+                        updateTransactionDisplay();
+                    } else {
+                        resultArea.innerHTML = `<strong>Error:</strong> ${data.message}`;
+                        historyItem.status = 'error';
+                        historyItem.message = data.message;
+                    }
+                    updateScanHistory();
+                })
+                .catch(error => {
+                    resultArea.innerHTML = `<strong>Error:</strong> ${error.message}`;
+                    console.error('Error:', error);
+                    historyItem.status = 'error';
+                    historyItem.message = error.message;
+                    updateScanHistory();
+                });
+            }
+            
+            function updateTransactionDisplay() {
+                const transactionItems = document.getElementById('transaction-items');
+                
+                if (currentTransaction.length === 0) {
+                    transactionItems.innerHTML = '<p>No items in current transaction</p>';
+                    return;
+                }
+                
+                let html = '';
+                currentTransaction.forEach(item => {
+                    html += `
+                        <div class="transaction-item" data-id="${item.id}">
+                            <div class="book-info">
+                                <div class="book-code">${item.code}</div>
+                                <div class="book-quantity">Quantity: ${item.quantity}</div>
+                            </div>
+                            <button class="remove-btn" onclick="removeFromTransaction(${item.id})">Remove</button>
+                        </div>
+                    `;
+                });
+                
+                transactionItems.innerHTML = html;
+            }
+            
+            // Make removeFromTransaction available globally
+            window.removeFromTransaction = function(id) {
+                const index = currentTransaction.findIndex(item => item.id === id);
+                if (index !== -1) {
+                    const item = currentTransaction[index];
+                    
+                    showConfirmationDialog(
+                        'Remove Item',
+                        `Are you sure you want to remove book ${item.code} from the transaction?`,
+                        function() {
+                            // Restore the inventory
+                            restoreInventory(item.code, item.storeId, item.quantity);
+                            
+                            // Remove from transaction
+                            currentTransaction.splice(index, 1);
+                            updateTransactionDisplay();
+                        }
+                    );
+                }
+            };
+            
+            function restoreInventory(code, storeId, quantity) {
+                // Send the data to your API to restore inventory
+                fetch('/api/inventories/scan', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bookCode: code,
+                        storeId: storeId,
+                        quantity: -parseInt(quantity) // Negative quantity to restore
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.text().then(text => {
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            console.error('Error parsing JSON:', text);
+                            throw new Error('Invalid JSON response from server');
+                        }
+                    });
+                })
+                .then(data => {
+                    if (data.isSuccess) {
+                        resultArea.innerHTML = `<strong>Restored:</strong> ${data.message}`;
+                    } else {
+                        resultArea.innerHTML = `<strong>Error restoring:</strong> ${data.message}`;
+                    }
+                })
+                .catch(error => {
+                    resultArea.innerHTML = `<strong>Error restoring:</strong> ${error.message}`;
+                    console.error('Error:', error);
+                });
+            }
+            
+            function undoTransaction() {
+                // Restore all items in the transaction
+                const promises = currentTransaction.map(item => {
+                    return fetch('/api/inventories/scan', {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            bookCode: item.code,
+                            storeId: item.storeId,
+                            quantity: -parseInt(item.quantity) // Negative quantity to restore
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.text().then(text => {
+                            try {
+                                return JSON.parse(text);
+                            } catch (e) {
+                                console.error('Error parsing JSON:', text);
+                                throw new Error('Invalid JSON response from server');
+                            }
+                        });
+                    });
+                });
+                
+                Promise.all(promises)
+                    .then(results => {
+                        // Clear the transaction
+                        currentTransaction = [];
+                        updateTransactionDisplay();
+                        
+                        resultArea.innerHTML = '<strong>Transaction cancelled:</strong> All inventory changes have been reversed.';
+                    })
+                    .catch(error => {
+                        resultArea.innerHTML = `<strong>Error cancelling transaction:</strong> ${error.message}`;
+                        console.error('Error:', error);
+                    });
+            }
+            
+            function completeTransaction() {
+                // Clear the transaction
+                currentTransaction = [];
+                updateTransactionDisplay();
+                
+                resultArea.innerHTML = '<strong>Transaction completed:</strong> All inventory changes have been finalized.';
+            }
+            
+            function updateScanHistory() {
+                const historyList = document.getElementById('scan-history-list');
+                historyList.innerHTML = '';
+                
+                scanHistory.forEach(item => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'scan-history-item';
+                    
+                    const codeSpan = document.createElement('span');
+                    codeSpan.className = 'code';
+                    codeSpan.textContent = item.code;
+                    
+                    const timeSpan = document.createElement('span');
+                    timeSpan.className = 'time';
+                    timeSpan.textContent = item.time;
+                    
+                    const statusSpan = document.createElement('span');
+                    statusSpan.className = item.status;
+                    statusSpan.textContent = item.status === 'success' ? '✓' : '✗';
+                    
+                    historyItem.appendChild(codeSpan);
+                    historyItem.appendChild(timeSpan);
+                    historyItem.appendChild(statusSpan);
+                    
+                    if (item.message) {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.style.fontSize = '0.8em';
+                        messageDiv.style.color = item.status === 'success' ? '#4CAF50' : '#f44336';
+                        messageDiv.textContent = item.message;
+                        historyItem.appendChild(messageDiv);
+                    }
+                    
+                    historyList.appendChild(historyItem);
+                });
+            }
+        });
+    </script>
+</body>
+</html> 
