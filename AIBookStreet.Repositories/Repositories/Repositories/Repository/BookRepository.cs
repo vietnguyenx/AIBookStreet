@@ -119,6 +119,12 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                     var categoryIds = book.BookCategories.Select(bc => bc.CategoryId).ToList();
                     queryable = queryable.Where(b => b.BookCategories.Any(bc => categoryIds.Contains(bc.CategoryId)));
                 }
+
+                if (book.BookAuthors != null && book.BookAuthors.Any())
+                {
+                    var authorIds = book.BookAuthors.Select(ba => ba.AuthorId).ToList();
+                    queryable = queryable.Where(b => b.BookAuthors.Any(bc => authorIds.Contains(bc.AuthorId)));
+                }
             }
             var totalOrigin = queryable.Count();
 
@@ -127,6 +133,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var books = await queryable
                 .Include(b => b.Images)
                 .Include(b => b.BookCategories)
+                .Include (b => b.BookAuthors)
                 .ToListAsync();
 
             return (books, totalOrigin);

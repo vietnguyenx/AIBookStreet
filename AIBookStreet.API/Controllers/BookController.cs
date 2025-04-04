@@ -106,6 +106,14 @@ namespace AIBookStreet.API.Controllers
                     };
                 }
 
+                if (paginatedRequest.Result.AuthorId.HasValue)
+                {
+                    book.BookAuthors = new List<BookAuthorModel>
+                    {
+                        new BookAuthorModel { AuthorId = paginatedRequest.Result.AuthorId.Value }
+                    };
+                }
+
                 var books = await _bookService.SearchPagination(book, startDate, endDate, minPrice, maxPrice, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
 
                 return books.Item1 switch
