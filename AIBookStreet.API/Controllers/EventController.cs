@@ -100,11 +100,11 @@ namespace AIBookStreet.API.Controllers
         }
         [AllowAnonymous]
         [HttpGet("events-coming")]
-        public async Task<IActionResult> GetEventsComing(int number)
+        public async Task<IActionResult> GetEventsComing(int number, bool? allowAds)
         {
             try
             {
-                var events = await _service.GetEventComing(number);
+                var events = await _service.GetEventComing(number, allowAds);
 
                 return events switch
                 {

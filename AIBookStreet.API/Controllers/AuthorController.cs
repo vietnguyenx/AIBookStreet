@@ -99,11 +99,12 @@ namespace AIBookStreet.API.Controllers
         }
         [AllowAnonymous]
         [HttpPost("search")]
-        public async Task<IActionResult> GetAllActiveAuthors(AuthorSearchRequest request)
+        public async Task<IActionResult> GetAllActiveAuthors(AuthorSearchRequest? request)
         {
             try
             {
-                var authors = await _service.GetAllActiveAuthors(request.AuthorName);
+                var authors = request != null ? await _service.GetAllActiveAuthors(request.AuthorName, request.CategoryId) :
+                                                await _service.GetAllActiveAuthors(null, null);
 
                 return authors switch
                 {

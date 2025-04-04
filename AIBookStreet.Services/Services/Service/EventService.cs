@@ -218,9 +218,17 @@ namespace AIBookStreet.Services.Services.Service
                                                    : await _repository.EventRepository.GetAllPagination(key, start, end, streetID, pageNumber, pageSize, sortField, desc);
             return events.Item1.Count > 0 ? (events.Item1, events.Item2) : (null, 0);
         }
-        public async Task<List<Event>?> GetEventComing(int number)
+        public async Task<List<Event>?> GetEventComing(int number, bool? allowAds)
         {
-            return await _repository.EventRepository.GetEventsComing(number);
+            var events = await _repository.EventRepository.GetEventsComing(number);
+            if (allowAds != null && allowAds == true && events != null && events.Count > 0)
+            {
+                foreach(var evt in events)
+                {
+                    evt.VideoLink = null;
+                }
+            }
+            return events;
         }
         public async Task<List<DateModel>?> GetEventDatesInMonth(int? month)
         {

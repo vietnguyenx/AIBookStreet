@@ -71,13 +71,43 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.CategoryRepository.GetByID(id);
         }
-        public async Task<List<Category>?> GetAllActiveCategories(string? name)
+        public async Task<List<Category>?> GetAllActiveCategories(string? name, Guid? authorId)
         {
-            var categories = await _repository.CategoryRepository.GetAll(name);
+            var bookCategories = new List<BookCategory>();
+            var categoryIds = new List<Guid>();
+            if (authorId != null)
+            {
+                var bookAuthors = await _repository.BookAuthorRepository.GetByElement(null, authorId);
+
+
+                if (bookAuthors != null)
+                {
+                    foreach (var bookAuthor in bookAuthors)
+                    {
+                        var bcs = await _repository.BookCategoryRepository.GetByElement(bookAuthor.BookId, null);
+                        if (bcs != null)
+                        {
+                            foreach (var bc in bcs)
+                            {
+                                bookCategories.Add(bc);
+                            }
+                        }
+                    }
+                }
+
+                if (bookCategories != null)
+                {
+                    foreach (var bookCategory in bookCategories)
+                    {
+                        categoryIds.Add(bookCategory.CategoryId);
+                    }
+                }
+            }
+            var categories = await _repository.CategoryRepository.GetAll(name, categoryIds);
 
             return categories.Count == 0 ? null : categories;
         }
-        public async Task<(List<Category>?, long)> GetAllCategoriesPagination(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<(List<Category>?, long)> GetAllCategoriesPagination(string? key, Guid? authorId, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             var user = await GetUserInfo();
             var isAdmin = false;
@@ -91,8 +121,38 @@ namespace AIBookStreet.Services.Services.Service
                     }
                 }
             }
-            var categories = isAdmin ? await _repository.CategoryRepository.GetAllPaginationForAdmin(key, pageNumber, pageSize, sortField, desc)
-                                                       : await _repository.CategoryRepository.GetAllPagination(key, pageNumber, pageSize, sortField, desc);
+            var bookCategories = new List<BookCategory>();
+            var categoryIds = new List<Guid>();
+            if (authorId != null)
+            {
+                var bookAuthors = await _repository.BookAuthorRepository.GetByElement(null, authorId);
+
+
+                if (bookAuthors != null)
+                {
+                    foreach (var bookAuthor in bookAuthors)
+                    {
+                        var bcs = await _repository.BookCategoryRepository.GetByElement(bookAuthor.BookId, null);
+                        if (bcs != null)
+                        {
+                            foreach (var bc in bcs)
+                            {
+                                bookCategories.Add(bc);
+                            }
+                        }
+                    }
+                }
+
+                if (bookCategories != null)
+                {
+                    foreach (var bookCategory in bookCategories)
+                    {
+                        categoryIds.Add(bookCategory.CategoryId);
+                    }
+                }
+            }
+            var categories = isAdmin ? await _repository.CategoryRepository.GetAllPaginationForAdmin(key, categoryIds, pageNumber, pageSize, sortField, desc)
+                                                       : await _repository.CategoryRepository.GetAllPagination(key, categoryIds, pageNumber, pageSize, sortField, desc);
             return categories.Item1.Count > 0 ? (categories.Item1, categories.Item2) : (null, 0);
         }
     }

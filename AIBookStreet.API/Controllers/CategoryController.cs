@@ -94,12 +94,32 @@ namespace AIBookStreet.API.Controllers
             };
         }
         [AllowAnonymous]
-        [HttpPost("search")]
-        public async Task<IActionResult> GetAllActiveCategories(CategorySearchRequest request)
+        [HttpGet("")]
+        public async Task<IActionResult> GetAllActiveCategories()
         {
             try
             {
-                var categories = await _service.GetAllActiveCategories(request.CategoryName);
+                var categories = await _service.GetAllActiveCategories(null,null);
+
+                return categories switch
+                {
+                    null => Ok(new ItemListResponse<CategoryRequest>(ConstantMessage.Success, null)),
+                    not null => Ok(new ItemListResponse<CategoryRequest>(ConstantMessage.Success, _mapper.Map<List<CategoryRequest>>(categories)))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [AllowAnonymous]
+        [HttpPost("search")]
+        public async Task<IActionResult> GetAllActiveAndSearchCategories(CategorySearchRequest? request)
+        {
+            try
+            {
+                var categories = request != null ? await _service.GetAllActiveCategories(request.CategoryName, request.AuthorId):
+                                                    await _service.GetAllActiveCategories(null, null);
 
                 return categories switch
                 {
@@ -118,7 +138,7 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var categories = await _service.GetAllCategoriesPagination(request != null && request.Result != null ? request.Result.CategoryName : null, request != null ? request.PageNumber : 1, request != null? request.PageSize : 10, request != null? request.SortField : "CreatedDate", request != null && request.SortOrder == -1);
+                var categories = await _service.GetAllCategoriesPagination(request != null && request.Result != null ? request.Result.CategoryName : null, request != null && request.Result != null ? request.Result.AuthorId : null, request != null ? request.PageNumber : 1, request != null? request.PageSize : 10, request != null? request.SortField : "CreatedDate", request != null && request.SortOrder == -1);
 
                 return categories.Item2 switch
                 {

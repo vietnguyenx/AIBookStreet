@@ -15,7 +15,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 {
     public class AuthorRepository(BSDbContext context) : BaseRepository<Author>(context), IAuthorRepository
     {
-        public async Task<List<Author>> GetAll(string? authorName)
+        public async Task<List<Author>> GetAll(string? authorName, List<Guid>? authorIds)
         {
             var queryable = GetQueryable();
             queryable = queryable.Where(at => !at.IsDeleted);
@@ -24,6 +24,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 if (!string.IsNullOrEmpty(authorName))
                 {
                     queryable = queryable.Where(at => at.AuthorName.ToLower().Trim().Contains(authorName.ToLower().Trim()));
+                }
+                if (authorIds != null && authorIds.Count > 0)
+                {
+                    queryable = queryable.Where(at => authorIds.Contains(at.Id));
                 }
             }
             var authors = await queryable.ToListAsync();

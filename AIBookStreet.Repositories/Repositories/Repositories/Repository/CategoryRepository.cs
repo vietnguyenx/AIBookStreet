@@ -14,18 +14,25 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 {
     public class CategoryRepository(BSDbContext context) : BaseRepository<Category>(context), ICategoryRepository
     {
-        public async Task<List<Category>> GetAll(string? name)
+        public async Task<List<Category>> GetAll(string? name, List<Guid>? categoryIds)
         {
             var queryable = GetQueryable();
             queryable = queryable.Where(c => !c.IsDeleted);
-            if (!string.IsNullOrEmpty(name))
+            if (queryable.Any())
             {
-                queryable = queryable.Where(c => c.CategoryName.ToLower().Trim().Contains(name.ToLower().Trim()));
+                if (!string.IsNullOrEmpty(name))
+                {
+                    queryable = queryable.Where(c => c.CategoryName.ToLower().Trim().Contains(name.ToLower().Trim()));
+                }
+                if (categoryIds != null && categoryIds.Count > 0)
+                {
+                    queryable = queryable.Where(at => categoryIds.Contains(at.Id));
+                }
             }
             var categories = await queryable.ToListAsync();
             return categories;
         }
-        public async Task<(List<Category>, long)> GetAllPagination(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<(List<Category>, long)> GetAllPagination(string? key, List<Guid>? categoryIds, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             var queryable = GetQueryable();
             string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
@@ -40,6 +47,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                     queryable = queryable.Where(c => c.CategoryName.ToLower().Trim().Contains(key.ToLower().Trim())
                                                    || (!string.IsNullOrEmpty(c.Description) && c.Description.ToLower().Trim().Contains(key.ToLower().Trim())));
                 }
+                if (categoryIds != null && categoryIds.Count > 0)
+                {
+                    queryable = queryable.Where(at => categoryIds.Contains(at.Id));
+                }
             }
             var totalOrigin = queryable.Count();
 
@@ -52,7 +63,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return (categories, totalOrigin);
         }
-        public async Task<(List<Category>, long)> GetAllPaginationForAdmin(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<(List<Category>, long)> GetAllPaginationForAdmin(string? key, List<Guid>? categoryIds, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             var queryable = GetQueryable();
             string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
@@ -65,6 +76,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 {
                     queryable = queryable.Where(c => c.CategoryName.ToLower().Trim().Contains(key.ToLower().Trim())
                                                    || (!string.IsNullOrEmpty(c.Description) && c.Description.ToLower().Trim().Contains(key.ToLower().Trim())));
+                }
+                if (categoryIds != null && categoryIds.Count > 0)
+                {
+                    queryable = queryable.Where(at => categoryIds.Contains(at.Id));
                 }
             }
             var totalOrigin = queryable.Count();
