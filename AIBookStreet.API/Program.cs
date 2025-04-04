@@ -154,6 +154,9 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
 
+// Add static files middleware
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
