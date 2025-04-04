@@ -3,6 +3,7 @@ using AIBookStreet.Repositories.Repositories.Repositories.Interface;
 using AIBookStreet.Repositories.Repositories.Repositories.Repository;
 using AIBookStreet.Repositories.Repositories.UnitOfWork.Interface;
 using AIBookStreet.Services.Base;
+using AIBookStreet.Services.Common;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
@@ -18,10 +19,12 @@ namespace AIBookStreet.Services.Services.Service
     public class InventoryService : BaseService<Inventory>, IInventoryService
     {
         private readonly IInventoryRepository _inventoryRepository;
+        private readonly IBookRepository _bookRepository;
 
         public InventoryService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor) : base(mapper, unitOfWork, httpContextAccessor)
         {
             _inventoryRepository = unitOfWork.InventoryRepository;
+            _bookRepository = unitOfWork.BookRepository;
         }
 
         public async Task<List<InventoryModel>> GetAll()
@@ -69,6 +72,70 @@ namespace AIBookStreet.Services.Services.Service
 
             var deleteInventory = _mapper.Map<Inventory>(inventory);
             return await _inventoryRepository.Delete(deleteInventory);
+        }
+
+        public async Task<(bool, string)> UpdateQuantityByCode(string bookCode, Guid storeId, int quantity)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(bookCode))
+                {
+                    return (false, "Book code cannot be empty");
+                }
+
+                if (storeId == Guid.Empty)
+                {
+                    return (false, "Store ID cannot be empty");
+                }
+
+                if (quantity <= 0)
+                {
+                    return (false, "Quantity must be greater than zero");
+                }
+
+                // Find the book by code
+                var books = await _bookRepository.SearchWithoutPagination(new Book { Code = bookCode }, null, null, null, null);
+                if (books == null || !books.Any())
+                {
+                    return (false, $"Book with code {bookCode} not found");
+                }
+
+                var book = books.First();
+                
+                // Find inventory for this book and store
+                var inventory = await _inventoryRepository.GetByBookIdAndStoreId(book.Id, storeId);
+                if (inventory == null)
+                {
+                    return (false, $"Inventory not found for book code {bookCode} in this store");
+                }
+
+                // Check if we have enough books in stock
+                if (inventory.Quantity < quantity)
+                {
+                    return (false, $"Not enough books in stock. Current quantity: {inventory.Quantity}");
+                }
+
+                // Update inventory quantity
+                inventory.Quantity -= quantity;
+                
+                // Update isInStock status if quantity reaches zero
+                if (inventory.Quantity == 0)
+                {
+                    inventory.IsInStock = false;
+                }
+
+                var result = await _inventoryRepository.Update(inventory);
+                if (!result)
+                {
+                    return (false, "Failed to update inventory");
+                }
+
+                return (true, $"Successfully updated inventory. New quantity: {inventory.Quantity}");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Error updating inventory: {ex.Message}");
+            }
         }
     }
 }
