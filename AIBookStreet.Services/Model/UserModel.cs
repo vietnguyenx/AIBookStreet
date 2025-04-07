@@ -21,10 +21,10 @@ namespace AIBookStreet.Services.Model
         public IFormFile? MainImageFile { get; set; }
         public List<IFormFile>? AdditionalImageFiles { get; set; }
 
-        public StoreModel? Store { get; set; }
         public PublisherModel? Publisher { get; set; }
 
         public IList<UserRoleModel> UserRoles { get; set; }
+        public IList<UserStoreModel> UserStores { get; set; }
 
         public IList<Image>? Images { get; set; }
     }

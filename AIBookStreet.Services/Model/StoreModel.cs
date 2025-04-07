@@ -22,9 +22,6 @@ namespace AIBookStreet.Services.Model
         public decimal? Longitude { get; set; }
         public string? Type { get; set; }
 
-        public Guid? ManagerId { get; set; }
-        public UserModel? Manager { get; set; }
-
         public Guid? ZoneId { get; set; }
         public ZoneModel? Zone { get; set; }
 
