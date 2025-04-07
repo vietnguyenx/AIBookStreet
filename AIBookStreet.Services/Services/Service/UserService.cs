@@ -463,6 +463,48 @@ namespace AIBookStreet.Services.Services.Service
             var usernameClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "sub");
             return (emailClaim?.Value, usernameClaim?.Value);
         }
+
+        public async Task<UserModel?> ProcessGoogleLoginAsync(ClaimsPrincipal claimsPrincipal)
+        {
+            try
+            {
+                var email = claimsPrincipal.FindFirstValue(ClaimTypes.Email);
+                var name = claimsPrincipal.FindFirstValue(ClaimTypes.Name);
+                var nameid = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(email))
+                {
+                    return null;
+                }
+
+                var existingUser = await _repository.GetUserByEmail(new User { Email = email });
+
+                if (existingUser == null)
+                {
+                    var username = email.Split('@')[0] + "_google";
+                    
+                    var randomPassword = Guid.NewGuid().ToString();
+                    var hashedPassword = BCrypt.Net.BCrypt.HashPassword(randomPassword);
+                    
+                    var newUser = new UserModel
+                    {
+                        Email = email,
+                        UserName = username,
+                        FullName = name,
+                        Password = hashedPassword,
+                    };
+
+                    var registeredUser = await Register(newUser);
+                    return registeredUser;
+                }
+
+                return _mapper.Map<UserModel>(existingUser);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
     }
 
 }

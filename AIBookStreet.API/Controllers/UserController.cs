@@ -285,86 +285,6 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpGet("google-login-url")]
-        public IActionResult GetGoogleLoginUrl()
-        {
-            var redirectUrl = Url.Action(nameof(GoogleCallback), null, null, Request.Scheme);
-            var properties = new AuthenticationProperties
-            {
-                RedirectUri = redirectUrl
-            };
-
-            var url = Url.Action(nameof(GoogleLogin), null, null, Request.Scheme);
-            return Ok(new { url });
-        }
-
-        [HttpGet("google-login")]
-        public IActionResult GoogleLogin()
-        {
-            var properties = new AuthenticationProperties
-            {
-                RedirectUri = Url.Action(nameof(GoogleCallback))
-            };
-
-            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
-        }
-
-        [HttpGet("signin-google")]
-        public async Task<IActionResult> GoogleCallback()
-        {
-            var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
-            if (!result.Succeeded)
-            {
-                return Redirect("http://localhost:3000/login?error=google_auth_failed");
-            }
-
-            var claims = result.Principal.Claims;
-            var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var name = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
-
-            if (string.IsNullOrEmpty(email))
-            {
-                return Redirect("http://localhost:3000/login?error=email_not_found");
-            }
-
-            // Check if user exists
-            var userModel = await _service.GetUserByEmail(new UserModel { Email = email });
-            
-            if (userModel == null)
-            {
-                // Create new user if doesn't exist
-                userModel = new UserModel
-                {
-                    Email = email,
-                    UserName = email.Split('@')[0], // Use part before @ as username
-                    FullName = name,
-                    Password = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()) // Random password for Google users
-                };
-                
-                var (newUser, message) = await _service.Add(userModel);
-                if (newUser == null)
-                {
-                    return Redirect("http://localhost:3000/login?error=user_creation_failed");
-                }
-                userModel = newUser;
-            }
-
-            // Create JWT token
-            var token = _service.CreateToken(userModel);
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-
-            // Set cookie with token
-            Response.Cookies.Append("auth_token", tokenString, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Expires = DateTimeOffset.UtcNow.AddDays(0.5)
-            });
-
-            return Redirect("http://localhost:3000/dashboard");
-        }
-
         [Authorize]
         [HttpGet("profile")]
         public async Task<IActionResult> GetCurrentUser()
@@ -383,6 +303,56 @@ namespace AIBookStreet.API.Controllers
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("login-google")]
+        public IActionResult GoogleLogin()
+        {
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action("GoogleResponse", "User"),
+                Items =
+                {
+                    { "returnUrl", "/" }
+                }
+            };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet("google-response")]
+        public async Task<IActionResult> GoogleResponse()
+        {
+            try
+            {
+                var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                if (!authenticateResult.Succeeded)
+                    return BadRequest(new BaseResponse(false, "Đăng nhập Google thất bại"));
+
+                var userModel = await _service.ProcessGoogleLoginAsync(authenticateResult.Principal);
+                if (userModel == null)
+                    return BadRequest(new BaseResponse(false, "Không thể xử lý thông tin người dùng từ Google"));
+
+                JwtSecurityToken token = _service.CreateToken(userModel);
+                string jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
+
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTime.UtcNow.AddDays(7)
+                };
+                
+                Response.Cookies.Append("auth_token", jwtToken, cookieOptions);
+                
+                // Chuyển hướng đến trang frontend
+                var frontendUrl = "http://localhost:3000";
+                return Redirect(frontendUrl);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BaseResponse(false, ex.Message));
             }
         }
     }

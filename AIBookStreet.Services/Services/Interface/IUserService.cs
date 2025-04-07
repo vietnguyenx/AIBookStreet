@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AIBookStreet.Repositories.Data.Entities;
+using System.Security.Claims;
 
 namespace AIBookStreet.Services.Services.Interface
 {
@@ -27,5 +28,6 @@ namespace AIBookStreet.Services.Services.Interface
         Task<UserModel?> GetUserByEmailOrUsername(UserModel userModel);
         Task<UserModel?> GetUserByEmail(UserModel userModel);
         Task<User?> GetUserInfo();
+        Task<UserModel?> ProcessGoogleLoginAsync(ClaimsPrincipal claimsPrincipal);
     }
 }
