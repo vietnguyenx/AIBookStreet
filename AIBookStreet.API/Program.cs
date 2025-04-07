@@ -105,9 +105,13 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        policy.WithOrigins(
+        "http://localhost:3000",
+        "https://smart-book-street-next-aso3.vercel.app"
+    )
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials();
     });
 });
 

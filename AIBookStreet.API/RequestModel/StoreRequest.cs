@@ -16,8 +16,6 @@ namespace AIBookStreet.API.RequestModel
         public decimal? Longitude { get; set; }
         public string? Type { get; set; }
 
-        public Guid? ManagerId { get; set; }
-
         public Guid? ZoneId { get; set; }
 
     }
