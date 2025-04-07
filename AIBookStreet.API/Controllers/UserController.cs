@@ -346,9 +346,9 @@ namespace AIBookStreet.API.Controllers
                 
                 Response.Cookies.Append("auth_token", jwtToken, cookieOptions);
                 
-                // Chuyển hướng đến trang frontend
                 var frontendUrl = "http://localhost:3000";
                 return Redirect(frontendUrl);
+                //return Redirect("/google-login-test.html?loginSuccess=true");
             }
             catch (Exception ex)
             {
