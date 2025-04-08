@@ -13,5 +13,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
         Task<List<Inventory?>> GetByBookId(Guid entityId);
         Task<List<Inventory?>> GetByStoreId(Guid storeId);
         Task<Inventory?> GetByBookIdAndStoreId(Guid? entityId, Guid storeId);
+        Task<Inventory?> GetByID(Guid? storeId);
     }
 }

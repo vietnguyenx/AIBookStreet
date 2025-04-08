@@ -42,9 +42,21 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         {
             Inventory inventory = await _context.Inventories.Where(x => x.EntityId == bookId && x.StoreId == storeId)
                 .Include(i => i.Book)
+                .Include(i => i.Souvenir)
                 .Include(i => i.Store)
                 .SingleOrDefaultAsync();
             return inventory;
+        }
+
+        public async Task<Inventory?> GetByID(Guid? id)
+        {
+            var query = GetQueryable(at => at.Id == id);
+            var author = await query.Include(i => i.Book)
+                .Include(i => i.Souvenir)
+                .Include(i => i.Store)
+                                  .SingleOrDefaultAsync();
+
+            return author;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AIBookStreet.API.RequestModel;
+using AIBookStreet.API.ResponseModel;
 using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Services.Model;
 using AutoMapper;
@@ -11,6 +12,7 @@ namespace AIBookStreet.API.Tool.Mapping
         {
             CreateMap<Inventory, InventoryModel>().ReverseMap();
             CreateMap<InventoryModel, InventoryRequest>().ReverseMap();
+            CreateMap<Inventory, InventoryResponse>().ReverseMap();
         }
     }
 }

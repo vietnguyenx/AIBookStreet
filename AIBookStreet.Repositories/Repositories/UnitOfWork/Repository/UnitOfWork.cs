@@ -32,5 +32,7 @@ namespace AIBookStreet.Repositories.Repositories.UnitOfWork.Repository
         public IZoneRepository ZoneRepository => GetRepository<IZoneRepository>();
         public IImageRepository ImageRepository => GetRepository<IImageRepository>();
         public ISouvenirRepository SouvenirRepository => GetRepository<ISouvenirRepository>();
+        public IOrderRepository OrderRepository => GetRepository<IOrderRepository>();
+        public IOrderDetailRepository OrderDetailRepository => GetRepository<IOrderDetailRepository>();
     }
 }

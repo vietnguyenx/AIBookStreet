@@ -158,6 +158,20 @@ namespace AIBookStreet.Repositories.Repositories.Base
             return await Update(entity);
         }
 
+        public async Task<bool> Remove(TEntity entity)
+        {
+            DbSet.Remove(entity);
+
+            var result = await _context.SaveChangesAsync();
+
+            if (result > 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public async Task<bool> DeleteRange(List<TEntity> entities)
         {
             entities.Where(e => e.IsDeleted == false ? e.IsDeleted = true : e.IsDeleted = false);

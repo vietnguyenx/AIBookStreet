@@ -31,7 +31,7 @@ namespace AIBookStreet.Repositories.Data
                 .Build();
             var strConn = config.GetConnectionString("AIBookStreet");
 
-            return strConn;
+            return strConn ?? "";
         }
         #endregion
 
@@ -55,6 +55,8 @@ namespace AIBookStreet.Repositories.Data
         public virtual DbSet<UserRole> UserRoles { get; set; } = null!;
         public virtual DbSet<UserStore> UserStores { get; set; } = null!;
         public virtual DbSet<Souvenir> Souvenirs { get; set; } = null!;
+        public virtual DbSet<Order> Orders { get; set; } = null!;
+        public virtual DbSet<OrderDetail> OrderDetails { get; set; } = null!;
         #endregion  
 
 
@@ -266,6 +268,11 @@ namespace AIBookStreet.Repositories.Data
                     .WithMany(bs => bs.Inventories)
                     .HasForeignKey(x => x.StoreId)
                     .OnDelete(DeleteBehavior.Cascade); // neu bookStore bi xoa, inventory lien quan bi xoa
+
+                e.HasMany(i => i.OrderDetails)
+                .WithOne(od => od.Inventory)
+                .HasForeignKey(x => x.InventoryId)
+                .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<Publisher>(e =>
@@ -503,6 +510,36 @@ namespace AIBookStreet.Repositories.Data
                     .WithOne(i => i.Souvenir)
                     .HasForeignKey(i => i.EntityId)
                     .OnDelete(DeleteBehavior.Cascade); // neu souvenir bi xoa, inventory lien quan cung bi xoa
+            });
+            modelBuilder.Entity<Order>(o =>
+            {
+                o.ToFunction("Orders");
+                o.Property(x => x.TotalAmount).IsRequired(false).HasColumnType("decimal(18, 2)");
+                o.Property(x => x.PaymentMethod).IsRequired(true).HasMaxLength(2000);
+                o.Property(x => x.Status).IsRequired(false).HasMaxLength(2000);
+
+                o.HasMany(or => or.OrderDetails)
+                .WithOne(od => od.Order)
+                .HasForeignKey(od => od.OrderId)
+                .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<OrderDetail>(e =>
+            {
+                e.ToTable("OrderDetails");
+                e.Property(x => x.InventoryId).HasMaxLength(255).IsRequired(false);
+                e.Property(x => x.OrderId).HasMaxLength(255).IsRequired(false);
+                e.Property(x => x.Quantity).IsRequired();
+
+                e.HasOne(x => x.Order)
+                    .WithMany(x => x.OrderDetails)
+                    .HasForeignKey(x => x.OrderId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                e.HasOne(x => x.Inventory)
+                    .WithMany(x => x.OrderDetails)
+                    .HasForeignKey(x => x.InventoryId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
         }
         #endregion

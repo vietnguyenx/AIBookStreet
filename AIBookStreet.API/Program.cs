@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Net.payOS;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -80,6 +81,8 @@ builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<IUserStoreRepository, UserStoreRepository>();
 builder.Services.AddScoped<IZoneRepository, ZoneRepository>();
 builder.Services.AddScoped<ISouvenirRepository, SouvenirRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
 
 builder.Services.AddScoped<IAuthorService, AuthorService>();
 builder.Services.AddScoped<IBookService, BookService>();
@@ -98,6 +101,9 @@ builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 builder.Services.AddScoped<IUserStoreService, UserStoreService>();
 builder.Services.AddScoped<IZoneService, ZoneService>();
 builder.Services.AddScoped<ISouvenirService, SouvenirService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
+builder.Services.AddScoped<IPayOSService, PayOSService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -149,6 +155,13 @@ builder.Services.AddAuthorization();
 // Add Firebase configuration
 builder.Services.Configure<FirebaseSettings>(builder.Configuration.GetSection("Firebase"));
 builder.Services.AddScoped<IFirebaseStorageService, FirebaseStorageService>();
+
+
+//Add PayOS configuration
+PayOS payOS = new(builder.Configuration["payOS:ClientId"] ?? throw new Exception("Cannot find environment"),
+                    builder.Configuration["payOS:ApiKey"] ?? throw new Exception("Cannot find environment"),
+                    builder.Configuration["payOS:ChecksumKey"] ?? throw new Exception("Cannot find environment"));
+builder.Services.AddSingleton(payOS);
 
 var app = builder.Build();
 
