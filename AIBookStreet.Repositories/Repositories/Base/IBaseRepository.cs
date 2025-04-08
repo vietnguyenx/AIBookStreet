@@ -30,6 +30,7 @@ namespace AIBookStreet.Repositories.Repositories.Base
         Task<bool> Update(TEntity entity);
         Task<bool> UpdateRange(List<TEntity> entities);
         Task<bool> Delete(TEntity entity);
+        Task<bool> Remove(TEntity entity);
         Task<bool> DeleteRange(List<TEntity> entities);
         void CheckCancellationToken(CancellationToken cancellationToken = default);
     }
