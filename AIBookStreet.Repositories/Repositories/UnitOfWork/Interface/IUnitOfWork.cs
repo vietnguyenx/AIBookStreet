@@ -26,5 +26,7 @@ namespace AIBookStreet.Repositories.Repositories.UnitOfWork.Interface
         IZoneRepository ZoneRepository { get; }
         IImageRepository ImageRepository { get; }
         ISouvenirRepository SouvenirRepository { get; }
+        IOrderRepository OrderRepository { get; }
+        IOrderDetailRepository OrderDetailRepository { get; }
     }
 }
