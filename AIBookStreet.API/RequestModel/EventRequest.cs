@@ -12,6 +12,7 @@ namespace AIBookStreet.API.RequestModel
         public string? BaseImgUrl { get; set; }
         public string? VideoLink { get; set; }
         public bool IsOpen { get; set; }
+        public bool AllowAds { get; set; }
         public bool IsDeleted { get; set; }
         public virtual ZoneRequest? Zone { get; set; }
         public virtual ICollection<ImageRequest>? Images { get; set; }

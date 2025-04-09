@@ -233,6 +233,7 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
                 e.Property(x => x.VideoLink).HasMaxLength(2000).IsRequired(false);
                 e.Property(x => x.IsOpen).IsRequired(true);
+                e.Property(x => x.AllowAds).IsRequired(true);
 
 
                 // n-1 voi zone

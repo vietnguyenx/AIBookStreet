@@ -20,7 +20,7 @@ namespace AIBookStreet.Services.Services.Service
         private readonly IImageService _imageService = imageService;
         public async Task<(long, Event?)> AddAnEvent(EventModel model)
         {
-            var existed = await _repository.EventRepository.GetAllPagination(null, model.StartDate, model.EndDate, model.ZoneId, 1, 1, null, true);
+            var existed = await _repository.EventRepository.GetAllPagination(null, null, model.StartDate, model.EndDate, model.ZoneId, 1, 1, null, true);
             if (existed.Item2 > 0 && existed.Item1 != null)
             {
                 return (1, null); //da co su kien tren duong sach vao thoi gian nay
@@ -200,7 +200,7 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.EventRepository.GetByID(id);
         }
-        public async Task<(List<Event>?, long)> GetAllEventsPagination(string? key, DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<(List<Event>?, long)> GetAllEventsPagination(string? key, bool? allowAds, DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             var user = await GetUserInfo();
             var isAdmin = false;
@@ -214,20 +214,13 @@ namespace AIBookStreet.Services.Services.Service
                     }
                 }
             }
-            var events = isAdmin ? await _repository.EventRepository.GetAllPaginationForAdmin(key, start, end, streetID, pageNumber, pageSize, sortField, desc)
-                                                   : await _repository.EventRepository.GetAllPagination(key, start, end, streetID, pageNumber, pageSize, sortField, desc);
+            var events = isAdmin ? await _repository.EventRepository.GetAllPaginationForAdmin(key, allowAds, start, end, streetID, pageNumber, pageSize, sortField, desc)
+                                                   : await _repository.EventRepository.GetAllPagination(key, allowAds, start, end, streetID, pageNumber, pageSize, sortField, desc);
             return events.Item1.Count > 0 ? (events.Item1, events.Item2) : (null, 0);
         }
         public async Task<List<Event>?> GetEventComing(int number, bool? allowAds)
         {
-            var events = await _repository.EventRepository.GetEventsComing(number);
-            if (allowAds != null && allowAds == true && events != null && events.Count > 0)
-            {
-                foreach(var evt in events)
-                {
-                    evt.VideoLink = null;
-                }
-            }
+            var events = await _repository.EventRepository.GetEventsComing(number, allowAds);
             return events;
         }
         public async Task<List<DateModel>?> GetEventDatesInMonth(int? month)
