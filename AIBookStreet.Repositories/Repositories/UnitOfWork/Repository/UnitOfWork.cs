@@ -34,5 +34,6 @@ namespace AIBookStreet.Repositories.Repositories.UnitOfWork.Repository
         public ISouvenirRepository SouvenirRepository => GetRepository<ISouvenirRepository>();
         public IOrderRepository OrderRepository => GetRepository<IOrderRepository>();
         public IOrderDetailRepository OrderDetailRepository => GetRepository<IOrderDetailRepository>();
+        public IStoreScheduleRepository StoreScheduleRepository => GetRepository<IStoreScheduleRepository>();
     }
 }

@@ -2,11 +2,12 @@
 {
     public class StoreSearchRequest
     {
-        public string? BookStoreName { get; set; }
+        public string? StoreName { get; set; }
         public string? Address { get; set; }
         public string? Phone { get; set; }
         public string? Email { get; set; }
-        public DateTime? OpeningTime { get; set; }
-        public DateTime? ClosingTime { get; set; }
+        public string? StoreTheme { get; set; }
+        public string? Type { get; set; }
+
     }
 }

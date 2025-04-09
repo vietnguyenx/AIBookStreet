@@ -77,15 +77,18 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                         EF.Functions.Collate(bs.Email, "Latin1_General_CI_AI").Contains(bookStore.Email));
                 }
 
-                if (bookStore.OpeningTime.HasValue)
+                if (!string.IsNullOrEmpty(bookStore.StoreTheme))
                 {
-                    queryable = queryable.Where(bs => bs.OpeningTime.Value.Date == bookStore.OpeningTime.Value.Date);
+                    queryable = queryable.Where(bs =>
+                        EF.Functions.Collate(bs.StoreTheme, "Latin1_General_CI_AI").Contains(bookStore.StoreTheme));
                 }
 
-                if (bookStore.ClosingTime.HasValue)
+                if (!string.IsNullOrEmpty(bookStore.Type))
                 {
-                    queryable = queryable.Where(bs => bs.ClosingTime.Value.Date == bookStore.ClosingTime.Value.Date);
+                    queryable = queryable.Where(bs =>
+                        EF.Functions.Collate(bs.Type, "Latin1_General_CI_AI").Contains(bookStore.Type));
                 }
+
             }
             var totalOrigin = queryable.Count();
 
@@ -127,14 +130,16 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                     EF.Functions.Collate(bs.Email, "Latin1_General_CI_AI").Contains(bookStore.Email));
             }
 
-            if (bookStore.OpeningTime.HasValue)
+            if (!string.IsNullOrEmpty(bookStore.StoreTheme))
             {
-                queryable = queryable.Where(bs => bs.OpeningTime.Value.Date == bookStore.OpeningTime.Value.Date);
+                queryable = queryable.Where(bs =>
+                    EF.Functions.Collate(bs.StoreTheme, "Latin1_General_CI_AI").Contains(bookStore.StoreTheme));
             }
 
-            if (bookStore.ClosingTime.HasValue)
+            if (!string.IsNullOrEmpty(bookStore.Type))
             {
-                queryable = queryable.Where(bs => bs.ClosingTime.Value.Date == bookStore.ClosingTime.Value.Date);
+                queryable = queryable.Where(bs =>
+                    EF.Functions.Collate(bs.Type, "Latin1_General_CI_AI").Contains(bookStore.Type));
             }
 
             return await queryable.Include(bs => bs.Images).ToListAsync();

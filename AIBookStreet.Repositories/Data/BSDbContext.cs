@@ -57,6 +57,7 @@ namespace AIBookStreet.Repositories.Data
         public virtual DbSet<Souvenir> Souvenirs { get; set; } = null!;
         public virtual DbSet<Order> Orders { get; set; } = null!;
         public virtual DbSet<OrderDetail> OrderDetails { get; set; } = null!;
+        public virtual DbSet<StoreSchedule> StoreSchedules { get; set; } = null!;
         #endregion  
 
 
@@ -177,8 +178,8 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.Address).HasMaxLength(500).IsRequired(false);
                 e.Property(x => x.Phone).HasMaxLength(15).IsRequired(false);
                 e.Property(x => x.Email).HasMaxLength(100).IsRequired(false);
-                e.Property(x => x.OpeningTime).IsRequired(false);
-                e.Property(x => x.ClosingTime).IsRequired(false);
+                e.Property(x => x.Description).HasMaxLength(2000).IsRequired(false);
+                e.Property(x => x.StoreTheme).HasMaxLength(2000).IsRequired(false);
                 e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
                 e.Property(x => x.Longitude).IsRequired(false);
                 e.Property(x => x.Latitude).IsRequired(false);
@@ -540,6 +541,22 @@ namespace AIBookStreet.Repositories.Data
                     .WithMany(x => x.OrderDetails)
                     .HasForeignKey(x => x.InventoryId)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<StoreSchedule>(e =>
+            {
+                e.ToTable("StoreSchedules");
+                e.Property(x => x.DayOfWeek).IsRequired();
+                e.Property(x => x.OpenTime).IsRequired();
+                e.Property(x => x.CloseTime).IsRequired();
+                e.Property(x => x.IsClosed).IsRequired();
+                e.Property(x => x.SpecialDate).IsRequired(false);
+
+                // 1-n với Store
+                e.HasOne(x => x.Store)
+                 .WithMany(x => x.StoreSchedules)
+                 .HasForeignKey(x => x.StoreId)
+                 .OnDelete(DeleteBehavior.Cascade); // store xoa, schedule cung bi xoa
             });
         }
         #endregion
