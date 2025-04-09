@@ -9,8 +9,16 @@ namespace AIBookStreet.API.Tool.Mapping
     {
         public void StoreScheduleMapping()
         {
-            CreateMap<StoreSchedule, StoreScheduleModel>().ReverseMap();
-            CreateMap<StoreScheduleModel, StoreScheduleRequest>().ReverseMap();
+            CreateMap<StoreSchedule, StoreScheduleModel>()
+                .ForMember(dest => dest.OpenTime, opt => opt.MapFrom(src => src.OpenTime.ToString(@"hh\:mm\:ss")))
+                .ForMember(dest => dest.CloseTime, opt => opt.MapFrom(src => src.CloseTime.ToString(@"hh\:mm\:ss")));
+
+            CreateMap<StoreScheduleModel, StoreSchedule>()
+                .ForMember(dest => dest.OpenTime, opt => opt.MapFrom(src => TimeSpan.Parse(src.OpenTime)))
+                .ForMember(dest => dest.CloseTime, opt => opt.MapFrom(src => TimeSpan.Parse(src.CloseTime)));
+
+            CreateMap<StoreScheduleRequest, StoreScheduleModel>();
+            CreateMap<StoreScheduleModel, StoreScheduleRequest>();
         }
     }
 } 

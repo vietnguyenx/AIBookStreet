@@ -6,8 +6,8 @@ namespace AIBookStreet.API.RequestModel
     {
         public Guid StoreId { get; set; }
         public DayOfWeek DayOfWeek { get; set; }
-        public TimeSpan OpenTime { get; set; }
-        public TimeSpan CloseTime { get; set; }
+        public string OpenTime { get; set; } // Format: "HH:mm:ss"
+        public string CloseTime { get; set; } // Format: "HH:mm:ss"
         public bool IsClosed { get; set; }
         public DateTime? SpecialDate { get; set; }
     }

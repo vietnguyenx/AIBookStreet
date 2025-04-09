@@ -7,6 +7,7 @@ using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,7 @@ namespace AIBookStreet.Services.Services.Service
         public StoreScheduleService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor) : base(mapper, unitOfWork, httpContextAccessor)
         {
             _storeScheduleRepository = unitOfWork.StoreScheduleRepository;
+
         }
 
         public async Task<List<StoreScheduleModel>> GetAll()
@@ -82,6 +84,12 @@ namespace AIBookStreet.Services.Services.Service
                 if (existingSchedule != null)
                     return (null, "A calendar already exists for this day");
 
+                // Validate time format
+                if (!TimeSpan.TryParse(model.OpenTime, out _) || !TimeSpan.TryParse(model.CloseTime, out _))
+                {
+                    return (null, "Invalid time format. Please use HH:mm:ss format");
+                }
+
                 var mappedSchedule = _mapper.Map<StoreSchedule>(model);
                 var newSchedule = await SetBaseEntityToCreateFunc(mappedSchedule);
 
@@ -110,6 +118,12 @@ namespace AIBookStreet.Services.Services.Service
                 var existingSchedule = await _storeScheduleRepository.GetById(model.Id);
                 if (existingSchedule == null)
                     return (null, ConstantMessage.Common.NotFoundForUpdate);
+
+                // Validate time format
+                if (!TimeSpan.TryParse(model.OpenTime, out _) || !TimeSpan.TryParse(model.CloseTime, out _))
+                {
+                    return (null, "Invalid time format. Please use HH:mm:ss format");
+                }
 
                 _mapper.Map(model, existingSchedule);
                 var updatedSchedule = await SetBaseEntityToUpdateFunc(existingSchedule);

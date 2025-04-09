@@ -2,6 +2,7 @@ using AIBookStreet.API.RequestModel;
 using AIBookStreet.API.ResponseModel;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -16,10 +17,12 @@ namespace AIBookStreet.API.Controllers
     public class StoreScheduleController : ControllerBase
     {
         private readonly IStoreScheduleService _storeScheduleService;
+        private readonly IMapper _mapper;
 
-        public StoreScheduleController(IStoreScheduleService storeScheduleService)
+        public StoreScheduleController(IStoreScheduleService storeScheduleService, IMapper mapper)
         {
             _storeScheduleService = storeScheduleService;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -69,8 +72,9 @@ namespace AIBookStreet.API.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult<StoreScheduleModel>> Add([FromBody] StoreScheduleModel model)
+        public async Task<ActionResult<StoreScheduleModel>> Add([FromBody] StoreScheduleRequest request)
         {
+            var model = _mapper.Map<StoreScheduleModel>(request);
             var (result, message) = await _storeScheduleService.Add(model);
             if (result == null)
                 return BadRequest(message);
@@ -79,10 +83,10 @@ namespace AIBookStreet.API.Controllers
 
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<ActionResult<StoreScheduleModel>> Update(Guid id, [FromBody] StoreScheduleModel model)
+        public async Task<ActionResult<StoreScheduleModel>> Update(Guid id, [FromBody] StoreScheduleRequest request)
         {
-            if (id != model.Id)
-                return BadRequest("ID không khớp");
+            var model = _mapper.Map<StoreScheduleModel>(request);
+            model.Id = id;
 
             var (result, message) = await _storeScheduleService.Update(model);
             if (result == null)
