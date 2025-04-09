@@ -4,7 +4,7 @@ namespace AIBookStreet.API.RequestModel
 {
     public class StoreRequest : BaseRequest
     {
-        public string StoreName { get; set; }
+        public string BookStoreName { get; set; }
         public string? Address { get; set; }
         public string? Phone { get; set; }
         public string? Email { get; set; }
