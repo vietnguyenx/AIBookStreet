@@ -8,6 +8,8 @@ namespace AIBookStreet.API.RequestModel
         public string? Address { get; set; }
         public string? Phone { get; set; }
         public string? Email { get; set; }
+        public string? StoreTheme { get; set; }
+        public string? BaseImgUrl { get; set; }
         public IFormFile? MainImageFile { get; set; }
         public List<IFormFile>? AdditionalImageFiles { get; set; }
         public decimal? Latitude { get; set; }
