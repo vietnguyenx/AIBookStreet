@@ -28,5 +28,6 @@ namespace AIBookStreet.Repositories.Repositories.UnitOfWork.Interface
         ISouvenirRepository SouvenirRepository { get; }
         IOrderRepository OrderRepository { get; }
         IOrderDetailRepository OrderDetailRepository { get; }
+        IStoreScheduleRepository StoreScheduleRepository { get; }
     }
 }

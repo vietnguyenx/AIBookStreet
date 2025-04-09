@@ -26,6 +26,7 @@ namespace AIBookStreet.API.Tool.Mapping
             SouvenirMapping();
             OrderMapping();
             OrderDetailMapping();
+            StoreScheduleMapping();
         }
     }
 }

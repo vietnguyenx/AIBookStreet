@@ -12,8 +12,8 @@ namespace AIBookStreet.Repositories.Data.Entities
         public string? Address { get; set; }
         public string? Phone { get; set; }
         public string? Email { get; set; }
-        public DateTime? OpeningTime { get; set; }
-        public DateTime? ClosingTime { get; set; }
+        public string? Description { get; set; }
+        public string? StoreTheme { get; set; }
         public string? BaseImgUrl { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
@@ -26,6 +26,6 @@ namespace AIBookStreet.Repositories.Data.Entities
         public virtual ICollection<Inventory>? Inventories { get; set; }
         public virtual ICollection<Image>? Images { get; set; }
         public virtual ICollection<UserStore> UserStores { get; set; }
-
+        public virtual ICollection<StoreSchedule> StoreSchedules { get; set; }
     }
 }
