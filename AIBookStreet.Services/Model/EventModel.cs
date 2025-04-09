@@ -19,6 +19,7 @@ namespace AIBookStreet.Services.Model
         public IFormFile? VideoFile { get; set; }
         public List<IFormFile>? OtherImgFile { get; set; }
         public bool IsOpen { get; set; }
+        public bool AllowAds { get; set; }
         public Guid? ZoneId { get; set; }
     }
 }

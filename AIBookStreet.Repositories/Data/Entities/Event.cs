@@ -15,6 +15,7 @@ namespace AIBookStreet.Repositories.Data.Entities
         public string? BaseImgUrl { get; set; }
         public string? VideoLink { get; set; }
         public bool IsOpen { get; set; }
+        public bool AllowAds { get; set; }
 
         public Guid? ZoneId { get; set; }
         public virtual Zone? Zone { get; set; }
