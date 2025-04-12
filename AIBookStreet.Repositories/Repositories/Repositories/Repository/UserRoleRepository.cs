@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AIBookStreet.Repositories.Repositories.Base;
 using AIBookStreet.Repositories.Repositories.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
+using System.Threading;
 
 namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 {
@@ -22,7 +23,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
         public async Task<List<UserRole?>> GetByUserId(Guid userId)
         {
-            var query = GetQueryable(ur => ur.UserId == userId);
+            var query = GetQueryable(ur => ur.UserId == userId && !ur.IsDeleted);
             return await query
                 .Include(ur => ur.User)
                 .Include(i => i.Role)
@@ -31,7 +32,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
         public async Task<List<UserRole?>> GetByRoleId(Guid roleId)
         {
-            var query = GetQueryable(ur => ur.RoleId == roleId);
+            var query = GetQueryable(ur => ur.RoleId == roleId && !ur.IsDeleted);
             return await query
                 .Include(ur => ur.User)
                 .Include(ur => ur.Role)
@@ -40,7 +41,8 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
         public async Task<UserRole?> GetByUserIdAndRoleId(Guid userId, Guid roleId)
         {
-            UserRole userRole = await _context.UserRoles.Where(x => x.UserId == userId && x.RoleId == roleId)
+            UserRole userRole = await _context.UserRoles
+                .Where(x => x.UserId == userId && x.RoleId == roleId && !x.IsDeleted)
                 .Include(i => i.User)
                 .Include(i => i.Role)
                 .SingleOrDefaultAsync();

@@ -185,6 +185,7 @@ namespace AIBookStreet.Repositories.Repositories.Base
         public async Task<IList<TEntity>> GetAll(CancellationToken cancellationToken = default)
         {
             var queryable = GetQueryable(cancellationToken);
+            queryable = queryable.Where(entity => !entity.IsDeleted);
             var result = await queryable.ToListAsync();
             return result;
         }
