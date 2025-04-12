@@ -43,7 +43,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpGet("{userId}")]
+        [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetByUserId(Guid userId)
         {
             try
@@ -61,7 +61,7 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpGet("{storeId}")]
+        [HttpGet("store/{storeId}")]
         public async Task<IActionResult> GetByStoreId(Guid storeId)
         {
             try

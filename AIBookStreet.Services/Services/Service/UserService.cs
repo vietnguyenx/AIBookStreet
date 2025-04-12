@@ -363,6 +363,8 @@ namespace AIBookStreet.Services.Services.Service
                 return null;
             }
 
+            // Load user with roles
+            user = await _repository.GetById(user.Id);
             UserModel userModel = _mapper.Map<UserModel>(user);
 
             return userModel;

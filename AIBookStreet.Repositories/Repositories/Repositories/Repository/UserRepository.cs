@@ -38,7 +38,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 .Include(u => u.Images)
                 .Include(u => u.UserStores)
                 .Include(u => u.Publisher)
-                .Include(u => u.UserRoles)
+                .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
                 .SingleOrDefaultAsync();
 
             return user;
