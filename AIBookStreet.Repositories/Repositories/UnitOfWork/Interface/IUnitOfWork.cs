@@ -29,5 +29,6 @@ namespace AIBookStreet.Repositories.Repositories.UnitOfWork.Interface
         IOrderRepository OrderRepository { get; }
         IOrderDetailRepository OrderDetailRepository { get; }
         IStoreScheduleRepository StoreScheduleRepository { get; }
+        IPersonRepository PersonRepository { get; }
     }
 }
