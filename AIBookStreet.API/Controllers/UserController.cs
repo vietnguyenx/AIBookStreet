@@ -94,7 +94,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
 
-        [HttpGet("{email}")]
+        [HttpGet("by-email/{email}")]
         public async Task<IActionResult> GetUserByEmail(string email)
         {
             try
@@ -112,6 +112,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
+
 
         [HttpPost("search/paginated")]
         public async Task<IActionResult> SearchPagination(PaginatedRequest<UserSearchRequest> paginatedRequest)

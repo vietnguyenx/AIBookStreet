@@ -168,7 +168,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             }
 
             var result = await queryable
-                .Include(m => m.UserRoles)
+                .Include(m => m.UserRoles).ThenInclude(ur => ur.Role)
                 .Include(m => m.UserStores)
                 .Include(m => m.Publisher).SingleOrDefaultAsync();
 
