@@ -13,5 +13,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
         Task<List<UserRole?>> GetByUserId(Guid userId);
         Task<List<UserRole?>> GetByRoleId(Guid roleId);
         Task<UserRole?> GetByUserIdAndRoleId(Guid userId, Guid roleId);
+        Task<UserRole?> FindDeletedUserRole(Guid userId, Guid roleId);
     }
 }

@@ -48,5 +48,13 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 .SingleOrDefaultAsync();
             return userRole;
         }
+
+        public async Task<UserRole?> FindDeletedUserRole(Guid userId, Guid roleId)
+        {
+            UserRole userRole = await _context.UserRoles
+                .Where(x => x.UserId == userId && x.RoleId == roleId && x.IsDeleted)
+                .SingleOrDefaultAsync();
+            return userRole;
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AIBookStreet.Repositories.Data.Entities;
+using AIBookStreet.Repositories.Data;
 using AIBookStreet.Repositories.Repositories.Repositories.Interface;
 using AIBookStreet.Repositories.Repositories.Repositories.Repository;
 using AIBookStreet.Repositories.Repositories.UnitOfWork.Interface;
@@ -12,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace AIBookStreet.Services.Services.Service
 {
@@ -52,11 +54,30 @@ namespace AIBookStreet.Services.Services.Service
 
         public async Task<bool> Add(UserRoleModel userRoleModel)
         {
-            var userRole = await _userRoleRepository.GetByUserIdAndRoleId(userRoleModel.UserId, userRoleModel.RoleId);
-            if (userRole != null) { return false; }
-            var mappedUserRole = _mapper.Map<UserRole>(userRoleModel);
-            var newUserRole = await SetBaseEntityToCreateFunc(mappedUserRole);
-            return await _userRoleRepository.Add(newUserRole);
+            // Kiểm tra xem đã có bản ghi chưa xóa với cặp UserId và RoleId này chưa
+            var activeUserRole = await _userRoleRepository.GetByUserIdAndRoleId(userRoleModel.UserId, userRoleModel.RoleId);
+            if (activeUserRole != null) 
+            { 
+                return false; // Đã tồn tại bản ghi active, không thể thêm mới
+            }
+
+            // Kiểm tra xem có bản ghi nào đã bị xóa không bằng truy vấn trực tiếp (không lọc !IsDeleted)
+            var deletedUserRole = await ((UserRoleRepository)_userRoleRepository).FindDeletedUserRole(userRoleModel.UserId, userRoleModel.RoleId);
+            
+            if (deletedUserRole != null)
+            {
+                // Nếu tìm thấy bản ghi đã xóa, cập nhật lại bản ghi đó
+                deletedUserRole.IsDeleted = false;
+                deletedUserRole.AssignedAt = DateTime.Now;
+                return await _userRoleRepository.Update(deletedUserRole);
+            }
+            else
+            {
+                // Nếu không tìm thấy bản ghi nào, thêm bản ghi mới
+                var mappedUserRole = _mapper.Map<UserRole>(userRoleModel);
+                var newUserRole = await SetBaseEntityToCreateFunc(mappedUserRole);
+                return await _userRoleRepository.Add(newUserRole);
+            }
         }
 
         public async Task<bool> Delete(Guid userId, Guid roleId)
