@@ -132,7 +132,7 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                if (string.IsNullOrEmpty(request.BookCode))
+                if (string.IsNullOrEmpty(request.ISBN))
                 {
                     return BadRequest(new BaseResponse(false, "Book code is required"));
                 }
@@ -147,7 +147,7 @@ namespace AIBookStreet.API.Controllers
                     return BadRequest(new BaseResponse(false, "Quantity must be greater than zero"));
                 }
 
-                var (success, message) = await _inventoryService.UpdateQuantityByCode(request.BookCode, request.StoreId, request.Quantity);
+                var (success, message) = await _inventoryService.UpdateQuantityByISBN(request.ISBN, request.StoreId, request.Quantity);
                 
                 return success 
                     ? Ok(new BaseResponse(true, message)) 

@@ -74,11 +74,11 @@ namespace AIBookStreet.Services.Services.Service
             return await _inventoryRepository.Delete(deleteInventory);
         }
 
-        public async Task<(bool, string)> UpdateQuantityByCode(string bookCode, Guid storeId, int quantity)
+        public async Task<(bool, string)> UpdateQuantityByISBN(string ISBN, Guid storeId, int quantity)
         {
             try
             {
-                if (string.IsNullOrEmpty(bookCode))
+                if (string.IsNullOrEmpty(ISBN))
                 {
                     return (false, "Book code cannot be empty");
                 }
@@ -94,10 +94,10 @@ namespace AIBookStreet.Services.Services.Service
                 }
 
                 // Find the book by code
-                var books = await _bookRepository.SearchWithoutPagination(new Book { Code = bookCode }, null, null, null, null);
+                var books = await _bookRepository.SearchWithoutPagination(new Book { ISBN = ISBN }, null, null, null, null);
                 if (books == null || !books.Any())
                 {
-                    return (false, $"Book with code {bookCode} not found");
+                    return (false, $"Book with code {ISBN} not found");
                 }
 
                 var book = books.First();
@@ -106,7 +106,7 @@ namespace AIBookStreet.Services.Services.Service
                 var inventory = await _inventoryRepository.GetByBookIdAndStoreId(book.Id, storeId);
                 if (inventory == null)
                 {
-                    return (false, $"Inventory not found for book code {bookCode} in this store");
+                    return (false, $"Inventory not found for book ISBN {ISBN} in this store");
                 }
 
                 // Check if we have enough books in stock

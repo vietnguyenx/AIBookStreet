@@ -4,6 +4,7 @@ using AIBookStreet.Repositories.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AIBookStreet.Repositories.Migrations
 {
     [DbContext(typeof(BSDbContext))]
-    partial class BSDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250412044300_RenameCodeToISBNInBook")]
+    partial class RenameCodeToISBNInBook
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -240,9 +243,6 @@ namespace AIBookStreet.Repositories.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("AllowAds")
-                        .HasColumnType("bit");
 
                     b.Property<string>("BaseImgUrl")
                         .HasMaxLength(2000)

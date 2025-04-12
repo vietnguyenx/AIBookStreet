@@ -2,7 +2,7 @@
 {
     public class BookSearchRequest
     {
-        public string? Code { get; set; }
+        public string? ISBN { get; set; }
         public string? Title { get; set; }
         public decimal? MinPrice { get; set; }
         public decimal? MaxPrice { get; set; }
