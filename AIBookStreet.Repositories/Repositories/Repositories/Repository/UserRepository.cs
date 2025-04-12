@@ -38,7 +38,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 .Include(u => u.Images)
                 .Include(u => u.UserStores)
                 .Include(u => u.Publisher)
-                .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
+                .Include(u => u.UserRoles.Where(ur => !ur.IsDeleted)).ThenInclude(ur => ur.Role)
                 .SingleOrDefaultAsync();
 
             return user;
@@ -92,7 +92,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 .Include(u => u.Images)
                 .Include(u => u.UserStores)
                 .Include(u => u.Publisher)
-                .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
+                .Include(u => u.UserRoles.Where(ur => !ur.IsDeleted)).ThenInclude(ur => ur.Role)
                 .ToListAsync();
 
             return (users, totalOrigin);
@@ -141,7 +141,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 .Include(u => u.Images)
                 .Include(u => u.UserStores)
                 .Include(u => u.Publisher)
-                .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
+                .Include(u => u.UserRoles.Where(ur => !ur.IsDeleted)).ThenInclude(ur => ur.Role)
                 .ToListAsync();
         }
 
@@ -159,7 +159,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             }
 
             var result = await queryable
-                .Include(m => m.UserRoles).ThenInclude(ur => ur.Role)
+                .Include(m => m.UserRoles.Where(ur => !ur.IsDeleted)).ThenInclude(ur => ur.Role)
                 .Include(m => m.UserStores)
                 .Include(m => m.Publisher).SingleOrDefaultAsync();
 
@@ -178,7 +178,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             }
 
             var result = await queryable
-                .Include(m => m.UserRoles).ThenInclude(ur => ur.Role)
+                .Include(m => m.UserRoles.Where(ur => !ur.IsDeleted)).ThenInclude(ur => ur.Role)
                 .Include(m => m.UserStores)
                 .Include(m => m.Publisher).SingleOrDefaultAsync();
 
