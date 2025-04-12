@@ -65,13 +65,13 @@ namespace AIBookStreet.Services.Services.Service
                 if (bookModel == null)
                     return (null, ConstantMessage.Common.EmptyInfo);
 
-                if (string.IsNullOrEmpty(bookModel.Code))
+                if (string.IsNullOrEmpty(bookModel.ISBN))
                     return (null, ConstantMessage.Book.EmptyCode);
 
                 if (string.IsNullOrEmpty(bookModel.Title))
                     return (null, ConstantMessage.Book.EmptyTitle);
 
-                var existingBook = await _bookRepository.SearchWithoutPagination(new Book { Code = bookModel.Code }, null, null, null, null);
+                var existingBook = await _bookRepository.SearchWithoutPagination(new Book { ISBN = bookModel.ISBN }, null, null, null, null);
                 if (existingBook?.Any() == true)
                     return (null, ConstantMessage.Book.CodeExists);
 
@@ -183,15 +183,15 @@ namespace AIBookStreet.Services.Services.Service
                 if (existingBook == null)
                     return (null, ConstantMessage.Common.NotFoundForUpdate);
 
-                if (!string.IsNullOrEmpty(bookModel.Code) && bookModel.Code != existingBook.Code)
+                if (!string.IsNullOrEmpty(bookModel.ISBN) && bookModel.ISBN != existingBook.ISBN)
                 {
-                    var bookWithSameCode = await _bookRepository.SearchWithoutPagination(new Book { Code = bookModel.Code }, null, null, null, null);
+                    var bookWithSameCode = await _bookRepository.SearchWithoutPagination(new Book { ISBN = bookModel.ISBN }, null, null, null, null);
                     if (bookWithSameCode?.Any() == true)
                         return (null, ConstantMessage.Book.CodeExists);
                 }
 
-                if (string.IsNullOrEmpty(bookModel.Code))
-                    bookModel.Code = existingBook.Code;
+                if (string.IsNullOrEmpty(bookModel.ISBN))
+                    bookModel.ISBN = existingBook.ISBN;
 
                 _mapper.Map(bookModel, existingBook);
                 var updatedBook = await SetBaseEntityToUpdateFunc(existingBook);

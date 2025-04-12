@@ -397,6 +397,17 @@ namespace AIBookStreet.Services.Services.Service
                 claims.Add(new Claim(JwtRegisteredClaimNames.Email, userModel.Email));
             }
 
+            if (userModel.UserRoles != null && userModel.UserRoles.Any())
+            {
+                foreach (var userRole in userModel.UserRoles)
+                {
+                    if (userRole.Role != null)
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, userRole.Role.RoleName));
+                    }
+                }
+            }
+
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
                 _configuration.GetSection("Appsettings:Token").Value));
 

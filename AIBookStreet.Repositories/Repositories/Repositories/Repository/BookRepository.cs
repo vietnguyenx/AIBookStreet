@@ -54,10 +54,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             if (queryable.Any())
             {
-                if (!string.IsNullOrEmpty(book.Code))
+                if (!string.IsNullOrEmpty(book.ISBN))
                 {
                     queryable = queryable.Where(b =>
-                        EF.Functions.Collate(b.Code, "Latin1_General_CI_AI").Contains(book.Code));
+                        EF.Functions.Collate(b.ISBN, "Latin1_General_CI_AI").Contains(book.ISBN));
                 }
 
                 if (!string.IsNullOrEmpty(book.Title))
@@ -144,10 +144,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var queryable = GetQueryable()
                 .Where(b => !b.IsDeleted);
 
-            if (!string.IsNullOrEmpty(book.Code))
+            if (!string.IsNullOrEmpty(book.ISBN))
             {
                 queryable = queryable.Where(b =>
-                    EF.Functions.Collate(b.Code, "Latin1_General_CI_AI").Contains(book.Code));
+                    EF.Functions.Collate(b.ISBN, "Latin1_General_CI_AI").Contains(book.ISBN));
             }
 
             if (!string.IsNullOrEmpty(book.Title))

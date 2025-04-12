@@ -100,7 +100,7 @@ namespace AIBookStreet.Repositories.Data
             modelBuilder.Entity<Book>(e =>
             {
                 e.ToTable("Books");
-                e.Property(x => x.Code).IsRequired().HasMaxLength(50);
+                e.Property(x => x.ISBN).IsRequired().HasMaxLength(50);
                 e.Property(x => x.Title).HasMaxLength(255).IsRequired(false);
                 e.Property(x => x.PublicationDate).IsRequired(false);
                 e.Property(x => x.Price).IsRequired(false).HasColumnType("decimal(18,2)"); ;
