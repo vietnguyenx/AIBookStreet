@@ -48,6 +48,7 @@ namespace AIBookStreet.Repositories.Data
         public virtual DbSet<User> Users { get; set; } = null!;
         public virtual DbSet<Zone> Zones { get; set; } = null!;
         public virtual DbSet<Image> Images { get; set; } = null!;
+        public virtual DbSet<Person> Persons { get; set; } = null!;
 
         public virtual DbSet<BookAuthor> BookAuthors { get; set; } = null!;
         public virtual DbSet<BookCategory> BookCategories { get; set; } = null!;
@@ -74,6 +75,23 @@ namespace AIBookStreet.Repositories.Data
             //    e.Property(x => x.LastUpdatedDate).IsRequired(false);
             //    e.Property(x => x.IsDeleted).HasDefaultValue(false);
             //});
+
+            modelBuilder.Entity<Person>(e =>
+            {
+                e.ToTable("Persons");
+                e.Property(x => x.ExternalId).IsRequired();
+                e.Property(x => x.Gender).HasMaxLength(10).IsRequired();
+                e.Property(x => x.Features).IsRequired();
+                e.Property(x => x.FirstSeen).IsRequired();
+                e.Property(x => x.LastSeen).IsRequired();
+                e.Property(x => x.DailyAppearances).IsRequired();
+                e.Property(x => x.TotalAppearances).IsRequired();
+                e.Property(x => x.ExternalCreatedAt).IsRequired();
+                e.Property(x => x.ExternalUpdatedAt).IsRequired();
+                
+                // Add a unique index on ExternalId
+                e.HasIndex(x => x.ExternalId).IsUnique();
+            });
 
             modelBuilder.Entity<Author>(e =>
             {
