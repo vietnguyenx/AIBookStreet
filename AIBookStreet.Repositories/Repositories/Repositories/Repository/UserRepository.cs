@@ -88,7 +88,12 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             queryable = GetQueryablePagination(queryable, pageNumber, pageSize);
 
-            var users = await queryable.Include(u => u.Images).ToListAsync();
+            var users = await queryable
+                .Include(u => u.Images)
+                .Include(u => u.UserStores)
+                .Include(u => u.Publisher)
+                .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
+                .ToListAsync();
 
             return (users, totalOrigin);
         }
@@ -132,7 +137,12 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 queryable = queryable.Where(u => EF.Functions.Collate(u.Gender, "Latin1_General_CI_AI") == user.Gender);
             }
 
-            return await queryable.Include(u => u.Images).ToListAsync();
+            return await queryable
+                .Include(u => u.Images)
+                .Include(u => u.UserStores)
+                .Include(u => u.Publisher)
+                .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
+                .ToListAsync();
         }
 
 
