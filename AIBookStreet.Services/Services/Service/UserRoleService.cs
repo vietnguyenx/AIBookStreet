@@ -54,30 +54,11 @@ namespace AIBookStreet.Services.Services.Service
 
         public async Task<bool> Add(UserRoleModel userRoleModel)
         {
-            // Kiểm tra xem đã có bản ghi chưa xóa với cặp UserId và RoleId này chưa
-            var activeUserRole = await _userRoleRepository.GetByUserIdAndRoleId(userRoleModel.UserId, userRoleModel.RoleId);
-            if (activeUserRole != null) 
-            { 
-                return false; // Đã tồn tại bản ghi active, không thể thêm mới
-            }
-
-            // Kiểm tra xem có bản ghi nào đã bị xóa không bằng truy vấn trực tiếp (không lọc !IsDeleted)
-            var deletedUserRole = await ((UserRoleRepository)_userRoleRepository).FindDeletedUserRole(userRoleModel.UserId, userRoleModel.RoleId);
-            
-            if (deletedUserRole != null)
-            {
-                // Nếu tìm thấy bản ghi đã xóa, cập nhật lại bản ghi đó
-                deletedUserRole.IsDeleted = false;
-                deletedUserRole.AssignedAt = DateTime.Now;
-                return await _userRoleRepository.Update(deletedUserRole);
-            }
-            else
-            {
-                // Nếu không tìm thấy bản ghi nào, thêm bản ghi mới
-                var mappedUserRole = _mapper.Map<UserRole>(userRoleModel);
-                var newUserRole = await SetBaseEntityToCreateFunc(mappedUserRole);
-                return await _userRoleRepository.Add(newUserRole);
-            }
+            var userRole = await _userRoleRepository.GetByUserIdAndRoleId(userRoleModel.UserId, userRoleModel.RoleId);
+            if (userRole != null) { return false; }
+            var mappedUserRole = _mapper.Map<UserRole>(userRoleModel);
+            var newUserRole = await SetBaseEntityToCreateFunc(mappedUserRole);
+            return await _userRoleRepository.Add(newUserRole);
         }
 
         public async Task<bool> Delete(Guid userId, Guid roleId)
@@ -89,7 +70,7 @@ namespace AIBookStreet.Services.Services.Service
             }
 
             var deleteUserRole = _mapper.Map<UserRole>(userRole);
-            return await _userRoleRepository.Delete(deleteUserRole);
+            return await _userRoleRepository.Remove(deleteUserRole);
         }
     }
 }
