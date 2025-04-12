@@ -23,7 +23,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
         public async Task<List<UserRole?>> GetByUserId(Guid userId)
         {
-            var query = GetQueryable(ur => ur.UserId == userId && !ur.IsDeleted);
+            var query = GetQueryable(ur => ur.UserId == userId);
             return await query
                 .Include(ur => ur.User)
                 .Include(i => i.Role)
@@ -32,7 +32,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
         public async Task<List<UserRole?>> GetByRoleId(Guid roleId)
         {
-            var query = GetQueryable(ur => ur.RoleId == roleId && !ur.IsDeleted);
+            var query = GetQueryable(ur => ur.RoleId == roleId);
             return await query
                 .Include(ur => ur.User)
                 .Include(ur => ur.Role)
@@ -41,18 +41,9 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
         public async Task<UserRole?> GetByUserIdAndRoleId(Guid userId, Guid roleId)
         {
-            UserRole userRole = await _context.UserRoles
-                .Where(x => x.UserId == userId && x.RoleId == roleId && !x.IsDeleted)
+            UserRole userRole = await _context.UserRoles.Where(x => x.UserId == userId && x.RoleId == roleId)
                 .Include(i => i.User)
                 .Include(i => i.Role)
-                .SingleOrDefaultAsync();
-            return userRole;
-        }
-
-        public async Task<UserRole?> FindDeletedUserRole(Guid userId, Guid roleId)
-        {
-            UserRole userRole = await _context.UserRoles
-                .Where(x => x.UserId == userId && x.RoleId == roleId && x.IsDeleted)
                 .SingleOrDefaultAsync();
             return userRole;
         }

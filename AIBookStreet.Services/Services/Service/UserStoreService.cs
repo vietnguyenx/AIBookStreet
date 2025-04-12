@@ -68,7 +68,7 @@ namespace AIBookStreet.Services.Services.Service
             }
 
             var deleteUserStore = _mapper.Map<UserStore>(userStore);
-            return await _userStoreRepository.Delete(deleteUserStore);
+            return await _userStoreRepository.Remove(deleteUserStore);
         }
     }
 }
