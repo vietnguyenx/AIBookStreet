@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Linq;
 
 namespace AIBookStreet.API.Controllers
 {
@@ -356,6 +357,31 @@ namespace AIBookStreet.API.Controllers
             {
                 return BadRequest(new BaseResponse(false, ex.Message));
             }
+        }
+
+        [HttpGet("test-token")]
+        public IActionResult TestToken()
+        {
+            var token = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            if (string.IsNullOrEmpty(token))
+            {
+                return BadRequest("No token provided");
+            }
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+
+            var roles = jwtToken.Claims
+                .Where(c => c.Type == "role")
+                .Select(c => c.Value)
+                .ToList();
+
+            return Ok(new
+            {
+                token = token,
+                claims = jwtToken.Claims.Select(c => new { c.Type, c.Value }),
+                roles = roles
+            });
         }
     }
 }
