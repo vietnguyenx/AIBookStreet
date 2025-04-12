@@ -33,8 +33,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 if (!string.IsNullOrEmpty(key))
                 {
-                    queryable = queryable.Where(ev => ev.EventName.ToLower().Trim().Contains(key.ToLower().Trim())
-                                                   || (!string.IsNullOrEmpty(ev.Description) && ev.Description.ToLower().Trim().Contains(key.ToLower().Trim())));
+                    queryable = queryable.Where(ev => ev.EventName.ToLower().Trim().Contains(key.ToLower().Trim()));
                 }
                 if (zoneID != null)
                 {
@@ -79,8 +78,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 if (!string.IsNullOrEmpty(key))
                 {
-                    queryable = queryable.Where(ev => ev.EventName.ToLower().Trim().Contains(key.ToLower().Trim())
-                                                   || (!string.IsNullOrEmpty(ev.Description) && ev.Description.ToLower().Trim().Contains(key.ToLower().Trim())));
+                    queryable = queryable.Where(ev => ev.EventName.ToLower().Trim().Contains(key.ToLower().Trim()));
                 }
                 if (zoneID != null)
                 {

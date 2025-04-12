@@ -44,8 +44,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 if (!string.IsNullOrEmpty(key))
                 {
-                    queryable = queryable.Where(c => c.CategoryName.ToLower().Trim().Contains(key.ToLower().Trim())
-                                                   || (!string.IsNullOrEmpty(c.Description) && c.Description.ToLower().Trim().Contains(key.ToLower().Trim())));
+                    queryable = queryable.Where(c => c.CategoryName.ToLower().Trim().Contains(key.ToLower().Trim()));
                 }
                 if (categoryIds != null && categoryIds.Count > 0)
                 {
@@ -74,8 +73,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 if (!string.IsNullOrEmpty(key))
                 {
-                    queryable = queryable.Where(c => c.CategoryName.ToLower().Trim().Contains(key.ToLower().Trim())
-                                                   || (!string.IsNullOrEmpty(c.Description) && c.Description.ToLower().Trim().Contains(key.ToLower().Trim())));
+                    queryable = queryable.Where(c => c.CategoryName.ToLower().Trim().Contains(key.ToLower().Trim()));
                 }
                 if (categoryIds != null && categoryIds.Count > 0)
                 {

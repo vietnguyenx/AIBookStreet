@@ -32,9 +32,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 if (!string.IsNullOrEmpty(key))
                 {
-                    queryable = queryable.Where(st => st.StreetName.ToLower().Trim().Contains(key.ToLower().Trim())
-                                                   || (!string.IsNullOrEmpty(st.Address) && st.Address.ToLower().Trim().Contains(key.ToLower().Trim()))
-                                                   || (!string.IsNullOrEmpty(st.Description) && st.Description.ToLower().Trim().Contains(key.ToLower().Trim())));
+                    queryable = queryable.Where(st => st.StreetName.ToLower().Trim().Contains(key.ToLower().Trim()));
                 }
             }
             var totalOrigin = queryable.Count();

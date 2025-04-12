@@ -32,8 +32,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 if (!string.IsNullOrEmpty(key))
                 {
-                    queryable = queryable.Where(z => z.ZoneName.ToLower().Trim().Contains(key.ToLower().Trim())
-                                                   || (!string.IsNullOrEmpty(z.Description) && z.Description.ToLower().Trim().Contains(key.ToLower().Trim())));
+                    queryable = queryable.Where(z => z.ZoneName.ToLower().Trim().Contains(key.ToLower().Trim()));
                 }
                 if (streetID != null)
                 {
@@ -62,8 +61,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 if (!string.IsNullOrEmpty(key))
                 {
-                    queryable = queryable.Where(z => z.ZoneName.ToLower().Trim().Contains(key.ToLower().Trim())
-                                                   || (!string.IsNullOrEmpty(z.Description) && z.Description.ToLower().Trim().Contains(key.ToLower().Trim())));
+                    queryable = queryable.Where(z => z.ZoneName.ToLower().Trim().Contains(key.ToLower().Trim()));
                 }
                 if (streetID != null)
                 {
