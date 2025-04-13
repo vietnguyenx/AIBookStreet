@@ -111,7 +111,7 @@ namespace AIBookStreet.Services.Services.Service
                 if (string.IsNullOrEmpty(userModel.Password))
                     return (null, ConstantMessage.User.EmptyPassword);
 
-                var existingUser = await _userRepository.SearchWithoutPagination(new User { UserName = userModel.UserName });
+                var existingUser = await _repository.SearchWithoutPagination(new User { UserName = userModel.UserName });
                 if (existingUser?.Any() == true)
                     return (null, ConstantMessage.User.UsernameExists);
 
@@ -165,7 +165,7 @@ namespace AIBookStreet.Services.Services.Service
                         return (null, ConstantMessage.Image.SubImageUploadFailed);
                 }
 
-                var result = await _userRepository.Add(newUser);
+                var result = await _repository.Add(newUser);
                 if (!result)
                     return (null, ConstantMessage.Common.AddFail);
 
@@ -187,13 +187,13 @@ namespace AIBookStreet.Services.Services.Service
                 if (userModel.Id == Guid.Empty)
                     return (null, ConstantMessage.EmptyId);
 
-                var existingUser = await _userRepository.GetById(userModel.Id);
+                var existingUser = await _repository.GetById(userModel.Id);
                 if (existingUser == null)
                     return (null, ConstantMessage.Common.NotFoundForUpdate);
 
                 if (!string.IsNullOrEmpty(userModel.UserName) && userModel.UserName != existingUser.UserName)
                 {
-                    var userWithSameUsername = await _userRepository.SearchWithoutPagination(new User { UserName = userModel.UserName });
+                    var userWithSameUsername = await _repository.SearchWithoutPagination(new User { UserName = userModel.UserName });
                     if (userWithSameUsername?.Any() == true)
                         return (null, ConstantMessage.User.UsernameExists);
                 }
@@ -282,7 +282,7 @@ namespace AIBookStreet.Services.Services.Service
                         return (null, ConstantMessage.Image.SubImageUploadFailed);
                 }
 
-                var result = await _userRepository.Update(updatedUser);
+                var result = await _repository.Update(updatedUser);
                 if (!result)
                     return (null, ConstantMessage.Common.UpdateFail);
 
@@ -301,7 +301,7 @@ namespace AIBookStreet.Services.Services.Service
                 if (userId == Guid.Empty)
                     return (null, ConstantMessage.EmptyId);
 
-                var existingUser = await _userRepository.GetById(userId);
+                var existingUser = await _repository.GetById(userId);
                 if (existingUser == null)
                     return (null, ConstantMessage.Common.NotFoundForDelete);
 
@@ -328,7 +328,7 @@ namespace AIBookStreet.Services.Services.Service
                     }
                 }
 
-                var result = await _userRepository.Delete(existingUser);
+                var result = await _repository.Delete(existingUser);
                 if (!result)
                     return (null, ConstantMessage.Common.DeleteFail);
 
@@ -372,20 +372,119 @@ namespace AIBookStreet.Services.Services.Service
 
         public async Task<UserModel?> Register(UserModel userModel)
         {
-            if (userModel.Password != null)
+            try
             {
-                userModel.Password = BCrypt.Net.BCrypt.HashPassword(userModel.Password);
-            }
+                Console.WriteLine("Starting user registration for: " + userModel.UserName);
+                
+                // Basic validation
+                if (userModel == null)
+                {
+                    Console.WriteLine("Registration failed: User model is null");
+                    return null;
+                }
 
-            var (addedUser, message) = await Add(userModel);
-            if (addedUser == null)
+                if (string.IsNullOrEmpty(userModel.UserName) || string.IsNullOrEmpty(userModel.Password))
+                {
+                    Console.WriteLine("Registration failed: Username or password is empty");
+                    return null;
+                }
+
+                // Check if user or email already exists
+                if (!string.IsNullOrEmpty(userModel.Email))
+                {
+                    Console.WriteLine("Checking for existing email: " + userModel.Email);
+                    var existingUserByEmail = await _repository.GetUserByEmail(new User { Email = userModel.Email });
+                    if (existingUserByEmail != null)
+                    {
+                        Console.WriteLine("Registration failed: Email already exists");
+                        return null;
+                    }
+                }
+
+                Console.WriteLine("Checking for existing username: " + userModel.UserName);
+                var existingUserByUsername = await _repository.SearchWithoutPagination(new User { UserName = userModel.UserName });
+                if (existingUserByUsername?.Any() == true)
+                {
+                    Console.WriteLine("Registration failed: Username already exists");
+                    return null;
+                }
+
+                // Set defaults
+                userModel.FullName ??= userModel.UserName;
+                Console.WriteLine("Set fullname: " + userModel.FullName);
+                
+                // Clear ID to ensure new one is generated
+                userModel.Id = Guid.Empty;
+                
+                try
+                {
+                    // Hash password - add explicit error handling
+                    Console.WriteLine("Hashing password");
+                    string hashedPassword = BCrypt.Net.BCrypt.HashPassword(userModel.Password);
+                    userModel.Password = hashedPassword;
+                }
+                catch (Exception hashEx)
+                {
+                    Console.WriteLine("Password hashing failed: " + hashEx.Message);
+                    throw;
+                }
+
+                try
+                {
+                    // Create user entity and set required properties
+                    Console.WriteLine("Mapping to User entity");
+                    var user = _mapper.Map<User>(userModel);
+                    
+                    // Generate new ID
+                    user.Id = Guid.NewGuid();
+                    Console.WriteLine("Generated new user ID: " + user.Id);
+                    
+                    user.CreatedDate = DateTime.Now;
+                    user.LastUpdatedDate = DateTime.Now;
+                    user.IsDeleted = false;
+                    
+                    // Add to database directly
+                    Console.WriteLine("Adding user to database");
+                    var addResult = await _repository.Add(user);
+                    if (!addResult)
+                    {
+                        Console.WriteLine("Database add operation returned false");
+                        return null;
+                    }
+                    
+                    // Retrieve user with roles to return
+                    Console.WriteLine("Retrieving created user with ID: " + user.Id);
+                    var createdUser = await _repository.GetById(user.Id);
+                    if (createdUser == null)
+                    {
+                        Console.WriteLine("Failed to retrieve created user");
+                        return null;
+                    }
+                    
+                    Console.WriteLine("User registration successful for: " + user.UserName);
+                    return _mapper.Map<UserModel>(createdUser);
+                }
+                catch (Exception dbEx)
+                {
+                    Console.WriteLine("Database operation failed: " + dbEx.Message);
+                    Console.WriteLine("Stack trace: " + dbEx.StackTrace);
+                    throw;
+                }
+            }
+            catch (Exception ex)
             {
+                // Log the exception with much more detail
+                Console.WriteLine("CRITICAL ERROR in user registration: " + ex.Message);
+                Console.WriteLine("Exception type: " + ex.GetType().FullName);
+                Console.WriteLine("Stack trace: " + ex.StackTrace);
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine("Inner exception: " + ex.InnerException.Message);
+                    Console.WriteLine("Inner exception type: " + ex.InnerException.GetType().FullName);
+                }
                 return null;
             }
-
-            return await GetUserByEmailOrUsername(userModel);
         }
-
 
         public JwtSecurityToken CreateToken(UserModel userModel)
         {
@@ -518,6 +617,129 @@ namespace AIBookStreet.Services.Services.Service
                 return null;
             }
         }
-    }
 
+        public async Task<UserModel?> RegisterSimple(UserModel userModel)
+        {
+            try
+            {
+                Console.WriteLine("Starting simplified registration for: " + userModel.UserName);
+                
+                // Validate basic requirements
+                if (string.IsNullOrEmpty(userModel.UserName) || string.IsNullOrEmpty(userModel.Password))
+                {
+                    Console.WriteLine("Simplified registration failed: Missing required fields");
+                    return null;
+                }
+                
+                // Check for existing username - using direct string comparison
+                Console.WriteLine("Checking for existing username: " + userModel.UserName);
+                var existingUsers = await _repository.GetAll();
+                var userWithSameUsername = existingUsers.FirstOrDefault(u => 
+                    string.Equals(u.UserName, userModel.UserName, StringComparison.OrdinalIgnoreCase));
+                    
+                if (userWithSameUsername != null)
+                {
+                    Console.WriteLine("Username already exists");
+                    return null;
+                }
+                
+                // Check for existing email if provided
+                if (!string.IsNullOrEmpty(userModel.Email))
+                {
+                    Console.WriteLine("Checking for existing email: " + userModel.Email);
+                    var userWithSameEmail = existingUsers.FirstOrDefault(u => 
+                        !string.IsNullOrEmpty(u.Email) && 
+                        string.Equals(u.Email, userModel.Email, StringComparison.OrdinalIgnoreCase));
+                        
+                    if (userWithSameEmail != null)
+                    {
+                        Console.WriteLine("Email already exists");
+                        return null;
+                    }
+                }
+                
+                // Create user entity directly without using mapper
+                var user = new User
+                {
+                    Id = Guid.NewGuid(),
+                    UserName = userModel.UserName,
+                    Password = BCrypt.Net.BCrypt.HashPassword(userModel.Password),
+                    Email = userModel.Email,
+                    FullName = !string.IsNullOrEmpty(userModel.FullName) ? userModel.FullName : userModel.UserName,
+                    DOB = userModel.DOB,
+                    Address = userModel.Address,
+                    Phone = userModel.Phone,
+                    Gender = userModel.Gender,
+                    
+                    // Set base entity properties
+                    CreatedDate = DateTime.Now,
+                    LastUpdatedDate = DateTime.Now,
+                    IsDeleted = false
+                };
+                
+                Console.WriteLine($"Created user entity with ID: {user.Id}");
+                
+                // Add user to database
+                try
+                {
+                    Console.WriteLine("Adding user to database directly");
+                    var result = await _repository.Add(user);
+                    
+                    if (!result)
+                    {
+                        Console.WriteLine("Database add operation failed");
+                        return null;
+                    }
+                    
+                    // Get the created user
+                    Console.WriteLine("Retrieving created user");
+                    var createdUser = await _repository.GetById(user.Id);
+                    if (createdUser == null)
+                    {
+                        Console.WriteLine("Failed to retrieve created user");
+                        return null;
+                    }
+                    
+                    // Map back to model
+                    var userModelResult = new UserModel
+                    {
+                        Id = createdUser.Id,
+                        UserName = createdUser.UserName,
+                        Email = createdUser.Email,
+                        FullName = createdUser.FullName,
+                        DOB = createdUser.DOB,
+                        Address = createdUser.Address,
+                        Phone = createdUser.Phone,
+                        Gender = createdUser.Gender,
+                        CreatedDate = createdUser.CreatedDate,
+                        LastUpdatedDate = createdUser.LastUpdatedDate,
+                        IsDeleted = createdUser.IsDeleted
+                    };
+                    
+                    Console.WriteLine("Simplified registration successful");
+                    return userModelResult;
+                }
+                catch (Exception dbEx)
+                {
+                    Console.WriteLine($"Database operation failed: {dbEx.Message}");
+                    Console.WriteLine($"Stack trace: {dbEx.StackTrace}");
+                    if (dbEx.InnerException != null)
+                    {
+                        Console.WriteLine($"Inner exception: {dbEx.InnerException.Message}");
+                    }
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Simplified registration exception: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                return null;
+            }
+        }
+    }
 }

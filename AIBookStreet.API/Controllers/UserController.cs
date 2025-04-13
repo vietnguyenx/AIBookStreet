@@ -263,27 +263,76 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                UserModel _userModel = await _service.GetUserByEmailOrUsername(_mapper.Map<UserModel>(userRequest));
-
-                if (_userModel != null)
+                Console.WriteLine("Register endpoint called with data: " + 
+                    (userRequest != null ? $"Username={userRequest.UserName}, Email={userRequest.Email}" : "null"));
+                
+                // Validate input
+                if (userRequest == null)
                 {
-                    return Ok(new ItemResponse<UserModel>(ConstantMessage.Duplicate));
+                    Console.WriteLine("Registration failed: UserRequest is null");
+                    return BadRequest(new BaseResponse(false, "User data is required"));
+                }
+                
+                if (string.IsNullOrEmpty(userRequest.UserName) || string.IsNullOrEmpty(userRequest.Password))
+                {
+                    Console.WriteLine($"Registration failed: Username or password missing");
+                    return BadRequest(new BaseResponse(false, "Username and password are required"));
                 }
 
-                UserModel userModelMapping = _mapper.Map<UserModel>(userRequest);
-                userModelMapping.Password = userRequest.Password;
-
-                UserModel userModel = await _service.Register(userModelMapping);
-
-                return userModel switch
+                // Create basic user model without using mapper
+                Console.WriteLine("Creating a simple UserModel manually");
+                var userModel = new UserModel
                 {
-                    null => Ok(new ItemResponse<UserModel>(ConstantMessage.NotFound)),
-                    not null => Ok(new ItemResponse<UserModel>(ConstantMessage.Success, userModel))
+                    UserName = userRequest.UserName,
+                    Password = userRequest.Password,
+                    Email = userRequest.Email,
+                    FullName = userRequest.FullName,
+                    DOB = userRequest.DOB,
+                    Address = userRequest.Address,
+                    Phone = userRequest.Phone,
+                    Gender = userRequest.Gender
                 };
+                
+                // Try simplified registration
+                Console.WriteLine("Calling simplified registration method");
+                UserModel registeredUser;
+                try 
+                {
+                    registeredUser = await _service.RegisterSimple(userModel);
+                }
+                catch (Exception regEx)
+                {
+                    Console.WriteLine($"Registration service threw exception: {regEx.Message}");
+                    if (regEx.InnerException != null)
+                    {
+                        Console.WriteLine($"Inner exception: {regEx.InnerException.Message}");
+                    }
+                    return BadRequest(new BaseResponse(false, "Registration failed: " + regEx.Message));
+                }
+
+                if (registeredUser == null)
+                {
+                    Console.WriteLine("Simplified registration returned null");
+                    return BadRequest(new BaseResponse(false, "User registration failed. The username or email may already be in use."));
+                }
+
+                // Return success with user data
+                Console.WriteLine("Registration successful");
+                return Ok(new ItemResponse<UserModel>(ConstantMessage.Success, registeredUser));
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                // Log exception details
+                Console.WriteLine($"CRITICAL ERROR in registration controller: {ex.Message}");
+                Console.WriteLine($"Exception type: {ex.GetType().FullName}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                    Console.WriteLine($"Inner exception type: {ex.InnerException.GetType().FullName}");
+                }
+                
+                return BadRequest(new BaseResponse(false, $"An error occurred during registration: {ex.Message}"));
             }
         }
 
