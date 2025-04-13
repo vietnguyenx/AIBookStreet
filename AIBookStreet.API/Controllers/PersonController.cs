@@ -4,6 +4,8 @@ using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace AIBookStreet.API.Controllers
 {
@@ -96,11 +98,21 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var result = await _personService.GetPersonCountByDay(date);
+                
+                // Chuyển đổi dữ liệu sang dạng array cho biểu đồ
+                var chartData = new List<object>
+                {
+                    new { label = "Nam", value = result.ContainsKey("male") ? result["male"] : 0 },
+                    new { label = "Nữ", value = result.ContainsKey("female") ? result["female"] : 0 }
+                };
+                
                 return Ok(new
                 {
                     success = true,
                     date = date.ToString("yyyy-MM-dd"),
-                    statistics = result
+                    statistics = result, // Dữ liệu gốc
+                    chartData = chartData, // Dữ liệu cho biểu đồ
+                    total = result.ContainsKey("total") ? result["total"] : 0
                 });
             }
             catch (Exception ex)
@@ -119,12 +131,22 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var result = await _personService.GetPersonCountByMonth(year, month);
+                
+                // Chuyển đổi dữ liệu sang dạng array cho biểu đồ
+                var chartData = new List<object>
+                {
+                    new { label = "Nam", value = result.ContainsKey("male") ? result["male"] : 0 },
+                    new { label = "Nữ", value = result.ContainsKey("female") ? result["female"] : 0 }
+                };
+                
                 return Ok(new
                 {
                     success = true,
                     year = year,
                     month = month,
-                    statistics = result
+                    statistics = result, // Dữ liệu gốc
+                    chartData = chartData, // Dữ liệu cho biểu đồ
+                    total = result.ContainsKey("total") ? result["total"] : 0
                 });
             }
             catch (ArgumentException ex)
@@ -147,11 +169,21 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var result = await _personService.GetPersonCountByYear(year);
+                
+                // Chuyển đổi dữ liệu sang dạng array cho biểu đồ
+                var chartData = new List<object>
+                {
+                    new { label = "Nam", value = result.ContainsKey("male") ? result["male"] : 0 },
+                    new { label = "Nữ", value = result.ContainsKey("female") ? result["female"] : 0 }
+                };
+                
                 return Ok(new
                 {
                     success = true,
                     year = year,
-                    statistics = result
+                    statistics = result, // Dữ liệu gốc
+                    chartData = chartData, // Dữ liệu cho biểu đồ
+                    total = result.ContainsKey("total") ? result["total"] : 0
                 });
             }
             catch (ArgumentException ex)
@@ -174,14 +206,31 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var result = await _personService.GetDailyAppearancesByDateRange(startDate, endDate);
+                
+                // Chuyển đổi dữ liệu sang dạng array cho biểu đồ
+                var labels = result.Keys.OrderBy(d => d).Select(d => d.ToString("yyyy-MM-dd")).ToArray();
+                var values = result.OrderBy(kv => kv.Key).Select(kv => kv.Value).ToArray();
+                
+                var chartData = new
+                {
+                    labels = labels,
+                    datasets = new[] 
+                    {
+                        new 
+                        {
+                            label = "Tổng lượt xuất hiện",
+                            data = values
+                        }
+                    }
+                };
+                
                 return Ok(new
                 {
                     success = true,
                     startDate = startDate.ToString("yyyy-MM-dd"),
                     endDate = endDate.ToString("yyyy-MM-dd"),
-                    statistics = result.ToDictionary(
-                        x => x.Key.ToString("yyyy-MM-dd"), 
-                        x => x.Value)
+                    statistics = result.ToDictionary(x => x.Key.ToString("yyyy-MM-dd"), x => x.Value), // Dữ liệu gốc
+                    chartData = chartData // Dữ liệu cho biểu đồ
                 });
             }
             catch (ArgumentException ex)
@@ -204,14 +253,50 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var result = await _personService.GetDailyAppearancesByDateRangeAndGender(startDate, endDate);
+                
+                // Chuyển đổi dữ liệu sang dạng array cho biểu đồ
+                var orderedDates = result.Keys.OrderBy(d => d).ToList();
+                var labels = orderedDates.Select(d => d.ToString("yyyy-MM-dd")).ToArray();
+                
+                var maleValues = orderedDates.Select(date => 
+                    result[date].ContainsKey("male") ? result[date]["male"] : 0).ToArray();
+                    
+                var femaleValues = orderedDates.Select(date => 
+                    result[date].ContainsKey("female") ? result[date]["female"] : 0).ToArray();
+                    
+                var totalValues = orderedDates.Select(date => 
+                    result[date].ContainsKey("total") ? result[date]["total"] : 0).ToArray();
+                
+                var chartData = new
+                {
+                    labels = labels,
+                    datasets = new[] 
+                    {
+                        new 
+                        {
+                            label = "Nam",
+                            data = maleValues
+                        },
+                        new 
+                        {
+                            label = "Nữ",
+                            data = femaleValues
+                        },
+                        new 
+                        {
+                            label = "Tổng",
+                            data = totalValues
+                        }
+                    }
+                };
+                
                 return Ok(new
                 {
                     success = true,
                     startDate = startDate.ToString("yyyy-MM-dd"),
                     endDate = endDate.ToString("yyyy-MM-dd"),
-                    statistics = result.ToDictionary(
-                        x => x.Key.ToString("yyyy-MM-dd"), 
-                        x => x.Value)
+                    statistics = result.ToDictionary(x => x.Key.ToString("yyyy-MM-dd"), x => x.Value), // Dữ liệu gốc
+                    chartData = chartData // Dữ liệu cho biểu đồ
                 });
             }
             catch (ArgumentException ex)
