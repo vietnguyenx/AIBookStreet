@@ -20,6 +20,12 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
+
 // Add services to the container.
 builder.Services.AddControllers().AddJsonOptions(x =>
     x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
@@ -108,6 +114,9 @@ builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 builder.Services.AddScoped<IPayOSService, PayOSService>();
 builder.Services.AddScoped<IStoreScheduleService, StoreScheduleService>();
 builder.Services.AddScoped<IPersonService, PersonService>();
+
+// Add HttpClient for Google Books API
+builder.Services.AddHttpClient<IGoogleBookService, GoogleBookService>();
 
 builder.Services.AddHttpContextAccessor();
 
