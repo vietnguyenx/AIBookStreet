@@ -24,6 +24,7 @@ namespace AIBookStreet.Services.Services.Interface
 
         Task<UserModel> Login(AuthModel authModel);
         Task<UserModel> Register(UserModel userModel);
+        Task<UserModel> RegisterSimple(UserModel userModel);
         JwtSecurityToken CreateToken(UserModel userModel);
         Task<UserModel?> GetUserByEmailOrUsername(UserModel userModel);
         Task<UserModel?> GetUserByEmail(UserModel userModel);
