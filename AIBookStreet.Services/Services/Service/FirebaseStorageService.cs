@@ -4,6 +4,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 
 namespace AIBookStreet.Services.Services.Service
 {
@@ -11,12 +12,14 @@ namespace AIBookStreet.Services.Services.Service
     {
         private readonly StorageClient _storageClient;
         private readonly string _bucketName;
+        private readonly ILogger<FirebaseStorageService> _logger;
 
-        public FirebaseStorageService(IOptions<FirebaseSettings> settings)
+        public FirebaseStorageService(IOptions<FirebaseSettings> settings, ILogger<FirebaseStorageService> logger)
         {
             var credential = GoogleCredential.FromFile(settings.Value.ServiceAccountKeyPath);
             _storageClient = StorageClient.Create(credential);
             _bucketName = settings.Value.Bucket ?? throw new ArgumentNullException(nameof(settings.Value.Bucket));
+            _logger = logger;
         }
 
         public string GetFileUrl(string fileName)
@@ -57,8 +60,30 @@ namespace AIBookStreet.Services.Services.Service
         {
             try
             {
+                if (string.IsNullOrEmpty(fileUrl))
+                {
+                    return;
+                }
+
                 var uri = new Uri(fileUrl);
-                var fileName = Path.GetFileName(uri.LocalPath);
+                
+                // Check if this is a Firebase Storage URL
+                if (!uri.Host.Contains("firebasestorage.googleapis.com"))
+                {
+                    _logger.LogWarning($"Skipping deletion of non-Firebase Storage URL: {fileUrl}");
+                    return;
+                }
+
+                // Extract the file name from the Firebase Storage URL
+                // URL format: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{fileName}?alt=media
+                var segments = uri.Segments;
+                if (segments.Length < 4)
+                {
+                    throw new ArgumentException("Invalid Firebase Storage URL format");
+                }
+                
+                // The file name is the 4th segment (index 3)
+                var fileName = Uri.UnescapeDataString(segments[3]);
                 await _storageClient.DeleteObjectAsync(_bucketName, fileName);
             }
             catch (Exception ex)

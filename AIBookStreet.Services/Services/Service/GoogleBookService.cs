@@ -2,10 +2,12 @@ using System;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AIBookStreet.Services.Services.Service
 {
@@ -54,28 +56,95 @@ namespace AIBookStreet.Services.Services.Service
 
                 var book = result.Items.First().VolumeInfo;
                 _logger.LogInformation($"Found book: {book.Title}");
-
-                DateTime? publishedDate = null;
-                if (DateTime.TryParse(book.PublishedDate, out var parsedDate))
+                _logger.LogInformation($"Book has image links: {book.ImageLinks != null}");
+                if (book.ImageLinks != null)
                 {
-                    publishedDate = parsedDate;
+                    _logger.LogInformation($"Thumbnail URL: {book.ImageLinks.Thumbnail}");
+                    _logger.LogInformation($"SmallThumbnail URL: {book.ImageLinks.SmallThumbnail}");
                 }
 
-                return new BookModel
+                DateTime? publishedDate = null;
+                if (!string.IsNullOrEmpty(book.PublishedDate))
+                {
+                    if (DateTime.TryParseExact(book.PublishedDate, new[] { "yyyy-MM-dd", "yyyy-MM", "yyyy" },
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None,
+                        out var parsedDate))
+                    {
+                        publishedDate = parsedDate;
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Unable to parse PublishedDate: {book.PublishedDate}");
+                    }
+                }
+
+                var bookModel = new BookModel
                 {
                     ISBN = isbn,
                     Title = book.Title,
-                    Description = book.Description,
-                    Languages = book.Language,
                     PublicationDate = publishedDate,
-                    Price = null,
+                    Price = book.Price,
+                    Languages = book.Language,
+                    Description = book.Description,                                     
                     Size = book.Dimensions?.Height != null
                         ? $"{book.Dimensions.Height}x{book.Dimensions.Width}x{book.Dimensions.Thickness}"
                         : null,
-                    Status = "Available",
-                    //BookAuthors = book.Authors?.Select(author => new BookAuthorModel { AuthorName = author }).ToList(),
-                    //BookCategories = book.Categories?.Select(category => new BookCategoryModel { CategoryName = category }).ToList()
+                    Status = "New",
+                    BookAuthors = book.Authors?.Select(author => new BookAuthorModel { AuthorName = author }).ToList(),
+                    BookCategories = book.Categories?.Select(category => new BookCategoryModel { CategoryName = category }).ToList(),
+                    Publisher = !string.IsNullOrEmpty(book.Publisher) 
+                        ? new PublisherModel { PublisherName = book.Publisher } 
+                        : null
                 };
+                
+                if (book.ImageLinks != null)
+                {
+                    bookModel.Images = new List<Image>();
+                    
+                    // Add thumbnail as main image
+                    if (!string.IsNullOrEmpty(book.ImageLinks.Thumbnail))
+                    {
+                        bookModel.Images.Add(new Image
+                        {
+                            Url = book.ImageLinks.Thumbnail,
+                            Type = "book_main",
+                            AltText = book.Title,
+                            EntityId = Guid.Empty,
+                            CreatedBy = "System",
+                            CreatedDate = DateTime.UtcNow,
+                            IsDeleted = false
+                        });
+                        _logger.LogInformation($"Added main image: {book.ImageLinks.Thumbnail}");
+                    }
+
+                    // Add small thumbnail as additional image
+                    if (!string.IsNullOrEmpty(book.ImageLinks.SmallThumbnail))
+                    {
+                        bookModel.Images.Add(new Image
+                        {
+                            Url = book.ImageLinks.SmallThumbnail,
+                            Type = "book_additional",
+                            AltText = book.Title,
+                            EntityId = Guid.Empty,
+                            CreatedBy = "System",
+                            CreatedDate = DateTime.UtcNow,
+                            IsDeleted = false
+                        });
+                        _logger.LogInformation($"Added additional image: {book.ImageLinks.SmallThumbnail}");
+                    }
+
+                    if (!bookModel.Images.Any())
+                    {
+                        _logger.LogWarning("No valid image URLs found in Google Books response");
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("No image links found in Google Books response");
+                }
+
+                return bookModel;
             }
             catch (Exception ex)
             {
@@ -98,12 +167,23 @@ namespace AIBookStreet.Services.Services.Service
     public class VolumeInfo
     {
         public string Title { get; set; }
-        public List<string> Authors { get; set; }
-        public string Description { get; set; }
-        public string Language { get; set; }
         public string PublishedDate { get; set; }
+        public decimal Price { get; set; }
+        public string Language { get; set; }
+        public string Description { get; set; }
+        public string Size { get; set; }
+        public string Status { get; set; }
+        public List<string> Authors { get; set; }
         public List<string> Categories { get; set; }
         public Dimensions Dimensions { get; set; }
+        public string Publisher { get; set; }
+        public ImageLinks ImageLinks { get; set; }
+    }
+
+    public class ImageLinks
+    {
+        public string SmallThumbnail { get; set; }
+        public string Thumbnail { get; set; }
     }
 
     public class Dimensions

@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace AIBookStreet.Services.Services.Service
 {
@@ -20,12 +21,18 @@ namespace AIBookStreet.Services.Services.Service
         private readonly IBookRepository _bookRepository;
         private readonly IImageService _imageService;
         private readonly IGoogleBookService _googleBookService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IImageRepository _imageRepository;
+        private readonly ILogger<BookService> _logger;
 
-        public BookService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IImageService imageService, IGoogleBookService googleBookService) : base(mapper, unitOfWork, httpContextAccessor)
+        public BookService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IImageService imageService, IGoogleBookService googleBookService, ILogger<BookService> logger) : base(mapper, unitOfWork, httpContextAccessor)
         {
             _bookRepository = unitOfWork.BookRepository;
             _imageService = imageService;
             _googleBookService = googleBookService;
+            _httpContextAccessor = httpContextAccessor;
+            _imageRepository = unitOfWork.ImageRepository;
+            _logger = logger;
         }
 
         public async Task<List<BookModel>> GetAll()
@@ -72,22 +79,35 @@ namespace AIBookStreet.Services.Services.Service
             var googleBook = await _googleBookService.SearchBookByISBN(bookModel.ISBN);
             if (googleBook != null)
             {
-                bookModel.Title = bookModel.Title ?? googleBook.Title;
-                bookModel.Subtitle = bookModel.Subtitle ?? googleBook.Subtitle;
-                bookModel.Description = bookModel.Description ?? googleBook.Description;
-                bookModel.Languages = bookModel.Languages ?? googleBook.Languages;
+                _logger.LogInformation($"Received book data from Google Books API");
+                _logger.LogInformation($"Book has {googleBook.Images?.Count ?? 0} images");
+                if (googleBook.Images?.Any() == true)
+                {
+                    _logger.LogInformation($"First image URL: {googleBook.Images.First().Url}");
+                }
+
+                bookModel.Title = string.IsNullOrEmpty(bookModel.Title) ? googleBook.Title : bookModel.Title;
                 bookModel.PublicationDate = bookModel.PublicationDate ?? googleBook.PublicationDate;
+                bookModel.Price = bookModel.Price ?? googleBook.Price;
+                bookModel.Languages = bookModel.Languages ?? googleBook.Languages;
+                bookModel.Description = bookModel.Description ?? googleBook.Description;
                 bookModel.Size = bookModel.Size ?? googleBook.Size;
-                bookModel.PageCount = bookModel.PageCount ?? googleBook.PageCount;
-                bookModel.PreviewLink = bookModel.PreviewLink ?? googleBook.PreviewLink;
-                bookModel.InfoLink = bookModel.InfoLink ?? googleBook.InfoLink;
-                bookModel.Publisher.PublisherName = bookModel.Publisher.PublisherName ?? googleBook.Publisher.PublisherName;
+                bookModel.Status = bookModel.Status ?? googleBook.Status;
 
                 if (bookModel.BookAuthors == null || !bookModel.BookAuthors.Any())
                     bookModel.BookAuthors = googleBook.BookAuthors;
 
                 if (bookModel.BookCategories == null || !bookModel.BookCategories.Any())
                     bookModel.BookCategories = googleBook.BookCategories;
+
+                if (bookModel.Publisher == null && googleBook.Publisher != null)
+                    bookModel.Publisher = googleBook.Publisher;
+
+                if (bookModel.Images == null || !bookModel.Images.Any())
+                {
+                    _logger.LogInformation("Adding images from Google Books API to book model");
+                    bookModel.Images = googleBook.Images;
+                }
             }
 
             if (string.IsNullOrWhiteSpace(bookModel.Title))
@@ -96,28 +116,127 @@ namespace AIBookStreet.Services.Services.Service
             var bookEntity = _mapper.Map<Book>(bookModel);
             bookEntity = await SetBaseEntityToCreateFunc(bookEntity);
 
+            // Handle publisher
+            if (bookModel.Publisher != null && !string.IsNullOrEmpty(bookModel.Publisher.PublisherName))
+            {
+                // Check if publisher exists by exact name match
+                var existingPublishers = await _unitOfWork.PublisherRepository.SearchWithoutPagination(new Publisher { PublisherName = bookModel.Publisher.PublisherName });
+                
+                // Filter for exact name match (case insensitive)
+                var publisher = existingPublishers?.FirstOrDefault(p => 
+                    string.Equals(p.PublisherName, bookModel.Publisher.PublisherName, StringComparison.OrdinalIgnoreCase));
+
+                // If publisher already has an ID, try to find by ID first
+                if (bookModel.Publisher.Id != Guid.Empty)
+                {
+                    var publisherById = await _unitOfWork.PublisherRepository.GetById(bookModel.Publisher.Id);
+                    if (publisherById != null)
+                    {
+                        publisher = publisherById;
+                    }
+                }
+
+                if (publisher == null)
+                {
+                    // Create new publisher if not exists
+                    var newPublisher = new Publisher
+                    {
+                        PublisherName = bookModel.Publisher.PublisherName,
+                        IsDeleted = false,
+                        CreatedBy = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "System",
+                        CreatedDate = DateTime.UtcNow
+                    };
+                    var publisherAdded = await _unitOfWork.PublisherRepository.Add(newPublisher);
+                    if (!publisherAdded)
+                        return (null, ConstantMessage.Common.AddFail);
+                    publisher = newPublisher;
+                }
+
+                bookEntity.PublisherId = publisher.Id;
+                bookEntity.Publisher = null; // Set to null to prevent EF from inserting a duplicate publisher
+            }
+
             if (bookModel.BookAuthors?.Any() == true)
             {
-                bookEntity.BookAuthors = bookModel.BookAuthors.Select(ba => new BookAuthor
+                var bookAuthors = new List<BookAuthor>();
+                foreach (var bookAuthorModel in bookModel.BookAuthors)
                 {
-                    Id = Guid.NewGuid(),
-                    AuthorId = ba.AuthorId,
-                    BookId = bookEntity.Id
-                }).ToList();
+                    // Check if author exists by name
+                    var existingAuthors = await _unitOfWork.AuthorRepository.GetAll(bookAuthorModel.AuthorName, null);
+                    var author = existingAuthors?.FirstOrDefault();
+
+                    if (author == null)
+                    {
+                        // Create new author if not exists
+                        var newAuthor = new Author
+                        {
+                            AuthorName = bookAuthorModel.AuthorName,
+                            IsDeleted = false,
+                            CreatedBy = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "System",
+                            CreatedDate = DateTime.UtcNow
+                        };
+                        var authorAdded = await _unitOfWork.AuthorRepository.Add(newAuthor);
+                        if (!authorAdded)
+                            return (null, ConstantMessage.Common.AddFail);
+                        author = newAuthor;
+                    }
+
+                    // Create book-author relationship
+                    var bookAuthor = new BookAuthor
+                    {
+                        Id = Guid.NewGuid(),
+                        AuthorId = author.Id,
+                        BookId = bookEntity.Id,
+                        CreatedBy = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "System",
+                        CreatedDate = DateTime.UtcNow
+                    };
+                    bookAuthors.Add(bookAuthor);
+                }
+                bookEntity.BookAuthors = bookAuthors;
             }
 
             if (bookModel.BookCategories?.Any() == true)
             {
-                bookEntity.BookCategories = bookModel.BookCategories.Select(bc => new BookCategory
+                var bookCategories = new List<BookCategory>();
+                foreach (var bookCategoryModel in bookModel.BookCategories)
                 {
-                    Id = Guid.NewGuid(),
-                    CategoryId = bc.CategoryId,
-                    BookId = bookEntity.Id
-                }).ToList();
+                    // Check if cate exists by name
+                    var existingCategoriess = await _unitOfWork.CategoryRepository.GetAll(bookCategoryModel.CategoryName, null);
+                    var category = existingCategoriess?.FirstOrDefault();
+
+                    if (category == null)
+                    {
+                        // Create new cate if not exists
+                        var newCategory = new Category
+                        {
+                            CategoryName = bookCategoryModel.CategoryName,
+                            IsDeleted = false,
+                            CreatedBy = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "System",
+                            CreatedDate = DateTime.UtcNow
+                        };
+                        var categoryAdded = await _unitOfWork.CategoryRepository.Add(newCategory);
+                        if (!categoryAdded)
+                            return (null, ConstantMessage.Common.AddFail);
+                        category = newCategory;
+                    }
+
+                    // Create book-category relationship
+                    var bookCategory = new BookCategory
+                    {
+                        Id = Guid.NewGuid(),
+                        CategoryId = category.Id,
+                        BookId = bookEntity.Id,
+                        CreatedBy = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "System",
+                        CreatedDate = DateTime.UtcNow
+                    };
+                    bookCategories.Add(bookCategory);
+                }
+                bookEntity.BookCategories = bookCategories;
             }
 
             if (bookModel.MainImageFile != null)
             {
+                _logger.LogInformation("Processing main image file");
                 var imageModel = new FileModel
                 {
                     File = bookModel.MainImageFile,
@@ -127,7 +246,62 @@ namespace AIBookStreet.Services.Services.Service
                 };
 
                 var images = await _imageService.AddImages(new List<FileModel> { imageModel });
-                bookEntity.ThumbnailUrl = images?.FirstOrDefault()?.Url;
+                bookEntity.BaseImgUrl = images?.FirstOrDefault()?.Url;
+            }
+            else if (bookModel.Images?.Any() == true)
+            {
+                _logger.LogInformation($"Processing {bookModel.Images.Count} images from Google Books API");
+                
+                // Get existing images for this book
+                var existingImages = await _imageService.GetImagesByTypeAndEntityID(null, bookEntity.Id);
+                var existingUrls = existingImages?.Select(i => i.Url).ToList() ?? new List<string>();
+
+                foreach (var image in bookModel.Images)
+                {
+                    if (string.IsNullOrEmpty(image.Url)) 
+                    {
+                        _logger.LogWarning("Empty image URL found, skipping");
+                        continue;
+                    }
+
+                    // Skip if image URL already exists
+                    if (existingUrls.Contains(image.Url))
+                    {
+                        _logger.LogInformation($"Image with URL {image.Url} already exists, skipping");
+                        continue;
+                    }
+
+                    _logger.LogInformation($"Adding image with URL: {image.Url}");
+                    var newImage = new Image
+                    {
+                        Url = image.Url,
+                        Type = image.Type,
+                        AltText = bookModel.Title ?? "Book Cover",
+                        EntityId = bookEntity.Id,
+                        CreatedBy = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "System",
+                        CreatedDate = DateTime.UtcNow,
+                        IsDeleted = false
+                    };
+
+                    var imageAdded = await _imageRepository.Add(newImage);
+                    if (!imageAdded)
+                    {
+                        _logger.LogError($"Failed to add image for book {bookEntity.Id}");
+                    }
+                    else
+                    {
+                        _logger.LogInformation($"Successfully added image for book {bookEntity.Id}");
+                        existingUrls.Add(image.Url); // Add to existing URLs to prevent duplicates
+                    }
+                }
+                bookEntity.BaseImgUrl = bookModel.Images.FirstOrDefault(i => i.Type == "book_main")?.Url;
+                
+                // Important: Clear the Images collection to prevent Entity Framework from inserting them again
+                bookEntity.Images = null;
+            }
+            else
+            {
+                _logger.LogWarning("No images found in book model");
             }
 
             if (bookModel.AdditionalImageFiles?.Any() == true)
@@ -166,12 +340,25 @@ namespace AIBookStreet.Services.Services.Service
                 var googleBook = await _googleBookService.SearchBookByISBN(bookModel.ISBN);
                 if (googleBook != null)
                 {
+                    _logger.LogInformation($"Received book data from Google Books API");
+                    _logger.LogInformation($"Book has {googleBook.Images?.Count ?? 0} images");
+                    if (googleBook.Images?.Any() == true)
+                    {
+                        _logger.LogInformation($"First image URL: {googleBook.Images.First().Url}");
+                    }
+
                     // Update fields only if they are empty in the current model
                     bookModel.Title = string.IsNullOrEmpty(bookModel.Title) ? googleBook.Title : bookModel.Title;
                     bookModel.Description = string.IsNullOrEmpty(bookModel.Description) ? googleBook.Description : bookModel.Description;
                     bookModel.Languages = string.IsNullOrEmpty(bookModel.Languages) ? googleBook.Languages : bookModel.Languages;
                     bookModel.PublicationDate = bookModel.PublicationDate ?? googleBook.PublicationDate;
                     bookModel.Size = string.IsNullOrEmpty(bookModel.Size) ? googleBook.Size : bookModel.Size;
+
+                    if (bookModel.Images == null || !bookModel.Images.Any())
+                    {
+                        _logger.LogInformation("Adding images from Google Books API to book model");
+                        bookModel.Images = googleBook.Images;
+                    }
                 }
 
                 if (!string.IsNullOrEmpty(bookModel.ISBN) && bookModel.ISBN != existingBook.ISBN)
@@ -185,6 +372,47 @@ namespace AIBookStreet.Services.Services.Service
                     bookModel.ISBN = existingBook.ISBN;
 
                 _mapper.Map(bookModel, existingBook);
+                
+                // Handle publisher - similar to Add method
+                if (bookModel.Publisher != null && !string.IsNullOrEmpty(bookModel.Publisher.PublisherName))
+                {
+                    // Check if publisher exists by exact name match
+                    var existingPublishers = await _unitOfWork.PublisherRepository.SearchWithoutPagination(new Publisher { PublisherName = bookModel.Publisher.PublisherName });
+                    
+                    // Filter for exact name match (case insensitive)
+                    var publisher = existingPublishers?.FirstOrDefault(p => 
+                        string.Equals(p.PublisherName, bookModel.Publisher.PublisherName, StringComparison.OrdinalIgnoreCase));
+
+                    // If publisher already has an ID, try to find by ID first
+                    if (bookModel.Publisher.Id != Guid.Empty)
+                    {
+                        var publisherById = await _unitOfWork.PublisherRepository.GetById(bookModel.Publisher.Id);
+                        if (publisherById != null)
+                        {
+                            publisher = publisherById;
+                        }
+                    }
+
+                    if (publisher == null)
+                    {
+                        // Create new publisher if not exists
+                        var newPublisher = new Publisher
+                        {
+                            PublisherName = bookModel.Publisher.PublisherName,
+                            IsDeleted = false,
+                            CreatedBy = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "System",
+                            CreatedDate = DateTime.UtcNow
+                        };
+                        var publisherAdded = await _unitOfWork.PublisherRepository.Add(newPublisher);
+                        if (!publisherAdded)
+                            return (null, ConstantMessage.Common.AddFail);
+                        publisher = newPublisher;
+                    }
+
+                    existingBook.PublisherId = publisher.Id;
+                    existingBook.Publisher = null; // Set to null to prevent EF from inserting a duplicate publisher
+                }
+                
                 var updatedBook = await SetBaseEntityToUpdateFunc(existingBook);
 
                 if (bookModel.MainImageFile != null)
@@ -210,7 +438,7 @@ namespace AIBookStreet.Services.Services.Service
                         if (updateResult.Item1 != 2)
                             return (null, ConstantMessage.Image.MainImageUploadFailed);
 
-                        updatedBook.ThumbnailUrl = updateResult.Item2.Url;
+                        updatedBook.BaseImgUrl = updateResult.Item2.Url;
                     }
                     else
                     {
@@ -226,7 +454,7 @@ namespace AIBookStreet.Services.Services.Service
                         if (mainImages == null)
                             return (null, ConstantMessage.Image.MainImageUploadFailed);
 
-                        updatedBook.ThumbnailUrl = mainImages.First().Url;
+                        updatedBook.BaseImgUrl = mainImages.First().Url;
                     }
                 }
 
@@ -288,28 +516,28 @@ namespace AIBookStreet.Services.Services.Service
                 if (existingBook == null)
                     return (null, ConstantMessage.Common.NotFoundForDelete);
 
-                var existingMainImages = await _imageService.GetImagesByTypeAndEntityID("book_main", bookId);
-                var existingAdditionalImages = await _imageService.GetImagesByTypeAndEntityID("book_additional", bookId);
+                //var existingMainImages = await _imageService.GetImagesByTypeAndEntityID("book_main", bookId);
+                //var existingAdditionalImages = await _imageService.GetImagesByTypeAndEntityID("book_additional", bookId);
 
-                if (existingMainImages != null)
-                {
-                    foreach (var image in existingMainImages)
-                    {
-                        var deleteResult = await _imageService.DeleteAnImage(image.Id);
-                        if (deleteResult.Item1 != 2)
-                            return (null, ConstantMessage.Image.MainImageUploadFailed);
-                    }
-                }
+                //if (existingMainImages != null)
+                //{
+                //    foreach (var image in existingMainImages)
+                //    {
+                //        var deleteResult = await _imageService.DeleteAnImage(image.Id);
+                //        if (deleteResult.Item1 != 2)
+                //            return (null, ConstantMessage.Image.MainImageUploadFailed);
+                //    }
+                //}
 
-                if (existingAdditionalImages != null)
-                {
-                    foreach (var image in existingAdditionalImages)
-                    {
-                        var deleteResult = await _imageService.DeleteAnImage(image.Id);
-                        if (deleteResult.Item1 != 2)
-                            return (null, ConstantMessage.Image.SubImageUploadFailed);
-                    }
-                }
+                //if (existingAdditionalImages != null)
+                //{
+                //    foreach (var image in existingAdditionalImages)
+                //    {
+                //        var deleteResult = await _imageService.DeleteAnImage(image.Id);
+                //        if (deleteResult.Item1 != 2)
+                //            return (null, ConstantMessage.Image.SubImageUploadFailed);
+                //    }
+                //}
 
                 var result = await _bookRepository.Delete(existingBook);
                 if (!result)
@@ -326,6 +554,51 @@ namespace AIBookStreet.Services.Services.Service
         public async Task<long> GetTotalCount()
         {
             return await _bookRepository.GetTotalCount();
+        }
+
+        public async Task<(long, Book?)> DeleteABook(Guid id)
+        {
+            var existed = await _bookRepository.GetById(id);
+            if (existed == null)
+            {
+                return (1, null); //khong ton tai
+            }
+            if (existed.IsDeleted)
+            {
+                return (3, null);
+            }
+            existed = await SetBaseEntityToUpdateFunc(existed);
+
+            var isSuccess = await _bookRepository.Remove(existed);
+            if (isSuccess)
+            {
+                try
+                {
+                    // Delete images from database first
+                    var images = await _imageService.GetImagesByTypeAndEntityID(null, existed.Id);
+                    if (images != null)
+                    {
+                        foreach (var image in images)
+                        {
+                            // Delete from Firebase Storage if it's a Firebase URL
+                            if (image.Url.Contains("firebasestorage.googleapis.com"))
+                            {
+                                // Implementation of _firebaseStorageService.DeleteFileAsync(string url)
+                            }
+                            
+                            // Delete from database
+                            await _imageService.DeleteAnImage(image.Id);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error while deleting book images: {ex.Message}");
+                    throw new Exception($"Error while deleting book: {ex.Message}");
+                }
+                return (2, existed);//delete thanh cong
+            }
+            return (3, null);       //delete fail
         }
     }
 }
