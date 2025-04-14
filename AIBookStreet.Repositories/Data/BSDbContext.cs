@@ -123,10 +123,10 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.PublicationDate).IsRequired(false);
                 e.Property(x => x.Price).IsRequired(false).HasColumnType("decimal(18,2)"); ;
                 e.Property(x => x.Languages).HasMaxLength(50).IsRequired(false);
-                e.Property(x => x.Description).HasColumnType("nvarchar(max)").IsRequired(false);
+                e.Property(x => x.Description).HasMaxLength(1000).IsRequired(false);
                 e.Property(x => x.Size).HasMaxLength(50).IsRequired(false);
                 e.Property(x => x.Status).HasMaxLength(50).IsRequired(false);
-                e.Property(x => x.ThumbnailUrl).HasMaxLength(2000).IsRequired(false);
+                e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
 
                 // 1-1 voi publisher
                 e.HasOne(x => x.Publisher)
