@@ -96,5 +96,13 @@ namespace AIBookStreet.Services.Services.Service
 
             return await _unitOfWork.PersonRepository.GetDailyAppearancesByDateRangeAndGender(startDate, endDate);
         }
+
+        public async Task<List<object>> GetVisitorStatsByDateRange(DateTime startDate, DateTime endDate)
+        {
+            if (startDate > endDate)
+                throw new ArgumentException("Ngày bắt đầu phải trước ngày kết thúc");
+
+            return await _unitOfWork.PersonRepository.GetVisitorStatsByDateRange(startDate, endDate);
+        }
     }
 } 

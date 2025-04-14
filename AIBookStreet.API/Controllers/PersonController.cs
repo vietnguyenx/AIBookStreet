@@ -205,32 +205,11 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var result = await _personService.GetDailyAppearancesByDateRange(startDate, endDate);
-                
-                // Chuyển đổi dữ liệu sang dạng array cho biểu đồ
-                var labels = result.Keys.OrderBy(d => d).Select(d => d.ToString("yyyy-MM-dd")).ToArray();
-                var values = result.OrderBy(kv => kv.Key).Select(kv => kv.Value).ToArray();
-                
-                var chartData = new
-                {
-                    labels = labels,
-                    datasets = new[] 
-                    {
-                        new 
-                        {
-                            label = "Tổng lượt xuất hiện",
-                            data = values
-                        }
-                    }
-                };
-                
+                var result = await _personService.GetVisitorStatsByDateRange(startDate, endDate);
                 return Ok(new
                 {
                     success = true,
-                    startDate = startDate.ToString("yyyy-MM-dd"),
-                    endDate = endDate.ToString("yyyy-MM-dd"),
-                    statistics = result.ToDictionary(x => x.Key.ToString("yyyy-MM-dd"), x => x.Value), // Dữ liệu gốc
-                    chartData = chartData // Dữ liệu cho biểu đồ
+                    barData = result
                 });
             }
             catch (ArgumentException ex)
@@ -309,5 +288,7 @@ namespace AIBookStreet.API.Controllers
                     new BaseResponse(false, $"Lỗi: {ex.Message}"));
             }
         }
+
+        
     }
 } 

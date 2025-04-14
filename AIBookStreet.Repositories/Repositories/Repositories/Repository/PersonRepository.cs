@@ -236,5 +236,51 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return result;
         }
+
+        public async Task<List<object>> GetVisitorStatsByDateRange(DateTime startDate, DateTime endDate)
+        {
+            var result = new List<object>();
+            
+            // Get all dates in the range
+            var currentDate = startDate.Date;
+            var datesList = new List<DateTime>();
+            
+            while (currentDate <= endDate.Date)
+            {
+                datesList.Add(currentDate);
+                currentDate = currentDate.AddDays(1);
+            }
+            
+            // Query data for each day in the date range
+            foreach (var date in datesList)
+            {
+                var dayStart = date;
+                var dayEnd = date.AddDays(1).AddSeconds(-1);
+                
+                var personsQuery = _context.Persons
+                    .Where(p => !p.IsDeleted && 
+                                p.FirstSeen >= dayStart && 
+                                p.FirstSeen <= dayEnd);
+                
+                var maleCount = await personsQuery
+                    .CountAsync(p => p.Gender.ToLower() == "male");
+                
+                var femaleCount = await personsQuery
+                    .CountAsync(p => p.Gender.ToLower() == "female");
+                
+                var totalCount = await personsQuery.CountAsync();
+                
+                // Create the data object in the required format
+                result.Add(new
+                {
+                    day = date.ToString("yyyy-MM-dd"),
+                    visitor = totalCount,
+                    male = maleCount,
+                    female = femaleCount
+                });
+            }
+            
+            return result;
+        }
     }
 } 
