@@ -17,5 +17,6 @@ namespace AIBookStreet.Services.Services.Interface
         Task<Dictionary<string, int>> GetPersonCountByYear(int year);
         Task<Dictionary<DateTime, int>> GetDailyAppearancesByDateRange(DateTime startDate, DateTime endDate);
         Task<Dictionary<DateTime, Dictionary<string, int>>> GetDailyAppearancesByDateRangeAndGender(DateTime startDate, DateTime endDate);
+        Task<List<object>> GetVisitorStatsByDateRange(DateTime startDate, DateTime endDate);
     }
 } 
