@@ -41,6 +41,8 @@ namespace AIBookStreet.Services.Services.Service
             existed.ZoneName = model.ZoneName;
             existed.Description = model.Description ?? existed.Description;
             existed.StreetId = model.StreetId ?? existed.StreetId;
+            existed.Latitude = model.Latitude ?? existed.Latitude;
+            existed.Longitude = model.Longitude ?? existed.Longitude;
             existed = await SetBaseEntityToUpdateFunc(existed);
             return await _repository.ZoneRepository.Update(existed) ? (2, existed) //update thanh cong
                                                                           : (3, null);       //update fail

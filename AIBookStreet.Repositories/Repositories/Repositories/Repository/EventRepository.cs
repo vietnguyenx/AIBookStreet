@@ -185,7 +185,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             queryable = queryable.Where(ev => !ev.IsDeleted);
             if (queryable.Any())
             {
-                queryable = queryable.Where(ev => ev.StartDate <= date && ev.EndDate >= date);
+                if(date != null)
+                {
+                    queryable = queryable.Where(ev => ev.StartDate.Value.Date <= date.Value.Date && ev.EndDate.Value.Date >= date.Value.Date);
+                }
             }
 
             var events = await queryable.ToListAsync();
