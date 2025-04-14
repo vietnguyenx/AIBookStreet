@@ -18,5 +18,6 @@ namespace AIBookStreet.Services.Services.Interface
         Task<List<Event>?> GetEventComing(int number, bool? allowAds);
         Task<List<DateModel>?> GetEventDatesInMonth(int? month);
         Task<List<Event>?> GetEventByDate(DateTime? date);
+        Task<List<Event>> GetRandom(int number);
     }
 }

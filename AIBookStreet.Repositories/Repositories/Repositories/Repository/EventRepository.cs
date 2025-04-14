@@ -194,5 +194,17 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var events = await queryable.ToListAsync();
             return events;
         }
+        public async Task<List<Event>> GetRandom(int number)
+        {
+            var queryable = GetQueryable();
+            queryable = base.ApplySort(queryable, "StartDate", 1);
+            queryable = queryable.Where(ev => !ev.IsDeleted && ev.AllowAds == true);
+            if (queryable.Any())
+            {
+                queryable = queryable.OrderBy(x => Guid.NewGuid());
+            }
+            var events = await queryable.Take(number).ToListAsync();
+            return events;
+        }
     }
 }

@@ -240,5 +240,9 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.EventRepository.GetByDate(date);
         }
+        public async Task<List<Event>> GetRandom(int number)
+        {
+            return await _repository.EventRepository.GetRandom(number);
+        }
     }
 }

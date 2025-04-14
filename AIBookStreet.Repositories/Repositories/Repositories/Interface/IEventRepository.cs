@@ -16,5 +16,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
         Task<List<Event>?> GetEventsComing(int number, bool? allowAds);
         Task<List<DateOnly>?> GetDatesInMonth(int? month);
         Task<List<Event>?> GetByDate(DateTime? date);
+        Task<List<Event>> GetRandom(int number);
     }
 }

@@ -178,5 +178,24 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [AllowAnonymous]
+        [HttpGet("random")]
+        public async Task<IActionResult> GetRandom(int number)
+        {
+            try
+            {
+                var events = await _service.GetRandom(number);
+
+                return events switch
+                {
+                    null => Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, null)),
+                    not null => Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<List<EventRequest>>(events)))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
