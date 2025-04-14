@@ -199,8 +199,8 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.Description).HasMaxLength(2000).IsRequired(false);
                 e.Property(x => x.StoreTheme).HasMaxLength(2000).IsRequired(false);
                 e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
-                e.Property(x => x.Longitude).IsRequired(false);
-                e.Property(x => x.Latitude).IsRequired(false);
+                e.Property(x => x.Longitude).IsRequired(false).HasColumnType("decimal(18,6)");
+                e.Property(x => x.Latitude).IsRequired(false).HasColumnType("decimal(18,6)");
                 e.Property(x => x.Type).HasMaxLength(2000).IsRequired(false);
 
                 // 1-n voi userStore
@@ -344,8 +344,8 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.StreetName).HasMaxLength(255).IsRequired();
                 e.Property(x => x.Address).HasMaxLength(500).IsRequired(false);
                 e.Property(x => x.Description).HasMaxLength(2000).IsRequired(false);
-                e.Property(x => x.Latitude).IsRequired(false);
-                e.Property(x => x.Longitude).IsRequired(false);
+                e.Property(x => x.Latitude).IsRequired(false).HasColumnType("decimal(18,6)");
+                e.Property(x => x.Longitude).IsRequired(false).HasColumnType("decimal(18,6)");
                 e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
 
                 // 1-n voi zone
@@ -440,8 +440,8 @@ namespace AIBookStreet.Repositories.Data
                 e.ToTable("Zones");
                 e.Property(x => x.ZoneName).HasMaxLength(255).IsRequired();
                 e.Property(x => x.Description).HasMaxLength(1000).IsRequired(false);
-                e.Property(x => x.Longitude).IsRequired(false);
-                e.Property(x => x.Latitude).IsRequired(false);
+                e.Property(x => x.Longitude).IsRequired(false).HasColumnType("decimal(18,6)");
+                e.Property(x => x.Latitude).IsRequired(false).HasColumnType("decimal(18,6)");
 
                 // n-1 voi street
                 e.HasOne(x => x.Street)
