@@ -19,11 +19,13 @@ namespace AIBookStreet.API.Controllers
     {
         private readonly IBookService _bookService;
         private readonly IMapper _mapper;
+        private readonly IGoogleBookService _googleBookService;
 
-        public BookController(IBookService bookService, IMapper mapper)
+        public BookController(IBookService bookService, IMapper mapper, IGoogleBookService googleBookService)
         {
             _bookService = bookService;
             _mapper = mapper;
+            _googleBookService = googleBookService;
         }
 
         [HttpGet]
@@ -237,6 +239,29 @@ namespace AIBookStreet.API.Controllers
                 {
                     null => StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, message)),
                     not null => StatusCode(ConstantHttpStatus.OK, new ItemResponse<BookModel>(message, result))
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
+            }
+        }
+
+        [HttpGet("google/{isbn}")]
+        public async Task<IActionResult> GetBookFromGoogle(string isbn)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(isbn))
+                {
+                    return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, "ISBN is required"));
+                }
+
+                var book = await _googleBookService.SearchBookByISBN(isbn);
+                return book switch
+                {
+                    null => StatusCode(ConstantHttpStatus.NOT_FOUND, new BaseResponse(false, "Book not found in Google Books")),
+                    not null => StatusCode(ConstantHttpStatus.OK, new ItemResponse<BookModel>("Success", book))
                 };
             }
             catch (Exception ex)

@@ -12,7 +12,12 @@ namespace AIBookStreet.Services.Model
     {
         [Required]
         public Guid BookId { get; set; }
+        public BookModel? Book { get; set; }
         [Required]
         public Guid AuthorId { get; set; }
+        public AuthorModel? Author { get; set; }
+
+        public string? AuthorName { get; set; }
+        public bool IsNewAuthor { get; set; } = false;
     }
 }
