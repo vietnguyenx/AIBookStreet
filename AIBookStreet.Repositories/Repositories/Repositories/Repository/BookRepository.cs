@@ -98,8 +98,16 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
                 if (!string.IsNullOrEmpty(book.Languages))
                 {
-                    queryable = queryable.Where(b =>
-                        EF.Functions.Collate(b.Languages, "Latin1_General_CI_AI").Contains(book.Languages));
+                    // Split languages by comma and search for any match
+                    var languagesList = book.Languages.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(l => l.Trim())
+                        .ToList();
+                    
+                    if (languagesList.Count > 0)
+                    {
+                        queryable = queryable.Where(b => languagesList.Any(lang => 
+                            EF.Functions.Collate(b.Languages, "Latin1_General_CI_AI").Contains(lang)));
+                    }
                 }
 
                 if (!string.IsNullOrEmpty(book.Size))
@@ -188,8 +196,16 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             if (!string.IsNullOrEmpty(book.Languages))
             {
-                queryable = queryable.Where(b =>
-                    EF.Functions.Collate(b.Languages, "Latin1_General_CI_AI").Contains(book.Languages));
+                // Split languages by comma and search for any match
+                var languagesList = book.Languages.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(l => l.Trim())
+                    .ToList();
+                
+                if (languagesList.Count > 0)
+                {
+                    queryable = queryable.Where(b => languagesList.Any(lang => 
+                        EF.Functions.Collate(b.Languages, "Latin1_General_CI_AI").Contains(lang)));
+                }
             }
 
             if (!string.IsNullOrEmpty(book.Size))
@@ -204,7 +220,25 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                     EF.Functions.Collate(b.Status, "Latin1_General_CI_AI").Contains(book.Status));
             }
 
-            return await queryable.Include(b => b.Images).ToListAsync();
+            // Add category filtering
+            if (book.BookCategories != null && book.BookCategories.Any())
+            {
+                var categoryIds = book.BookCategories.Select(bc => bc.CategoryId).ToList();
+                queryable = queryable.Where(b => b.BookCategories.Any(bc => categoryIds.Contains(bc.CategoryId)));
+            }
+
+            // Add author filtering
+            if (book.BookAuthors != null && book.BookAuthors.Any())
+            {
+                var authorIds = book.BookAuthors.Select(ba => ba.AuthorId).ToList();
+                queryable = queryable.Where(b => b.BookAuthors.Any(ba => authorIds.Contains(ba.AuthorId)));
+            }
+
+            return await queryable
+                .Include(b => b.Images)
+                .Include(b => b.BookCategories)
+                .Include(b => b.BookAuthors)
+                .ToListAsync();
         }
     }
 }

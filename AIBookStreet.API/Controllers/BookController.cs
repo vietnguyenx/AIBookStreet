@@ -99,21 +99,54 @@ namespace AIBookStreet.API.Controllers
                 var minPrice = paginatedRequest.Result.MinPrice;
                 var maxPrice = paginatedRequest.Result.MaxPrice;
 
-                // Add category to book model if CategoryId is provided
-                if (paginatedRequest.Result.CategoryId.HasValue)
+                // Handle categories (if any)
+                if (paginatedRequest.Result.CategoryIds?.Any() == true)
                 {
-                    book.BookCategories = new List<BookCategoryModel>
+                    book.BookCategories = new List<BookCategoryModel>();
+                    
+                    foreach (var categoryId in paginatedRequest.Result.CategoryIds)
                     {
-                        new BookCategoryModel { CategoryId = paginatedRequest.Result.CategoryId.Value }
-                    };
+                        // Skip default/empty GUIDs
+                        if (categoryId != Guid.Empty)
+                        {
+                            book.BookCategories.Add(new BookCategoryModel
+                            {
+                                CategoryId = categoryId
+                            });
+                        }
+                    }
                 }
 
-                if (paginatedRequest.Result.AuthorId.HasValue)
+                // Handle authors (if any)
+                if (paginatedRequest.Result.AuthorIds?.Any() == true)
                 {
-                    book.BookAuthors = new List<BookAuthorModel>
+                    book.BookAuthors = new List<BookAuthorModel>();
+                    
+                    foreach (var authorId in paginatedRequest.Result.AuthorIds)
                     {
-                        new BookAuthorModel { AuthorId = paginatedRequest.Result.AuthorId.Value }
-                    };
+                        // Skip default/empty GUIDs
+                        if (authorId != Guid.Empty)
+                        {
+                            book.BookAuthors.Add(new BookAuthorModel
+                            {
+                                AuthorId = authorId
+                            });
+                        }
+                    }
+                }
+
+                // Handle languages (if any)
+                if (paginatedRequest.Result.LanguagesList?.Any() == true)
+                {
+                    // Filter out empty strings and join languages with comma
+                    var filteredLanguages = paginatedRequest.Result.LanguagesList
+                        .Where(l => !string.IsNullOrWhiteSpace(l))
+                        .ToList();
+                    
+                    if (filteredLanguages.Any())
+                    {
+                        book.Languages = string.Join(",", filteredLanguages);
+                    }
                 }
 
                 var books = await _bookService.SearchPagination(book, startDate, endDate, minPrice, maxPrice, paginatedRequest.PageNumber, paginatedRequest.PageSize, paginatedRequest.SortField, paginatedRequest.SortOrder.Value);
@@ -140,6 +173,56 @@ namespace AIBookStreet.API.Controllers
                 var endDate = searchRequest.EndDate;
                 var minPrice = searchRequest.MinPrice;
                 var maxPrice = searchRequest.MaxPrice;
+
+                // Handle categories (if any)
+                if (searchRequest.CategoryIds?.Any() == true)
+                {
+                    bookModel.BookCategories = new List<BookCategoryModel>();
+                    
+                    foreach (var categoryId in searchRequest.CategoryIds)
+                    {
+                        // Skip default/empty GUIDs
+                        if (categoryId != Guid.Empty)
+                        {
+                            bookModel.BookCategories.Add(new BookCategoryModel
+                            {
+                                CategoryId = categoryId
+                            });
+                        }
+                    }
+                }
+
+                // Handle authors (if any)
+                if (searchRequest.AuthorIds?.Any() == true)
+                {
+                    bookModel.BookAuthors = new List<BookAuthorModel>();
+                    
+                    foreach (var authorId in searchRequest.AuthorIds)
+                    {
+                        // Skip default/empty GUIDs
+                        if (authorId != Guid.Empty)
+                        {
+                            bookModel.BookAuthors.Add(new BookAuthorModel
+                            {
+                                AuthorId = authorId
+                            });
+                        }
+                    }
+                }
+
+                // Handle languages (if any)
+                if (searchRequest.LanguagesList?.Any() == true)
+                {
+                    // Filter out empty strings and join languages with comma
+                    var filteredLanguages = searchRequest.LanguagesList
+                        .Where(l => !string.IsNullOrWhiteSpace(l))
+                        .ToList();
+                    
+                    if (filteredLanguages.Any())
+                    {
+                        bookModel.Languages = string.Join(",", filteredLanguages);
+                    }
+                }
 
                 var books = await _bookService.SearchWithoutPagination(bookModel, startDate, endDate, minPrice, maxPrice);
 
