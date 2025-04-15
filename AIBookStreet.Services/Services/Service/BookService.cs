@@ -50,21 +50,322 @@ namespace AIBookStreet.Services.Services.Service
         public async Task<BookModel?> GetById(Guid id)
         {
             var book = await _bookRepository.GetById(id);
-            return book == null ? null : _mapper.Map<BookModel>(book);
+            if (book == null) return null;
+            
+            // Basic book information
+            var bookModel = new BookModel
+            {
+                Id = book.Id,
+                ISBN = book.ISBN,
+                Title = book.Title,
+                PublicationDate = book.PublicationDate,
+                Price = book.Price,
+                Languages = book.Languages,
+                Description = book.Description,
+                Size = book.Size,
+                Status = book.Status,
+                PublisherId = book.PublisherId,
+                CreatedBy = book.CreatedBy,
+                CreatedDate = book.CreatedDate,
+                LastUpdatedBy = book.LastUpdatedBy,
+                LastUpdatedDate = book.LastUpdatedDate,
+                IsDeleted = book.IsDeleted
+            };
+            
+            // Publisher information - simplified to just what's needed
+            if (book.Publisher != null)
+            {
+                bookModel.Publisher = new PublisherModel 
+                { 
+                    Id = book.Publisher.Id,
+                    PublisherName = book.Publisher.PublisherName,
+                    Address = book.Publisher.Address,
+                    Phone = book.Publisher.Phone,
+                    Email = book.Publisher.Email,
+                    Description = book.Publisher.Description,
+                    Website = book.Publisher.Website
+                };
+            }
+            
+            // Add simplified image information - just main data without nested objects
+            if (book.Images != null && book.Images.Any())
+            {
+                bookModel.Images = book.Images.Select(i => new Image
+                {
+                    Id = i.Id,
+                    Url = i.Url,
+                    Type = i.Type,
+                    AltText = i.AltText,
+                    EntityId = i.EntityId
+                }).ToList();
+            }
+            
+            // Initialize empty collections
+            bookModel.BookAuthors = new List<BookAuthorModel>();
+            bookModel.BookCategories = new List<BookCategoryModel>();
+            
+            // Add author information - simplified
+            if (book.BookAuthors != null && book.BookAuthors.Any())
+            {
+                foreach (var bookAuthor in book.BookAuthors)
+                {
+                    var author = await _unitOfWork.AuthorRepository.GetById(bookAuthor.AuthorId);
+                    if (author != null)
+                    {
+                        bookModel.BookAuthors.Add(new BookAuthorModel
+                        {
+                            AuthorId = author.Id,
+                            AuthorName = author.AuthorName,
+                            BookId = book.Id
+                        });
+                    }
+                }
+            }
+            
+            // Add category information - simplified
+            if (book.BookCategories != null && book.BookCategories.Any())
+            {
+                foreach (var bookCategory in book.BookCategories)
+                {
+                    var category = await _unitOfWork.CategoryRepository.GetById(bookCategory.CategoryId);
+                    if (category != null)
+                    {
+                        bookModel.BookCategories.Add(new BookCategoryModel
+                        {
+                            CategoryId = category.Id,
+                            CategoryName = category.CategoryName,
+                            BookId = book.Id
+                        });
+                    }
+                }
+            }
+            
+            // Add inventory information - simplified
+            if (book.Inventories != null && book.Inventories.Any())
+            {
+                bookModel.Inventories = book.Inventories.Select(i => new InventoryModel
+                {
+                    Id = i.Id,
+                    EntityId = i.EntityId,
+                    StoreId = i.StoreId,
+                    Quantity = i.Quantity,
+                    IsInStock = i.IsInStock
+                }).ToList();
+            }
+            
+            return bookModel;
         }
 
         public async Task<(List<BookModel>?, long)> SearchPagination(BookModel bookModel, DateTime? startDate, DateTime? endDate, decimal? minPrice, decimal? maxPrice, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
             var books = _mapper.Map<Book>(bookModel);
             var (bookList, total) = await _bookRepository.SearchPagination(books, startDate, endDate, minPrice, maxPrice, pageNumber, pageSize, sortField, sortOrder);
-            return !bookList.Any() ? (null, total) : (_mapper.Map<List<BookModel>>(bookList), total);
+            
+            if (!bookList.Any()) 
+                return (null, total);
+            
+            var resultList = new List<BookModel>();
+            
+            // Create simplified book models
+            foreach (var book in bookList)
+            {
+                // Basic book information
+                var simplifiedBook = new BookModel
+                {
+                    Id = book.Id,
+                    ISBN = book.ISBN,
+                    Title = book.Title,
+                    PublicationDate = book.PublicationDate,
+                    Price = book.Price,
+                    Languages = book.Languages,
+                    Description = book.Description,
+                    Size = book.Size,
+                    Status = book.Status,
+                    PublisherId = book.PublisherId
+                };
+                
+                // Publisher information - simplified
+                if (book.PublisherId.HasValue)
+                {
+                    var publisher = await _unitOfWork.PublisherRepository.GetById(book.PublisherId.Value);
+                    if (publisher != null)
+                    {
+                        simplifiedBook.Publisher = new PublisherModel 
+                        { 
+                            Id = publisher.Id,
+                            PublisherName = publisher.PublisherName,
+                            Address = publisher.Address,
+                            Phone = publisher.Phone,
+                            Email = publisher.Email,
+                            Description = publisher.Description,
+                            Website = publisher.Website,
+                        };
+                    }
+                }
+                
+                // Add simplified image information
+                if (book.Images != null && book.Images.Any())
+                {
+                    simplifiedBook.Images = book.Images.Select(i => new Image
+                    {
+                        Id = i.Id,
+                        Url = i.Url,
+                        Type = i.Type,
+                        AltText = i.AltText
+                    }).ToList();
+                }
+                
+                // Initialize empty collections
+                simplifiedBook.BookAuthors = new List<BookAuthorModel>();
+                simplifiedBook.BookCategories = new List<BookCategoryModel>();
+                
+                // Add author information - simplified
+                if (book.BookAuthors != null && book.BookAuthors.Any())
+                {
+                    foreach (var bookAuthor in book.BookAuthors)
+                    {
+                        var author = await _unitOfWork.AuthorRepository.GetById(bookAuthor.AuthorId);
+                        if (author != null)
+                        {
+                            simplifiedBook.BookAuthors.Add(new BookAuthorModel
+                            {
+                                AuthorId = author.Id,
+                                AuthorName = author.AuthorName,
+                                BookId = book.Id
+                            });
+                        }
+                    }
+                }
+                
+                // Add category information - simplified
+                if (book.BookCategories != null && book.BookCategories.Any())
+                {
+                    foreach (var bookCategory in book.BookCategories)
+                    {
+                        var category = await _unitOfWork.CategoryRepository.GetById(bookCategory.CategoryId);
+                        if (category != null)
+                        {
+                            simplifiedBook.BookCategories.Add(new BookCategoryModel
+                            {
+                                CategoryId = category.Id,
+                                CategoryName = category.CategoryName,
+                                BookId = book.Id
+                            });
+                        }
+                    }
+                }
+                
+                resultList.Add(simplifiedBook);
+            }
+            
+            return (resultList, total);
         }
 
         public async Task<List<BookModel>?> SearchWithoutPagination(BookModel bookModel, DateTime? startDate, DateTime? endDate, decimal? minPrice, decimal? maxPrice)
         {
             var bookEntity = _mapper.Map<Book>(bookModel);
             var books = await _bookRepository.SearchWithoutPagination(bookEntity, startDate, endDate, minPrice, maxPrice);
-            return !books.Any() ? null : _mapper.Map<List<BookModel>>(books);
+            
+            if (!books.Any()) 
+                return null;
+            
+            var resultList = new List<BookModel>();
+            
+            // Create simplified book models
+            foreach (var book in books)
+            {
+                // Basic book information
+                var simplifiedBook = new BookModel
+                {
+                    Id = book.Id,
+                    ISBN = book.ISBN,
+                    Title = book.Title,
+                    PublicationDate = book.PublicationDate,
+                    Price = book.Price,
+                    Languages = book.Languages,
+                    Description = book.Description,
+                    Size = book.Size,
+                    Status = book.Status,
+                    PublisherId = book.PublisherId
+                };
+                
+                // Publisher information - simplified
+                if (book.PublisherId.HasValue)
+                {
+                    var publisher = await _unitOfWork.PublisherRepository.GetById(book.PublisherId.Value);
+                    if (publisher != null)
+                    {
+                        simplifiedBook.Publisher = new PublisherModel 
+                        {
+                            Id = publisher.Id,
+                            PublisherName = publisher.PublisherName,
+                            Address = publisher.Address,
+                            Phone = publisher.Phone,
+                            Email = publisher.Email,
+                            Description = publisher.Description,
+                            Website = publisher.Website,
+                        };
+                    }
+                }
+                
+                // Add simplified image information
+                if (book.Images != null && book.Images.Any())
+                {
+                    simplifiedBook.Images = book.Images.Select(i => new Image
+                    {
+                        Id = i.Id,
+                        Url = i.Url,
+                        Type = i.Type,
+                        AltText = i.AltText
+                    }).ToList();
+                }
+                
+                // Initialize empty collections
+                simplifiedBook.BookAuthors = new List<BookAuthorModel>();
+                simplifiedBook.BookCategories = new List<BookCategoryModel>();
+                
+                // Add author information - simplified
+                var bookAuthors = await _unitOfWork.BookAuthorRepository.GetByElement(book.Id, null);
+                if (bookAuthors != null && bookAuthors.Any())
+                {
+                    foreach (var bookAuthor in bookAuthors)
+                    {
+                        var author = await _unitOfWork.AuthorRepository.GetById(bookAuthor.AuthorId);
+                        if (author != null)
+                        {
+                            simplifiedBook.BookAuthors.Add(new BookAuthorModel
+                            {
+                                AuthorId = author.Id,
+                                AuthorName = author.AuthorName,
+                                BookId = book.Id
+                            });
+                        }
+                    }
+                }
+                
+                // Add category information - simplified
+                var bookCategories = await _unitOfWork.BookCategoryRepository.GetByElement(book.Id, null);
+                if (bookCategories != null && bookCategories.Any())
+                {
+                    foreach (var bookCategory in bookCategories)
+                    {
+                        var category = await _unitOfWork.CategoryRepository.GetById(bookCategory.CategoryId);
+                        if (category != null)
+                        {
+                            simplifiedBook.BookCategories.Add(new BookCategoryModel
+                            {
+                                CategoryId = category.Id,
+                                CategoryName = category.CategoryName,
+                                BookId = book.Id
+                            });
+                        }
+                    }
+                }
+                
+                resultList.Add(simplifiedBook);
+            }
+            
+            return resultList;
         }
 
         public async Task<(BookModel?, string)> Add(BookModel bookModel)
@@ -602,4 +903,5 @@ namespace AIBookStreet.Services.Services.Service
         }
     }
 }
+
 
