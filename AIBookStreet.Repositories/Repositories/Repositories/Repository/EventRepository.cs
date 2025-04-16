@@ -111,6 +111,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         {
             var query = GetQueryable(ev => ev.Id == id);
             var ev = await query.Include(e => e.Zone)
+                                    .ThenInclude(z => z.Street)
                                   .Include(at => at.Images)
                                   .SingleOrDefaultAsync();
 
@@ -128,7 +129,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             if (queryable.Any())
             {
-                queryable = queryable.Where(ev => ev.StartDate > DateTime.Now);
+                queryable = queryable.Where(ev => ev.StartDate >= DateTime.Now);
             }
             queryable = GetQueryablePagination(queryable, 1, number);
 
@@ -201,6 +202,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             queryable = queryable.Where(ev => !ev.IsDeleted && ev.AllowAds == true);
             if (queryable.Any())
             {
+                queryable = queryable.Where(ev => ev.StartDate >= DateTime.Now);
                 queryable = queryable.OrderBy(x => Guid.NewGuid());
             }
             var events = await queryable.Take(number).ToListAsync();
