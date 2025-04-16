@@ -32,15 +32,15 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 {
                     queryable = queryable.Where(od => storeIds.Contains(od.Inventory.StoreId));
                 }
-                if (orderId == null)
+                if (orderId != null)
                 {
                     queryable = queryable.Where(od => od.OrderId == orderId);
                 }
-                if (storeId == null)
+                if (storeId != null)
                 {
                     queryable = queryable.Where(od => od.Inventory.StoreId == storeId);
                 }
-                if (entityId == null)
+                if (entityId != null)
                 {
                     queryable = queryable.Where(od => od.Inventory.EntityId == entityId);
                 }

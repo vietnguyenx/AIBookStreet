@@ -19,37 +19,37 @@ namespace AIBookStreet.Services.Services.Service
         private readonly IUnitOfWork _repository = repository;
         public async Task<(long, OrderDetail?)> GetByID(Guid id)
         {
-            var user = await GetUserInfo();
-            var userStores = await _repository.UserStoreRepository.GetByUserId(user.Id);
-            var orderDetailIds = new List<Guid>();
-            if (userStores != null)
-            {
-                var storeIds = new List<Guid>();
-                foreach (var us in userStores)
-                {
-                    storeIds.Add(us.StoreId);
-                }
-                if (storeIds != null)
-                {
-                    foreach (var storeId in storeIds)
-                    {
-                        var orderDetails = await _repository.OrderDetailRepository.GetAllOrderDetail(null, null, storeId, null);
-                        if (orderDetails != null)
-                        {
-                            foreach (var orderDetail in orderDetails)
-                            {
-                                orderDetailIds.Add(orderDetail.Id);
-                            }
-                        }
-                    }
-                }
-            }
-            if (orderDetailIds.Contains(id))
-            {
+            //var user = await GetUserInfo();
+            //var userStores = await _repository.UserStoreRepository.GetByUserId(user.Id);
+            //var orderDetailIds = new List<Guid>();
+            //if (userStores != null)
+            //{
+            //    var storeIds = new List<Guid>();
+            //    foreach (var us in userStores)
+            //    {
+            //        storeIds.Add(us.StoreId);
+            //    }
+            //    if (storeIds != null)
+            //    {
+            //        foreach (var storeId in storeIds)
+            //        {
+            //            var orderDetails = await _repository.OrderDetailRepository.GetAllOrderDetail(null, null, storeId, null);
+            //            if (orderDetails != null)
+            //            {
+            //                foreach (var orderDetail in orderDetails)
+            //                {
+            //                    orderDetailIds.Add(orderDetail.Id);
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
+            //if (orderDetailIds.Contains(id))
+            //{
                 var orderDetail = await _repository.OrderDetailRepository.GetByID(id);
                 return (2, orderDetail);
-            }
-            return (0, null);
+            //}
+            //return (0, null);
         }
         public async Task<(long, List<OrderDetail>?)> GetCart(Guid storeId)
         {
@@ -72,17 +72,17 @@ namespace AIBookStreet.Services.Services.Service
         }
         public async Task<List<OrderDetail>?> GetAllOrderDetail(Guid? orderId, Guid? storeId, Guid? entityId)
         {
-            var user = await GetUserInfo();
-            var userStores = await _repository.UserStoreRepository.GetByUserId(user.Id);
-            var storeIds = new List<Guid>();
-            if (userStores != null)
-            {
-                foreach (var us in userStores)
-                {
-                    storeIds.Add(us.StoreId);
-                }
-            }
-            return await _repository.OrderDetailRepository.GetAllOrderDetail(storeIds, orderId, storeId, entityId);
+            //var user = await GetUserInfo();
+            //var userStores = await _repository.UserStoreRepository.GetByUserId(user.Id);
+            //var storeIds = new List<Guid>();
+            //if (userStores != null)
+            //{
+            //    foreach (var us in userStores)
+            //    {
+            //        storeIds.Add(us.StoreId);
+            //    }
+            //}
+            return await _repository.OrderDetailRepository.GetAllOrderDetail(null, orderId, storeId, entityId);
         }
         public async Task<OrderDetail?> AddToCart(OrderDetailModel model)
         {

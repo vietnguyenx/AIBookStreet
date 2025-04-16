@@ -52,7 +52,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [Authorize]
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAnOrderDetailById([FromRoute] Guid id)
         {
@@ -100,7 +100,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
-        [Authorize]
+        [AllowAnonymous]
         [HttpPost("search")]
         public async Task<IActionResult> GetAllOrderDetail(OrderDetailSearchRequest? request)
         {
