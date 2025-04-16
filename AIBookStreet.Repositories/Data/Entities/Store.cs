@@ -27,5 +27,6 @@ namespace AIBookStreet.Repositories.Data.Entities
         public virtual ICollection<Image>? Images { get; set; }
         public virtual ICollection<UserStore> UserStores { get; set; }
         public virtual ICollection<StoreSchedule> StoreSchedules { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
     }
 }
