@@ -88,8 +88,8 @@ namespace AIBookStreet.API.Controllers
 
                 return evt switch
                 {
-                    null => Ok(new ItemResponse<Event>(ConstantMessage.NotFound)),
-                    not null => Ok(new ItemResponse<Event>(ConstantMessage.Success, evt))
+                    null => Ok(new ItemResponse<EventRequest>(ConstantMessage.NotFound)),
+                    not null => Ok(new ItemResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<EventRequest>(evt)))
                 };
             }
             catch (Exception ex)

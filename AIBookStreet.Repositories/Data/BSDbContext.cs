@@ -226,6 +226,10 @@ namespace AIBookStreet.Repositories.Data
                     .WithOne(i => i.Store)
                     .HasForeignKey(i => i.EntityId)
                     .OnDelete(DeleteBehavior.Cascade); // neu bookStore bi xoa, image lien quan cung bi xoa
+                e.HasMany(x => x.Orders)
+                 .WithOne(z => z.Store)
+                 .HasForeignKey(z => z.StoreId)
+                 .OnDelete(DeleteBehavior.SetNull); // 
             });
 
             modelBuilder.Entity<Category>(e =>
@@ -533,7 +537,7 @@ namespace AIBookStreet.Repositories.Data
             });
             modelBuilder.Entity<Order>(o =>
             {
-                o.ToFunction("Orders");
+                o.ToTable("Orders");
                 o.Property(x => x.TotalAmount).IsRequired(false).HasColumnType("decimal(18, 2)");
                 o.Property(x => x.PaymentMethod).IsRequired(true).HasMaxLength(2000);
                 o.Property(x => x.Status).IsRequired(false).HasMaxLength(2000);
@@ -541,6 +545,11 @@ namespace AIBookStreet.Repositories.Data
                 o.HasMany(or => or.OrderDetails)
                 .WithOne(od => od.Order)
                 .HasForeignKey(od => od.OrderId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+                o.HasOne(or => or.Store)
+                .WithMany(or => or.Orders)
+                .HasForeignKey(or => or.StoreId)
                 .OnDelete(DeleteBehavior.SetNull);
             });
 

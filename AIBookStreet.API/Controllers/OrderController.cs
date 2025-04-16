@@ -6,6 +6,7 @@ using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
+using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -61,7 +62,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
-        [Authorize]
+        [AllowAnonymous]
         [HttpPost("search/paginated")]
         public async Task<IActionResult> GetAllOrderPagination(PaginatedRequest<OrderSearchRequest>? request)
         {
@@ -82,7 +83,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
-        [Authorize]
+        [AllowAnonymous]
         [HttpPost("search")]
         public async Task<IActionResult> GetAllOrder(OrderSearchRequest? request)
         {
@@ -96,6 +97,138 @@ namespace AIBookStreet.API.Controllers
                     null => Ok(new ItemListResponse<OrderRequest>(ConstantMessage.Success, null)),
                     not null => Ok(new ItemListResponse<OrderRequest>(ConstantMessage.Success, _mapper.Map<List<OrderRequest>>(orders)))
                 };
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            };
+        }
+        [AllowAnonymous]
+        [HttpGet("statics-for-admin/daily")]
+        public async Task<IActionResult> GetAllStoreStaticsByDate([FromQuery]DateTime? date)
+        {
+            try
+            {
+                var orders = await _service.GetAllStoreStaticsByDate(date);
+                return Ok(new
+                {
+                    success = true,
+                    orderChart = orders.Item1,
+                    orderProfit = orders.Item2,
+                    totalOrder = orders.Item3,
+                    totalProfit = orders.Item4
+                });
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            };
+        }
+        [AllowAnonymous]
+        [HttpGet("statics-for-admin/monthly/{month}/{year}")]
+        public async Task<IActionResult> GetAllStoreStaticsByMonth([FromRoute] int? month, int? year)
+        {
+            try
+            {
+                var orders = await _service.GetAllStoreStaticsByMonth(month, year);
+                return Ok(new
+                {
+                    success = true,
+                    orderChart = orders.Item1,
+                    orderProfit = orders.Item2,
+                    totalOrder = orders.Item3,
+                    totalProfit = orders.Item4
+                });
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            };
+        }
+        [AllowAnonymous]
+        [HttpGet("statics-for-admin/yearly/{year}")]
+        public async Task<IActionResult> GetAllStoreStaticsByYear([FromRoute]int? year)
+        {
+            try
+            {
+                var orders = await _service.GetAllStoreStaticsByYear(year);
+                return Ok(new
+                {
+                    success = true,
+                    orderChart = orders.Item1,
+                    orderProfit = orders.Item2,
+                    totalOrder = orders.Item3,
+                    totalProfit = orders.Item4
+                });
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            };
+        }
+        [AllowAnonymous]
+        [HttpGet("statics-for-store/daily")]
+        public async Task<IActionResult> GetStoreStaticsByDate([FromQuery] DateTime? date, Guid storeId)
+        {
+            try
+            {
+                var orders = await _service.GetStoreStaticsByDate(date, storeId);
+                return Ok(new
+                {
+                    success = true,
+                    orderChart = orders.Item1,
+                    orderProfit = orders.Item2,
+                    totalOrder = orders.Item3,
+                    totalProfit = orders.Item4
+                });
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            };
+        }
+        [AllowAnonymous]
+        [HttpGet("statics-for-store/monthly/{month}/{year}/{storeId}")]
+        public async Task<IActionResult> GetStoreStaticsByMonth([FromRoute] int? month, int? year, Guid storeId)
+        {
+            try
+            {
+                var orders = await _service.GetStoreStaticsByMonth(month, year, storeId);
+                return Ok(new
+                {
+                    success = true,
+                    orderChart = orders.Item1,
+                    orderProfit = orders.Item2,
+                    totalOrder = orders.Item3,
+                    totalProfit = orders.Item4
+                });
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            };
+        }
+        [AllowAnonymous]
+        [HttpGet("statics-for-store/yearly/{year}/{storeId}")]
+        public async Task<IActionResult> GetStoreStaticsByYear([FromRoute] int? year, Guid storeId)
+        {
+            try
+            {
+                var orders = await _service.GetStoreStaticsByYear(year, storeId);
+                return Ok(new
+                {
+                    success = true,
+                    orderChart = orders.Item1,
+                    orderProfit = orders.Item2,
+                    totalOrder = orders.Item3,
+                    totalProfit = orders.Item4
+                });
             }
             catch (Exception ex)
             {
