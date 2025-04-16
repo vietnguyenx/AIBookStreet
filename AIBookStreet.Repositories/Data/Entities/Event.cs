@@ -20,5 +20,6 @@ namespace AIBookStreet.Repositories.Data.Entities
         public Guid? ZoneId { get; set; }
         public virtual Zone? Zone { get; set; }
         public virtual ICollection<Image>? Images { get; set; }
+        public virtual ICollection<EventRegistration>? EventRegistrations { get; set; }
     }
 }

@@ -91,6 +91,7 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
 builder.Services.AddScoped<IStoreScheduleRepository, StoreScheduleRepository>();
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
+builder.Services.AddScoped<IEventRegistrationRepository, EventRegistrationRepository>();
 
 builder.Services.AddScoped<IAuthorService, AuthorService>();
 builder.Services.AddScoped<IBookService, BookService>();
@@ -114,6 +115,7 @@ builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 builder.Services.AddScoped<IPayOSService, PayOSService>();
 builder.Services.AddScoped<IStoreScheduleService, StoreScheduleService>();
 builder.Services.AddScoped<IPersonService, PersonService>();
+builder.Services.AddScoped<IEventRegistrationService, EventRegistrationService>();
 
 // Add HttpClient for Google Books API
 builder.Services.AddHttpClient<IGoogleBookService, GoogleBookService>();

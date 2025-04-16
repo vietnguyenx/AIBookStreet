@@ -84,13 +84,30 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var evt = await _service.GetAnEventById(id);
-
-                return evt switch
+                var result = await _service.GetAnEventById(id);
+                if (result.Item1 == null)
                 {
-                    null => Ok(new ItemResponse<EventRequest>(ConstantMessage.NotFound)),
-                    not null => Ok(new ItemResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<EventRequest>(evt)))
-                };
+                    return Ok(new ItemResponse<EventRequest>(ConstantMessage.NotFound));
+                }
+                var eventInfor = _mapper.Map<EventRequest>(result.Item1);
+                eventInfor.AgeChart = result.Item2;
+                eventInfor.GenderChart = result.Item3;
+                eventInfor.ReferenceChart = result.Item4;
+                eventInfor.AddressChart = result.Item5;
+                return Ok(new ItemResponse<object>(ConstantMessage.Success, eventInfor));
+
+                //return result.Item1 switch
+                //{
+                //    null => Ok(new ItemResponse<EventRequest>(ConstantMessage.NotFound)),
+                //    not null => Ok(new ItemResponse<object>(ConstantMessage.Success, new
+                //    {
+                //        eventInfor = _mapper.Map<EventRequest>(result.Item1),
+                //        ageChart = result.Item2,
+                //        genderChart = result.Item3,
+                //        referenceChart = result.Item4,
+                //        addressChart = result.Item5
+                //    }))
+                //};
             }
             catch (Exception ex)
             {

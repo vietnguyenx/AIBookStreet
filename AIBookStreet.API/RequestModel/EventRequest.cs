@@ -16,5 +16,9 @@ namespace AIBookStreet.API.RequestModel
         public bool IsDeleted { get; set; }
         public virtual ZoneRequest? Zone { get; set; }
         public virtual ICollection<ImageRequest>? Images { get; set; }
+        public List<object>? AgeChart { get; set; }
+        public List<object>? GenderChart { get; set; }
+        public List<object>? ReferenceChart { get; set; }
+        public List<object>? AddressChart { get; set; }
     }
 }

@@ -124,12 +124,12 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         {
             date = date != null ? date : new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
             var queryable = _context.Orders.Where(o => o.CreatedDate.Year == date.Value.Year && o.CreatedDate.Month == date.Value.Month && o.CreatedDate.Day == date.Value.Day && !o.IsDeleted && o.StoreId == storeId);
-            var startTime = new TimeOnly( 0, 0, 0);
-            var endTime = new TimeOnly( 23, 59, 59);
+            var startTime = new TimeOnly( 8, 0, 0);
+            var endTime = new TimeOnly( 22, 59, 59);
             var orderResult = new List<object>();
             var amountResult = new List<object>();
             decimal? totalProfit = 0;
-            for(var i = 0;i<23;i++)
+            for(var i = 0;i<14;i++)
             {
                 var orderCount = await queryable.CountAsync(o => o.CreatedDate.Hour == startTime.Hour);
                 var amounts = await queryable.Where(o => o.CreatedDate.Hour == startTime.Hour).ToListAsync();

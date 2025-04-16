@@ -196,9 +196,11 @@ namespace AIBookStreet.Services.Services.Service
             }
             return (3, null);       //delete fail
         }
-        public async Task<Event?> GetAnEventById(Guid id)
+        public async Task<(Event?, List<object>, List<object>, List<object>, List<object>)> GetAnEventById(Guid id)
         {
-            return await _repository.EventRepository.GetByID(id);
+            var evt = await _repository.EventRepository.GetByID(id);
+            var statistic = await _repository.EventRegistrationRepository.GetStatistic(id);
+            return (evt, statistic.Item1, statistic.Item2, statistic.Item3, statistic.Item4);
         }
         public async Task<(List<Event>?, long)> GetAllEventsPagination(string? key, bool? allowAds, DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
