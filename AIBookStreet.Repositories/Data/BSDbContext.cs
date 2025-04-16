@@ -59,6 +59,7 @@ namespace AIBookStreet.Repositories.Data
         public virtual DbSet<Order> Orders { get; set; } = null!;
         public virtual DbSet<OrderDetail> OrderDetails { get; set; } = null!;
         public virtual DbSet<StoreSchedule> StoreSchedules { get; set; } = null!;
+        public virtual DbSet<EventRegistration> EventRegistrations { get; set; } = null!;
         #endregion  
 
 
@@ -269,6 +270,11 @@ namespace AIBookStreet.Repositories.Data
                     .WithOne(i => i.Event)
                     .HasForeignKey(i => i.EntityId)
                     .OnDelete(DeleteBehavior.Cascade); // neu event bi xoa, image lien quan cung bi xoa
+
+                e.HasMany(x => x.EventRegistrations)
+                 .WithOne(z => z.Event)
+                 .HasForeignKey(z => z.EventId)
+                 .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<Inventory>(e =>
@@ -585,6 +591,22 @@ namespace AIBookStreet.Repositories.Data
                  .WithMany(x => x.StoreSchedules)
                  .HasForeignKey(x => x.StoreId)
                  .OnDelete(DeleteBehavior.Cascade); // store xoa, schedule cung bi xoa
+            });
+            modelBuilder.Entity<EventRegistration>(e =>
+            {
+                e.ToTable("EventRegistrations");
+                e.Property(x => x.RegistrantName).HasMaxLength(255).IsRequired();
+                e.Property(x => x.RegistrantEmail).HasMaxLength(255).IsRequired();
+                e.Property(x => x.RegistrantPhoneNumber).HasMaxLength(255).IsRequired();
+                e.Property(x => x.RegistrantAgeRange).HasMaxLength(255).IsRequired();
+                e.Property(x => x.RegistrantGender).HasMaxLength(255).IsRequired();
+                e.Property(x => x.RegistrantAddress).HasMaxLength(255).IsRequired(false);
+                e.Property(x => x.ReferenceSource).HasMaxLength(1000).IsRequired();
+
+                e.HasOne(x => x.Event)
+                 .WithMany(ev => ev.EventRegistrations)
+                 .HasForeignKey(ev => ev.EventId)
+                 .OnDelete(DeleteBehavior.SetNull);
             });
         }
         #endregion
