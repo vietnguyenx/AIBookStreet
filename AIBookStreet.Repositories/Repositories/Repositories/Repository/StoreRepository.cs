@@ -89,6 +89,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                         EF.Functions.Collate(bs.Type, "Latin1_General_CI_AI").Contains(bookStore.Type));
                 }
 
+                if (bookStore.ZoneId.HasValue)
+                {
+                    queryable = queryable.Where(bs => bs.ZoneId == bookStore.ZoneId);
+                }
             }
             var totalOrigin = queryable.Count();
 
@@ -140,6 +144,11 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 queryable = queryable.Where(bs =>
                     EF.Functions.Collate(bs.Type, "Latin1_General_CI_AI").Contains(bookStore.Type));
+            }
+            
+            if (bookStore.ZoneId.HasValue)
+            {
+                queryable = queryable.Where(bs => bs.ZoneId == bookStore.ZoneId);
             }
 
             return await queryable.Include(bs => bs.Images).ToListAsync();

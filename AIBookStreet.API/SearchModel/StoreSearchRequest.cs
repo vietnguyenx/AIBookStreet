@@ -8,6 +8,6 @@
         public string? Email { get; set; }
         public string? StoreTheme { get; set; }
         public string? Type { get; set; }
-
+        public Guid? ZoneId { get; set; }
     }
 }
