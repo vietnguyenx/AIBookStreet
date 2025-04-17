@@ -307,5 +307,35 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             
             return result;
         }
+
+        public async Task<(TimeSpan averageTime, Dictionary<string, TimeSpan> averageTimeByGender)> GetAveragePresenceTime()
+        {
+            // Calculate average time for all persons
+            var allPersons = await _context.Persons
+                .Where(p => !p.IsDeleted && p.FirstSeen < p.LastSeen) // Ensure valid time range
+                .ToListAsync();
+                
+            var totalSeconds = allPersons.Sum(p => (p.LastSeen - p.FirstSeen).TotalSeconds);
+            var averageTime = allPersons.Any() 
+                ? TimeSpan.FromSeconds(totalSeconds / allPersons.Count) 
+                : TimeSpan.Zero;
+                
+            // Calculate average time by gender
+            var genders = new[] { "male", "female" };
+            var averageTimeByGender = new Dictionary<string, TimeSpan>();
+            
+            foreach (var gender in genders)
+            {
+                var personsOfGender = allPersons.Where(p => p.Gender.ToLower() == gender).ToList();
+                var genderTotalSeconds = personsOfGender.Sum(p => (p.LastSeen - p.FirstSeen).TotalSeconds);
+                var genderAverageTime = personsOfGender.Any() 
+                    ? TimeSpan.FromSeconds(genderTotalSeconds / personsOfGender.Count) 
+                    : TimeSpan.Zero;
+                    
+                averageTimeByGender.Add(gender, genderAverageTime);
+            }
+            
+            return (averageTime, averageTimeByGender);
+        }
     }
 } 

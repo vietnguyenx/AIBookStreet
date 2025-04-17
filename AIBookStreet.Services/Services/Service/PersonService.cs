@@ -119,5 +119,10 @@ namespace AIBookStreet.Services.Services.Service
 
             return await _unitOfWork.PersonRepository.GetVisitorStatsByDateRange(startDate, endDate);
         }
+
+        public async Task<(TimeSpan averageTime, Dictionary<string, TimeSpan> averageTimeByGender)> GetAveragePresenceTime()
+        {
+            return await _unitOfWork.PersonRepository.GetAveragePresenceTime();
+        }
     }
 } 
