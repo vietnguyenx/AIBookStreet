@@ -11,6 +11,7 @@ namespace AIBookStreet.Services.Services.Interface
     {
         Task<bool> SyncPersonsFromAPI();
         Task<int> GetTotalPersonCount();
+        Task<(int totalCount, double percentChange)> GetTotalPersonCountWithChangePercent();
         Task<int> GetPersonCountByGender(string gender);
         Task<Dictionary<string, int>> GetPersonCountByDay(DateTime date);
         Task<Dictionary<string, int>> GetPersonCountByMonth(int year, int month);
@@ -18,5 +19,6 @@ namespace AIBookStreet.Services.Services.Interface
         Task<Dictionary<DateTime, int>> GetDailyAppearancesByDateRange(DateTime startDate, DateTime endDate);
         Task<Dictionary<DateTime, Dictionary<string, int>>> GetDailyAppearancesByDateRangeAndGender(DateTime startDate, DateTime endDate);
         Task<List<object>> GetVisitorStatsByDateRange(DateTime startDate, DateTime endDate);
+        Task<(TimeSpan averageTime, Dictionary<string, TimeSpan> averageTimeByGender)> GetAveragePresenceTime();
     }
 } 

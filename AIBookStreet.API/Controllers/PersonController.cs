@@ -48,11 +48,13 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var result = await _personService.GetTotalPersonCount();
+                var result = await _personService.GetTotalPersonCountWithChangePercent();
                 return Ok(new
                 {
                     success = true,
-                    total = result
+                    total = result.totalCount,
+                    currentMonthPercentChange = result.percentChange,
+                    changeDirection = result.percentChange > 0 ? "increase" : (result.percentChange < 0 ? "decrease" : "unchanged")
                 });
             }
             catch (Exception ex)
@@ -289,6 +291,56 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Lấy thời gian trung bình một người có mặt tại đường sách
+        /// </summary>
+        [HttpGet("stats/average-time")]
+        public async Task<IActionResult> GetAveragePresenceTime()
+        {
+            try
+            {
+                var result = await _personService.GetAveragePresenceTime();
+                
+                // Format the TimeSpan objects to make them more readable
+                var formattedAverageTime = FormatTimeSpan(result.averageTime);
+                var formattedAverageTimeByGender = result.averageTimeByGender.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => FormatTimeSpan(kvp.Value)
+                );
+                
+                // Prepare chart data
+                var chartData = new List<object>
+                {
+                    new { label = "Nam", value = (int)result.averageTimeByGender["male"].TotalMinutes },
+                    new { label = "Nữ", value = (int)result.averageTimeByGender["female"].TotalMinutes }
+                };
+                
+                return Ok(new
+                {
+                    success = true,
+                    averageTime = formattedAverageTime,
+                    averageTimeByGender = formattedAverageTimeByGender,
+                    chartData = chartData,
+                    averageTimeMinutes = (int)result.averageTime.TotalMinutes
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, 
+                    new BaseResponse(false, $"Lỗi: {ex.Message}"));
+            }
+        }
         
+        private string FormatTimeSpan(TimeSpan timeSpan)
+        {
+            if (timeSpan.TotalHours >= 1)
+            {
+                return $"{(int)timeSpan.TotalHours} giờ {timeSpan.Minutes} phút";
+            }
+            else
+            {
+                return $"{timeSpan.Minutes} phút {timeSpan.Seconds} giây";
+            }
+        }
     }
 } 

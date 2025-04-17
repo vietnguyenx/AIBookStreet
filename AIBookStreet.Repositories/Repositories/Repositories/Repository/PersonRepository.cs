@@ -73,6 +73,31 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             return await _context.Persons.CountAsync(p => !p.IsDeleted);
         }
 
+        public async Task<(int currentMonthCount, int previousMonthCount)> GetCurrentAndPreviousMonthCount()
+        {
+            var today = DateTime.Today;
+            
+            // Current month
+            var currentMonthStart = new DateTime(today.Year, today.Month, 1);
+            var currentMonthEnd = currentMonthStart.AddMonths(1).AddDays(-1);
+            
+            // Previous month
+            var previousMonthStart = currentMonthStart.AddMonths(-1);
+            var previousMonthEnd = currentMonthStart.AddDays(-1);
+            
+            var currentMonthCount = await _context.Persons
+                .CountAsync(p => !p.IsDeleted && 
+                            p.FirstSeen >= currentMonthStart && 
+                            p.FirstSeen <= currentMonthEnd);
+                            
+            var previousMonthCount = await _context.Persons
+                .CountAsync(p => !p.IsDeleted && 
+                            p.FirstSeen >= previousMonthStart && 
+                            p.FirstSeen <= previousMonthEnd);
+                            
+            return (currentMonthCount, previousMonthCount);
+        }
+
         public async Task<int> GetPersonCountByGender(string gender)
         {
             return await _context.Persons
@@ -281,6 +306,36 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             }
             
             return result;
+        }
+
+        public async Task<(TimeSpan averageTime, Dictionary<string, TimeSpan> averageTimeByGender)> GetAveragePresenceTime()
+        {
+            // Calculate average time for all persons
+            var allPersons = await _context.Persons
+                .Where(p => !p.IsDeleted && p.FirstSeen < p.LastSeen) // Ensure valid time range
+                .ToListAsync();
+                
+            var totalSeconds = allPersons.Sum(p => (p.LastSeen - p.FirstSeen).TotalSeconds);
+            var averageTime = allPersons.Any() 
+                ? TimeSpan.FromSeconds(totalSeconds / allPersons.Count) 
+                : TimeSpan.Zero;
+                
+            // Calculate average time by gender
+            var genders = new[] { "male", "female" };
+            var averageTimeByGender = new Dictionary<string, TimeSpan>();
+            
+            foreach (var gender in genders)
+            {
+                var personsOfGender = allPersons.Where(p => p.Gender.ToLower() == gender).ToList();
+                var genderTotalSeconds = personsOfGender.Sum(p => (p.LastSeen - p.FirstSeen).TotalSeconds);
+                var genderAverageTime = personsOfGender.Any() 
+                    ? TimeSpan.FromSeconds(genderTotalSeconds / personsOfGender.Count) 
+                    : TimeSpan.Zero;
+                    
+                averageTimeByGender.Add(gender, genderAverageTime);
+            }
+            
+            return (averageTime, averageTimeByGender);
         }
     }
 } 

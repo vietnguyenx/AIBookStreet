@@ -49,6 +49,21 @@ namespace AIBookStreet.Services.Services.Service
             return await _unitOfWork.PersonRepository.GetTotalPersonCount();
         }
 
+        public async Task<(int totalCount, double percentChange)> GetTotalPersonCountWithChangePercent()
+        {
+            var totalCount = await _unitOfWork.PersonRepository.GetTotalPersonCount();
+            var monthCounts = await _unitOfWork.PersonRepository.GetCurrentAndPreviousMonthCount();
+            
+            double percentChange = 0;
+            
+            if (monthCounts.previousMonthCount > 0)
+            {
+                percentChange = ((double)monthCounts.currentMonthCount - monthCounts.previousMonthCount) / monthCounts.previousMonthCount * 100;
+            }
+            
+            return (totalCount, Math.Round(percentChange, 2));
+        }
+
         public async Task<int> GetPersonCountByGender(string gender)
         {
             if (string.IsNullOrEmpty(gender))
@@ -103,6 +118,11 @@ namespace AIBookStreet.Services.Services.Service
                 throw new ArgumentException("Ngày bắt đầu phải trước ngày kết thúc");
 
             return await _unitOfWork.PersonRepository.GetVisitorStatsByDateRange(startDate, endDate);
+        }
+
+        public async Task<(TimeSpan averageTime, Dictionary<string, TimeSpan> averageTimeByGender)> GetAveragePresenceTime()
+        {
+            return await _unitOfWork.PersonRepository.GetAveragePresenceTime();
         }
     }
 } 
