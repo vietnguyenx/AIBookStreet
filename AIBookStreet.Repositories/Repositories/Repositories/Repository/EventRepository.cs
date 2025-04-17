@@ -158,7 +158,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 DateTime date = evt.StartDate.Value.Month < month ? new DateTime(DateTime.Now.Year, (int)month, 1) : (DateTime)evt.StartDate;
                 DateTime endDate = evt.EndDate.Value.Month > month ? new DateTime(DateTime.Now.Year, (int)month, DateTime.DaysInMonth(DateTime.Now.Year, (int)month)) : (DateTime)evt.EndDate;
-                while (date < endDate.AddDays(1))
+                while (date < endDate)
                 {
                     var existed = false;
                     var dateConverted = DateOnly.FromDateTime(date);
