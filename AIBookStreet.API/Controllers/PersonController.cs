@@ -48,11 +48,13 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var result = await _personService.GetTotalPersonCount();
+                var result = await _personService.GetTotalPersonCountWithChangePercent();
                 return Ok(new
                 {
                     success = true,
-                    total = result
+                    total = result.totalCount,
+                    currentMonthPercentChange = result.percentChange,
+                    changeDirection = result.percentChange > 0 ? "increase" : (result.percentChange < 0 ? "decrease" : "unchanged")
                 });
             }
             catch (Exception ex)

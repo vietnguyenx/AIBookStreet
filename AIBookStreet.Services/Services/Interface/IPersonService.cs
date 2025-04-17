@@ -11,6 +11,7 @@ namespace AIBookStreet.Services.Services.Interface
     {
         Task<bool> SyncPersonsFromAPI();
         Task<int> GetTotalPersonCount();
+        Task<(int totalCount, double percentChange)> GetTotalPersonCountWithChangePercent();
         Task<int> GetPersonCountByGender(string gender);
         Task<Dictionary<string, int>> GetPersonCountByDay(DateTime date);
         Task<Dictionary<string, int>> GetPersonCountByMonth(int year, int month);

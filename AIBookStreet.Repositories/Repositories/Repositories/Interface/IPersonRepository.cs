@@ -12,6 +12,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
     {
         Task<bool> SyncPersonsFromAPI(List<Person> persons);
         Task<int> GetTotalPersonCount();
+        Task<(int currentMonthCount, int previousMonthCount)> GetCurrentAndPreviousMonthCount();
         Task<int> GetPersonCountByGender(string gender);
         Task<Dictionary<string, int>> GetPersonCountByDay(DateTime date);
         Task<Dictionary<string, int>> GetPersonCountByMonth(int year, int month);

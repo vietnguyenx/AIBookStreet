@@ -73,6 +73,31 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             return await _context.Persons.CountAsync(p => !p.IsDeleted);
         }
 
+        public async Task<(int currentMonthCount, int previousMonthCount)> GetCurrentAndPreviousMonthCount()
+        {
+            var today = DateTime.Today;
+            
+            // Current month
+            var currentMonthStart = new DateTime(today.Year, today.Month, 1);
+            var currentMonthEnd = currentMonthStart.AddMonths(1).AddDays(-1);
+            
+            // Previous month
+            var previousMonthStart = currentMonthStart.AddMonths(-1);
+            var previousMonthEnd = currentMonthStart.AddDays(-1);
+            
+            var currentMonthCount = await _context.Persons
+                .CountAsync(p => !p.IsDeleted && 
+                            p.FirstSeen >= currentMonthStart && 
+                            p.FirstSeen <= currentMonthEnd);
+                            
+            var previousMonthCount = await _context.Persons
+                .CountAsync(p => !p.IsDeleted && 
+                            p.FirstSeen >= previousMonthStart && 
+                            p.FirstSeen <= previousMonthEnd);
+                            
+            return (currentMonthCount, previousMonthCount);
+        }
+
         public async Task<int> GetPersonCountByGender(string gender)
         {
             return await _context.Persons
