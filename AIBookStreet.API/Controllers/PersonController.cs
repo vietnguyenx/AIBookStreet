@@ -311,8 +311,16 @@ namespace AIBookStreet.API.Controllers
                 // Prepare chart data
                 var chartData = new List<object>
                 {
-                    new { label = "Nam", value = (int)result.averageTimeByGender["male"].TotalMinutes },
-                    new { label = "Nữ", value = (int)result.averageTimeByGender["female"].TotalMinutes }
+                    new { 
+                        label = "Nam", 
+                        value = (int)result.averageTimeByGender["male"].TotalMinutes,
+                        time = FormatTimeHHmm(result.averageTimeByGender["male"])
+                    },
+                    new { 
+                        label = "Nữ", 
+                        value = (int)result.averageTimeByGender["female"].TotalMinutes,
+                        time = FormatTimeHHmm(result.averageTimeByGender["female"])
+                    }
                 };
                 
                 return Ok(new
@@ -340,6 +348,108 @@ namespace AIBookStreet.API.Controllers
             else
             {
                 return $"{timeSpan.Minutes} phút {timeSpan.Seconds} giây";
+            }
+        }
+
+        private string FormatTimeHHmm(TimeSpan timeSpan)
+        {
+            int hours = (int)timeSpan.TotalHours;
+            int minutes = timeSpan.Minutes;
+            return $"{hours:D2}{minutes:D2}";
+        }
+        
+        /// <summary>
+        /// Lấy thống kê số lượng khách theo giờ
+        /// </summary>
+        [HttpGet("stats/hourly")]
+        public async Task<IActionResult> GetVisitorCountsByHour([FromQuery] DateTime? date = null)
+        {
+            try
+            {
+                var result = await _personService.GetVisitorCountsByHour(date);
+                
+                // Chuyển đổi kết quả sang định dạng phù hợp cho biểu đồ
+                var hours = Enumerable.Range(0, 24).Select(h => $"{h:D2}:00").ToArray();
+                var maleValues = Enumerable.Range(0, 24).Select(h => result[h]["male"]).ToArray();
+                var femaleValues = Enumerable.Range(0, 24).Select(h => result[h]["female"]).ToArray();
+                var totalValues = Enumerable.Range(0, 24).Select(h => result[h]["total"]).ToArray();
+                
+                var chartData = new
+                {
+                    labels = hours,
+                    datasets = new[] 
+                    {
+                        new 
+                        {
+                            label = "Nam",
+                            data = maleValues
+                        },
+                        new 
+                        {
+                            label = "Nữ",
+                            data = femaleValues
+                        },
+                        new 
+                        {
+                            label = "Tổng",
+                            data = totalValues
+                        }
+                    }
+                };
+                
+                // Thống kê thêm về giờ cao điểm
+                var peakHour = Enumerable.Range(0, 24)
+                    .OrderByDescending(h => result[h]["total"])
+                    .First();
+                
+                var quietHour = Enumerable.Range(0, 24)
+                    .Where(h => result[h]["total"] > 0)  // Chỉ xét những giờ có khách
+                    .OrderBy(h => result[h]["total"])
+                    .FirstOrDefault();
+                    
+                // Tính trung bình khách mỗi giờ
+                var totalVisitors = Enumerable.Range(0, 24)
+                    .Sum(h => result[h]["total"]);
+                    
+                var hourWithVisitors = Enumerable.Range(0, 24)
+                    .Count(h => result[h]["total"] > 0);
+                    
+                var averageVisitorsPerActiveHour = hourWithVisitors > 0
+                    ? Math.Round((double)totalVisitors / hourWithVisitors, 2)
+                    : 0;
+                
+                return Ok(new
+                {
+                    success = true,
+                    date = date?.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd"),
+                    hourlyStats = result,
+                    chartData = chartData,
+                    peakHour = new
+                    {
+                        hour = $"{peakHour:D2}:00",
+                        visitors = result[peakHour]["total"],
+                        male = result[peakHour]["male"],
+                        female = result[peakHour]["female"]
+                    },
+                    quietestHour = new
+                    {
+                        hour = $"{quietHour:D2}:00",
+                        visitors = result[quietHour]["total"],
+                        male = result[quietHour]["male"],
+                        female = result[quietHour]["female"]
+                    },
+                    averageStats = new
+                    {
+                        averageVisitorsPerActiveHour = averageVisitorsPerActiveHour,
+                        totalVisitors = totalVisitors,
+                        activeHours = hourWithVisitors
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, 
+                    new BaseResponse(false, $"Lỗi: {ex.Message}"));
             }
         }
     }

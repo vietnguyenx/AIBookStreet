@@ -337,5 +337,53 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             
             return (averageTime, averageTimeByGender);
         }
+
+        public async Task<Dictionary<int, Dictionary<string, int>>> GetVisitorCountsByHour(DateTime? date = null)
+        {
+            var result = new Dictionary<int, Dictionary<string, int>>();
+            
+            // Initialize result with all hours of the day (0-23)
+            for (int hour = 0; hour < 24; hour++)
+            {
+                result[hour] = new Dictionary<string, int>
+                {
+                    { "male", 0 },
+                    { "female", 0 },
+                    { "total", 0 }
+                };
+            }
+            
+            // Set the date filter
+            var queryDate = date?.Date ?? DateTime.Today;
+            var startDate = queryDate;
+            var endDate = startDate.AddDays(1).AddSeconds(-1);
+            
+            // Get all persons for the specified date
+            var persons = await _context.Persons
+                .Where(p => !p.IsDeleted && 
+                           p.FirstSeen >= startDate && 
+                           p.FirstSeen <= endDate)
+                .ToListAsync();
+                
+            // Group by hour and gender
+            foreach (var person in persons)
+            {
+                int hour = person.FirstSeen.Hour;
+                string gender = person.Gender.ToLower();
+                
+                if (gender == "male" || gender == "female")
+                {
+                    result[hour][gender] += 1;
+                    result[hour]["total"] += 1;
+                }
+                else
+                {
+                    // Handle other gender if needed
+                    result[hour]["total"] += 1;
+                }
+            }
+            
+            return result;
+        }
     }
 } 
