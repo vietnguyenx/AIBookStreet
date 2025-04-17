@@ -116,6 +116,7 @@ builder.Services.AddScoped<IPayOSService, PayOSService>();
 builder.Services.AddScoped<IStoreScheduleService, StoreScheduleService>();
 builder.Services.AddScoped<IPersonService, PersonService>();
 builder.Services.AddScoped<IEventRegistrationService, EventRegistrationService>();
+builder.Services.AddScoped<IQRGeneratorService, QRGeneratorService>();
 
 // Add HttpClient for Google Books API
 builder.Services.AddHttpClient<IGoogleBookService, GoogleBookService>();
@@ -177,6 +178,16 @@ PayOS payOS = new(builder.Configuration["payOS:ClientId"] ?? throw new Exception
                     builder.Configuration["payOS:ApiKey"] ?? throw new Exception("Cannot find environment"),
                     builder.Configuration["payOS:ChecksumKey"] ?? throw new Exception("Cannot find environment"));
 builder.Services.AddSingleton(payOS);
+
+//add mail configuration
+string defaultFromEmail = builder.Configuration["EmailSettings:From"]!;
+string host = builder.Configuration["EmailSettings:SmtpServer"]!;
+int port = int.Parse(builder.Configuration["EmailSettings:Port"]!);
+string username = builder.Configuration["EmailSettings:Email"]!;
+string password = builder.Configuration["EmailSettings:Password"]!;
+
+builder.Services.AddFluentEmail(defaultFromEmail).AddSmtpSender(host, port, username, password);
+builder.Services.AddRazorTemplating();
 
 var app = builder.Build();
 

@@ -5,17 +5,27 @@ using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using QRCoder;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.Json;
+using FluentEmail.Core;
+using Razor.Templating.Core;
+using System.Net.Mail;
+using System.Net.Mime;
 
 namespace AIBookStreet.Services.Services.Service
 {
-    public class EventRegistrationService(IUnitOfWork repository, IMapper mapper, IHttpContextAccessor httpContextAccessor) : BaseService<EventRegistration>(mapper, repository, httpContextAccessor), IEventRegistrationService
+    public class EventRegistrationService(IUnitOfWork repository, IMapper mapper, IHttpContextAccessor httpContextAccessor, IFluentEmailFactory fluentEmailFactory, IRazorTemplateEngine razorTemplateEngine) : BaseService<EventRegistration>(mapper, repository, httpContextAccessor), IEventRegistrationService
     {
         private readonly IUnitOfWork _repository = repository;
+        private readonly IFluentEmailFactory _fluentEmailFactory = fluentEmailFactory;
+        private readonly IRazorTemplateEngine _razorTemplateEngine = razorTemplateEngine;
         public async Task<(long, EventRegistration?)> AddAnEventRegistration(EventRegistrationModel model)
         {
             var existed = await _repository.EventRegistrationRepository.GetByEmail(model.EventId, model.RegistrantEmail);
@@ -28,6 +38,7 @@ namespace AIBookStreet.Services.Services.Service
             var isSuccess = await _repository.EventRegistrationRepository.Add(setEventRegistrationModel);
             if (isSuccess)
             {
+                await GenerateQRCode(eventRegistrationModel);
                 return (2, setEventRegistrationModel);
             }
             return (3, null);
@@ -80,6 +91,41 @@ namespace AIBookStreet.Services.Services.Service
         public async Task<(List<object>, List<object>, List<object>, List<object>)> Test (Guid eventId)
         {
             return await _repository.EventRegistrationRepository.GetStatistic(eventId);
+        }
+
+        public async Task GenerateQRCode(EventRegistration model)
+        {
+            var evt = await _repository.EventRepository.GetByID(model.EventId);
+            object data = new
+            {
+                Id = model.Id,
+                EventName = evt.EventName,
+                Name = model.RegistrantName,
+                Gender = model.RegistrantGender,
+                Age = model.RegistrantAgeRange,
+                Email = model.RegistrantEmail,
+                Phone = model.RegistrantPhoneNumber,
+                Address = model.RegistrantAddress
+            };
+            string jsonData = JsonSerializer.Serialize(data);
+            QRCodeGenerator qrGenerator = new QRCodeGenerator();
+            QRCodeData qrCodeData = qrGenerator.CreateQrCode(jsonData, QRCodeGenerator.ECCLevel.Q);
+            QRCode qrCode = new(qrCodeData);
+            Bitmap qrCodeImage = qrCode.GetGraphic(20);
+            string tempFilePath = Path.Combine(Path.GetTempPath(), "qrCode.png");
+            qrCodeImage.Save(tempFilePath, ImageFormat.Png);
+            await SendEmail(model, evt.EventName, tempFilePath);
+            File.Delete(tempFilePath);
+        }
+        public async Task SendEmail(EventRegistration data, string eventName, string tempFilePath)
+        {
+            var htmlBody = await _razorTemplateEngine.RenderAsync("ResponseModel/EventRegistration.cshtml", data);
+            await _fluentEmailFactory.Create()
+                .To(data.RegistrantEmail)
+                .Subject("[SmartBookStreet] THƯ MỜI THAM DỰ SỰ KIỆN: " + eventName)
+                .Body(htmlBody, true)
+                .AttachFromFilename(tempFilePath, MediaTypeNames.Image.Png, "QRCode.png")
+                .SendAsync();
         }
     }
 }

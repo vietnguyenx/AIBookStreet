@@ -1,0 +1,114 @@
+﻿@model AIBookStreet.Repositories.Data.Entities.EventRegistration
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        td {
+            text-align: left;
+        }
+    </style>
+    <title></title>
+</head>
+
+<body style="font-family: 'Roboto', sans-serif">
+    <header style="background-color: #ffe5b4; padding: 20px">
+        <a href=""
+           class=""
+           style="
+          color: black;
+          text-decoration: none;
+          display: flex;
+          gap: 4px;
+          justify-content: center;
+        ">
+            <div class="">
+                <img src="https://th.bing.com/th/id/OIP.Hysz-KWv7FXNrBEvEWn3agHaHa?rs=1&pid=ImgDetMain"
+                     height="30"
+                     width="30"
+                     alt="" />
+            </div>
+            <div class=""
+                 style="
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+          ">
+                Đường sách thành phố Hồ Chí Minh
+            </div>
+        </a>
+    </header>
+    <main style="
+        display: flex;
+        flex-direction: column;
+        margin-inline: auto;
+        padding-inline: 10rem;
+      ">
+        <p class="intro">
+            Chân thành cảm ơn ông/bà <strong>@Model.RegistrantName</strong> đã đăng
+            ký tham gia sự kiện, dưới đây là thông
+            tin chi tiết đơn đăng ký của bạn:
+        </p>
+        <div class="info-table-wrapper" style="width: 100%">
+            <table class="info-table" style="width: 20%">
+                <tbody style="text-align: center">
+                    <tr>
+                        <td>
+                            <li><strong>Tên:</strong></li>
+                        </td>
+                        <td>@Model.RegistrantName</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <li><strong>Giới tính:</strong></li>
+                        </td>
+                        <td>@Model.RegistrantGender</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <li><strong>Độ tuổi:</strong></li>
+                        </td>
+                        <td>@Model.RegistrantAgeRange</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <li><strong>Email:</strong></li>
+                        </td>
+                        <td>@Model.RegistrantEmail</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <li><strong>SĐT:</strong></li>
+                        </td>
+                        <td>@Model.RegistrantPhoneNumber</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <li><strong>Địa chỉ:</strong></li>
+                        </td>
+                        <td>@Model.RegistrantAddress</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        @* <div class="info-table-wrapper"
+             style="width: 100%; display: flex; justify-content: center">
+            <img src="cid:qrCodeImage" style="height: auto; width: 20%" alt="" />
+        </div> *@
+        <p>
+            Nếu bạn có bất kì thắc mắc về đơn hàng hãy liên hệ ngay với chúng tôi để
+            được giải đáp kịp thời
+        </p>
+        <p>Số điện thoại nhân viên: <strong>0123456789</strong></p>
+    </main>
+</body>
+</html>
