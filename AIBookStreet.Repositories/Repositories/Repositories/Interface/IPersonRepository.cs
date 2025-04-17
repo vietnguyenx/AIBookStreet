@@ -21,5 +21,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
         Task<Dictionary<DateTime, Dictionary<string, int>>> GetDailyAppearancesByDateRangeAndGender(DateTime startDate, DateTime endDate);
         Task<List<object>> GetVisitorStatsByDateRange(DateTime startDate, DateTime endDate);
         Task<(TimeSpan averageTime, Dictionary<string, TimeSpan> averageTimeByGender)> GetAveragePresenceTime();
+        Task<Dictionary<int, Dictionary<string, int>>> GetVisitorCountsByHour(DateTime? date = null);
     }
 } 

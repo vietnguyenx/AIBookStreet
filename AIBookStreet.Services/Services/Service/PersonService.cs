@@ -124,5 +124,10 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _unitOfWork.PersonRepository.GetAveragePresenceTime();
         }
+
+        public async Task<Dictionary<int, Dictionary<string, int>>> GetVisitorCountsByHour(DateTime? date = null)
+        {
+            return await _unitOfWork.PersonRepository.GetVisitorCountsByHour(date);
+        }
     }
 } 
