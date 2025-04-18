@@ -7,6 +7,8 @@ using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using System.Security.Policy;
 
 namespace AIBookStreet.API.Controllers
 {
@@ -26,7 +28,25 @@ namespace AIBookStreet.API.Controllers
                 return result.Item1 switch
                 {
                     1 => Ok(new BaseResponse(false, "Đã tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã thêm!")),
+                    2 => Ok(new ItemResponse<object>("Đã thêm!", new
+                    {
+                        id = result.Item2.Id,
+                        ticketCode = result.Item2.TicketCode,
+                        eventId = result.Item2.EventRegistration.EventId,
+                        registrationId = result.Item2.RegistrationId,
+                        attendeeName = result.Item2.EventRegistration.RegistrantName,
+                        attendeeEmail = result.Item2.EventRegistration.RegistrantEmail,
+                        attendeePhone = result.Item2.EventRegistration.RegistrantPhoneNumber,
+                        attendeeAddress = result.Item2.EventRegistration.RegistrantAddress,
+                        eventName = result.Item2.EventRegistration.Event.EventName,
+                        eventStartDate = result.Item2.EventRegistration.Event.StartDate,
+                        eventEndDate = result.Item2.EventRegistration.Event.EndDate,
+                        zoneId = result.Item2.EventRegistration.Event.ZoneId,
+                        zoneName = result.Item2.EventRegistration.Event.Zone.ZoneName,
+                        latitude = result.Item2.EventRegistration.Event.Zone.Latitude,
+                        longitude = result.Item2.EventRegistration.Event.Zone.Longitude,
+                        issuedAt = result.Item2.CreatedDate
+                    })),
                     _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
@@ -35,46 +55,46 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [AllowAnonymous]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAnEventRegistration([FromRoute] Guid id, EventRegistrationModel model)
-        {
-            try
-            {
-                var result = await _service.UpdateAnEventRegistration(id, model);
+        //[AllowAnonymous]
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> UpdateAnEventRegistration([FromRoute] Guid id, EventRegistrationModel model)
+        //{
+        //    try
+        //    {
+        //        var result = await _service.UpdateAnEventRegistration(id, model);
 
-                return result.Item1 switch
-                {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã cập nhật thông tin!")),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
-                };
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-        [AllowAnonymous]
-        [HttpPatch("{id}")]
-        public async Task<IActionResult> DeleteAnEventRegistration([FromRoute] Guid id)
-        {
-            try
-            {
-                var result = await _service.DeleteAnEventRegistration(id);
+        //        return result.Item1 switch
+        //        {
+        //            1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+        //            2 => Ok(new BaseResponse(true, "Đã cập nhật thông tin!")),
+        //            _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
+        //[AllowAnonymous]
+        //[HttpPatch("{id}")]
+        //public async Task<IActionResult> DeleteAnEventRegistration([FromRoute] Guid id)
+        //{
+        //    try
+        //    {
+        //        var result = await _service.DeleteAnEventRegistration(id);
 
-                return result.Item1 switch
-                {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã xóa thông tin!")),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
-                };
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        //        return result.Item1 switch
+        //        {
+        //            1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+        //            2 => Ok(new BaseResponse(true, "Đã xóa thông tin!")),
+        //            _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
         [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAnEventRegistrationById([FromRoute] Guid id)

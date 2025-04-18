@@ -53,9 +53,10 @@ namespace AIBookStreet.Services.Services.Service
                 var htmlBody = await _razorTemplateEngine.RenderAsync("ResponseModel/EventRegistration.cshtml", evtRegistration);
                 string tempFilePath = Path.Combine(Path.GetTempPath(), "qrCode.png");
                 qrCodeImage.Save(tempFilePath, ImageFormat.Png);
+                                
                 await _fluentEmailFactory.Create()
                     .To(email)
-                    .Subject("[SmartBookStreet] Thư cảm ơn")
+                    .Subject("[SmartBookStreet] Thư cảm ơn")                    
                     .Body(htmlBody, true)
                     .AttachFromFilename(tempFilePath, MediaTypeNames.Image.Png, "QRCode.png")
                     .SendAsync();

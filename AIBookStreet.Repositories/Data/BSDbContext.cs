@@ -60,6 +60,7 @@ namespace AIBookStreet.Repositories.Data
         public virtual DbSet<OrderDetail> OrderDetails { get; set; } = null!;
         public virtual DbSet<StoreSchedule> StoreSchedules { get; set; } = null!;
         public virtual DbSet<EventRegistration> EventRegistrations { get; set; } = null!;
+        public virtual DbSet<Ticket> Tickets { get; set; } = null!;
         #endregion  
 
 
@@ -605,8 +606,24 @@ namespace AIBookStreet.Repositories.Data
 
                 e.HasOne(x => x.Event)
                  .WithMany(ev => ev.EventRegistrations)
-                 .HasForeignKey(ev => ev.EventId)
+                 .HasForeignKey(er => er.EventId)
                  .OnDelete(DeleteBehavior.SetNull);
+
+                e.HasOne(x => x.Ticket)
+                .WithOne(t => t.EventRegistration)
+                .HasForeignKey<Ticket>(t => t.RegistrationId)
+                .OnDelete(DeleteBehavior.Cascade);
+            });
+            modelBuilder.Entity<Ticket>(e =>
+            {
+                e.ToTable("Tickets");
+                e.Property(x => x.TicketCode).HasMaxLength(20).IsRequired();
+                e.Property(x => x.SecretPasscode).HasMaxLength(6).IsRequired();
+
+                e.HasOne(x => x.EventRegistration)
+                .WithOne(er => er.Ticket)
+                .HasForeignKey<Ticket>(t => t.RegistrationId)
+                .OnDelete(DeleteBehavior.SetNull);
             });
         }
         #endregion

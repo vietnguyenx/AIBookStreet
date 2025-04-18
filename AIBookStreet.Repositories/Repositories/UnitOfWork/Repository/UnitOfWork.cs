@@ -37,5 +37,6 @@ namespace AIBookStreet.Repositories.Repositories.UnitOfWork.Repository
         public IStoreScheduleRepository StoreScheduleRepository => GetRepository<IStoreScheduleRepository>();
         public IPersonRepository PersonRepository => GetRepository<IPersonRepository>();
         public IEventRegistrationRepository EventRegistrationRepository => GetRepository<IEventRegistrationRepository>();
+        public ITicketRepository TicketRepository => GetRepository<ITicketRepository>();
     }
 }
