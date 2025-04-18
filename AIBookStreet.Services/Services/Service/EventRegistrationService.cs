@@ -43,18 +43,18 @@ namespace AIBookStreet.Services.Services.Service
                 await SendEmail(evtRegis);
 
                 var ticketCode = GenerateRandomString(10);
-                var ticketCodeExist = _repository.TickRepository.SearchTicketCode(evtRegis.EventId, ticketCode);
+                var ticketCodeExist = _repository.TicketRepository.SearchTicketCode(evtRegis.EventId, ticketCode);
                 while (ticketCodeExist != null)
                 {
                     ticketCode = GenerateRandomString(10);
-                    ticketCodeExist = _repository.TickRepository.SearchTicketCode(evtRegis.EventId, ticketCode);
+                    ticketCodeExist = _repository.TicketRepository.SearchTicketCode(evtRegis.EventId, ticketCode);
                 }
                 var secretPasscode = GenerateRandomNumber(1000, 999999);
-                var secretPasscodeExist = _repository.TickRepository.SearchSecretPasscode(evtRegis.EventId, secretPasscode.ToString());
+                var secretPasscodeExist = _repository.TicketRepository.SearchSecretPasscode(evtRegis.EventId, secretPasscode.ToString());
                 while (secretPasscodeExist != null)
                 {
                     secretPasscode = GenerateRandomNumber(1000, 999999);
-                    secretPasscodeExist = _repository.TickRepository.SearchSecretPasscode(evtRegis.EventId, secretPasscode.ToString());
+                    secretPasscodeExist = _repository.TicketRepository.SearchSecretPasscode(evtRegis.EventId, secretPasscode.ToString());
                 }
 
                 var ticket = new TicketModel { 
@@ -65,7 +65,7 @@ namespace AIBookStreet.Services.Services.Service
                 var addTicket = await _ticketService.AddATicket(ticket);
                 if (addTicket != null)
                 {
-                    return (2, await _repository.TickRepository.GetByID(addTicket.Id));
+                    return (2, await _repository.TicketRepository.GetByID(addTicket.Id));
                 }
 
                 return (3, null);

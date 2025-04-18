@@ -21,7 +21,7 @@ namespace AIBookStreet.Services.Services.Service
             {
                 var ticket = _mapper.Map<Ticket>(model);
                 var setTicket = await SetBaseEntityToCreateFunc(ticket);
-                var isSuccess = await _repository.TickRepository.Add(setTicket);
+                var isSuccess = await _repository.TicketRepository.Add(setTicket);
                 if (isSuccess)
                 {
                     return setTicket;
@@ -35,7 +35,7 @@ namespace AIBookStreet.Services.Services.Service
         }
         public async Task<Ticket?> GetTicket(string email, string passcode)
         {
-            return await _repository.TickRepository.GetTicket(email, passcode);
+            return await _repository.TicketRepository.GetTicket(email, passcode);
         }
     }
 }
