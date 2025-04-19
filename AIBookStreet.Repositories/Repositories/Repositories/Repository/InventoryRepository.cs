@@ -25,6 +25,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var query = GetQueryable(i => i.EntityId == bookId);
             return await query
                 .Include(i => i.Book)
+                .Include(i => i.Souvenir)
                 .Include(i => i.Store)
                 .ToListAsync();
         }
@@ -34,6 +35,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var query = GetQueryable(i => i.StoreId == storeId);
             return await query
                 .Include(i => i.Book)
+                .Include(i => i.Souvenir)
                 .Include(i => i.Store)
                 .ToListAsync();
         }
@@ -51,10 +53,11 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         public async Task<Inventory?> GetByID(Guid? id)
         {
             var query = GetQueryable(at => at.Id == id);
-            var author = await query.Include(i => i.Book)
+            var author = await query
+                .Include(i => i.Book)
                 .Include(i => i.Souvenir)
                 .Include(i => i.Store)
-                                  .SingleOrDefaultAsync();
+                .SingleOrDefaultAsync();
 
             return author;
         }
