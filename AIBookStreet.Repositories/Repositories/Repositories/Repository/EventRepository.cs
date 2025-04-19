@@ -4,6 +4,7 @@ using AIBookStreet.Repositories.Repositories.Base;
 using AIBookStreet.Repositories.Repositories.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -207,6 +208,29 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             }
             var events = await queryable.Take(number).ToListAsync();
             return events;
+        }
+        public async Task<object> GetNumberEventInMonth(int month)
+        {
+            var monthData = await CountNumberEventInMonth(month);
+            var lastMonthData = await CountNumberEventInMonth(month - 1);
+            return new
+            {
+                success = true,
+                total = monthData,
+                change = monthData - lastMonthData,
+                direction = monthData - lastMonthData > 0 ? "increase" : monthData - lastMonthData == 0 ? "maintain" : "descrease"
+            };
+        }
+
+        public async Task<int> CountNumberEventInMonth (int month)
+        {
+            var queryable = GetQueryable();
+            queryable = queryable.Where(e => !e.IsDeleted && ((e.StartDate.Value.Month == month && e.EndDate.Value.Month == month ) ||
+                                                                (e.StartDate.Value.Month == month && e.EndDate.Value.Month == (month + 1)) ||
+                                                                (e.StartDate.Value.Month == (month - 1) && e.EndDate.Value.Month == month))
+            );
+            var eventRegistrations = await queryable.ToListAsync();
+            return eventRegistrations.Count;
         }
     }
 }

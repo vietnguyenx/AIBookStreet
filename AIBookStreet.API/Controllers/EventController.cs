@@ -215,5 +215,20 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [AllowAnonymous]
+        [HttpGet("statistic/total")]
+        public async Task<IActionResult> GetTotal(int month)
+        {
+            try
+            {
+                var events = await _service.GetNumberEventInMonth(month);
+
+                return Ok(events);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
