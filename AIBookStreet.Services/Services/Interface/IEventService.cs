@@ -19,5 +19,6 @@ namespace AIBookStreet.Services.Services.Interface
         Task<List<DateModel>?> GetEventDatesInMonth(int? month);
         Task<List<Event>?> GetEventByDate(DateTime? date);
         Task<List<Event>> GetRandom(int number);
+        Task<object> GetNumberEventInMonth(int month);
     }
 }
