@@ -65,29 +65,56 @@ namespace AIBookStreet.Services.Services.Service
                     return;
                 }
 
-                var uri = new Uri(fileUrl);
+                _logger.LogInformation($"Attempting to delete file: {fileUrl}");
+
+                // Handle different URL formats
+                string fileName;
                 
-                // Check if this is a Firebase Storage URL
-                if (!uri.Host.Contains("firebasestorage.googleapis.com"))
+                try
                 {
-                    _logger.LogWarning($"Skipping deletion of non-Firebase Storage URL: {fileUrl}");
-                    return;
+                    var uri = new Uri(fileUrl);
+                    
+                    // Check if this is a Firebase Storage URL
+                    if (!uri.Host.Contains("firebasestorage"))
+                    {
+                        _logger.LogWarning($"Skipping deletion of non-Firebase Storage URL: {fileUrl}");
+                        return;
+                    }
+
+                    // Extract the file name from the URL
+                    if (uri.AbsolutePath.Contains("/o/"))
+                    {
+                        // Standard Firebase URL format: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{fileName}?alt=media
+                        var pathParts = uri.AbsolutePath.Split(new[] { "/o/" }, StringSplitOptions.None);
+                        if (pathParts.Length > 1)
+                        {
+                            fileName = Uri.UnescapeDataString(pathParts[1].Split('?')[0]);
+                        }
+                        else
+                        {
+                            throw new ArgumentException($"Could not extract filename from Firebase URL: {fileUrl}");
+                        }
+                    }
+                    else
+                    {
+                        // Handle alternative URL structures
+                        _logger.LogWarning($"Using fallback URL parsing for: {fileUrl}");
+                        var segments = uri.Segments;
+                        fileName = Uri.UnescapeDataString(segments[segments.Length - 1].Split('?')[0]);
+                    }
+                }
+                catch (UriFormatException ex)
+                {
+                    _logger.LogError($"Invalid URL format: {fileUrl}, Error: {ex.Message}");
+                    throw new ArgumentException($"Invalid URL format: {fileUrl}");
                 }
 
-                // Extract the file name from the Firebase Storage URL
-                // URL format: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{fileName}?alt=media
-                var segments = uri.Segments;
-                if (segments.Length < 4)
-                {
-                    throw new ArgumentException("Invalid Firebase Storage URL format");
-                }
-                
-                // The file name is the 4th segment (index 3)
-                var fileName = Uri.UnescapeDataString(segments[3]);
+                _logger.LogInformation($"Deleting file with name: {fileName} from bucket: {_bucketName}");
                 await _storageClient.DeleteObjectAsync(_bucketName, fileName);
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Failed to delete file: {fileUrl}, Error: {ex.Message}");
                 throw new Exception($"Failed to delete file: {ex.Message}");
             }
         }

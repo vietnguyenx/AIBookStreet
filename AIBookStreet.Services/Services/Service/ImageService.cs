@@ -115,28 +115,46 @@ namespace AIBookStreet.Services.Services.Service
 
         public async Task<(long, Image?)> DeleteAnImage(Guid id)
         {
-            var existed = await _repository.ImageRepository.GetByID(id);
-            if (existed == null)
-            {
-                return (1, null); //không tồn tại
-            }
-
             try
             {
+                // Use repository to get the entity without tracking to avoid conflicts
+                var query = _repository.ImageRepository.GetQueryable().Where(i => i.Id == id);
+                var existed = await query.AsNoTracking().FirstOrDefaultAsync();
+                
+                if (existed == null)
+                {
+                    return (1, null); // Entity doesn't exist
+                }
+
                 // Delete file from Firebase first
                 await _firebaseStorage.DeleteFileAsync(existed.Url);
 
-                existed.Type = null;
-                existed.EntityId = null;
-                existed = await SetBaseEntityToUpdateFunc(existed);
+                // Create a new entity instance to update
+                var entityToUpdate = new Image
+                {
+                    Id = existed.Id,
+                    Url = existed.Url,
+                    AltText = existed.AltText,
+                    CreatedBy = existed.CreatedBy,
+                    CreatedDate = existed.CreatedDate,
+                    IsDeleted = existed.IsDeleted,
+                    // Set fields to null as part of the deletion process
+                    Type = null,
+                    EntityId = null
+                };
 
-                return await _repository.ImageRepository.Delete(existed) 
-                    ? (2, existed) //delete thành công
-                    : (3, null);   //delete fail
+                // Update the entity as part of deletion process
+                entityToUpdate = await SetBaseEntityToUpdateFunc(entityToUpdate);
+
+                // Perform the delete operation
+                return await _repository.ImageRepository.Delete(entityToUpdate) 
+                    ? (2, entityToUpdate) // Delete successful
+                    : (3, null);         // Delete failed
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                // Log the exception
+                throw new Exception($"Error deleting image: {ex.Message}", ex);
             }
         }
 
