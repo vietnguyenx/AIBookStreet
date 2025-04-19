@@ -35,7 +35,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return eventRegistration;
         }
-        public async Task<(List<object>, List<object>, List<object>, List<object>)> GetStatistic(Guid? eventId)
+        public async Task<(List<object>, List<object>, List<object>, List<object>, List<object>)> GetStatistic(Guid? eventId)
         {
             var queryable = GetQueryable();
             queryable = queryable.Where(z => !z.IsDeleted && z.EventId == eventId);
@@ -43,6 +43,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var genderStatistic = new List<object>();
             var referenceStatistic = new List<object>();
             var addressStatistic = new List<object>();
+            var hasAttendedBeforeStatic = new List<object>();
 
             var ageRangeCounts = await queryable.GroupBy(er => er.RegistrantAgeRange)
                                         .Select(group => new
@@ -66,6 +67,12 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                                         .Select(group => new
                                         {
                                             Address = group.Key,
+                                            Count = group.Count()
+                                        }).ToListAsync();
+            var hasAttendedBeforeCount = await queryable.GroupBy(er => er.HasAttendedBefore)
+                                        .Select(group => new
+                                        {
+                                            HasAttendedBefore = group.Key,
                                             Count = group.Count()
                                         }).ToListAsync();
             foreach ( var group in ageRangeCounts)
@@ -100,7 +107,15 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                     Value = group.Count
                 });
             }
-            return (ageStatistic, genderStatistic, referenceStatistic, addressStatistic);
+            foreach (var group in hasAttendedBeforeCount)
+            {
+                hasAttendedBeforeStatic.Add(new
+                {
+                    Label = group.HasAttendedBefore ? "Đã tham dự các sự kiện tương tự" : "Chưa tham dự các sự kiện tương tự",
+                    Value = group.Count
+                });
+            }
+            return (ageStatistic, genderStatistic, referenceStatistic, addressStatistic, hasAttendedBeforeStatic);
         }
     }
 }

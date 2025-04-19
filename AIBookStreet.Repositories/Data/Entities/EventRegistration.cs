@@ -15,6 +15,7 @@ namespace AIBookStreet.Repositories.Data.Entities
         public string RegistrantGender { get; set; }   
         public string? RegistrantAddress { get; set; }
         public string? ReferenceSource { get; set; }
+        public bool HasAttendedBefore { get; set; }
         public Guid? EventId { get; set;}
         public virtual Event? Event { get; set; }
         public virtual Ticket? Ticket { get; set; }

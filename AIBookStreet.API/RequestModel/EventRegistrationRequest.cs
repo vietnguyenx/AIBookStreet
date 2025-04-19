@@ -10,6 +10,7 @@
         public string RegistrantGender { get; set; }
         public string? RegistrantAddress { get; set; }
         public string? ReferenceSource { get; set; }
+        public bool HasAttendedBefore { get; set; }
         public EventRequest? Event { get; set; }
     }
 }

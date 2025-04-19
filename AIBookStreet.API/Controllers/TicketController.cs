@@ -17,7 +17,7 @@ namespace AIBookStreet.API.Controllers
         private readonly IMapper _mapper = mapper;
         [AllowAnonymous]
         [HttpGet("{email}/{passcode}")]
-        public async Task<IActionResult> GetAnEventRegistrationById([FromRoute] string email, string passcode)
+        public async Task<IActionResult> GetAnEventRegistrationById([FromRoute]string email, string passcode)
         {
             try
             {

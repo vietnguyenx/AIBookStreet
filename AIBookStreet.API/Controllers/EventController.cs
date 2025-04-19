@@ -94,6 +94,7 @@ namespace AIBookStreet.API.Controllers
                 eventInfor.GenderChart = result.Item3;
                 eventInfor.ReferenceChart = result.Item4;
                 eventInfor.AddressChart = result.Item5;
+                eventInfor.AttendedChart = result.Item6;
                 return Ok(new ItemResponse<object>(ConstantMessage.Success, eventInfor));
 
                 //return result.Item1 switch

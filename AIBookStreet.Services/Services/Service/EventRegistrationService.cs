@@ -117,7 +117,7 @@ namespace AIBookStreet.Services.Services.Service
 
             return eventRegistrations.Count == 0 ? null : eventRegistrations;
         }
-        public async Task<(List<object>, List<object>, List<object>, List<object>)> Test (Guid eventId)
+        public async Task<(List<object>, List<object>, List<object>, List<object>, List<object>)> Test (Guid eventId)
         {
             return await _repository.EventRegistrationRepository.GetStatistic(eventId);
         }

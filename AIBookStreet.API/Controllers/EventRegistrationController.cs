@@ -145,7 +145,8 @@ namespace AIBookStreet.API.Controllers
                 ageChart = result.Item1,
                 genderChart = result.Item2,
                 referenceChart = result.Item3,
-                addressChart = result.Item4
+                addressChart = result.Item4,
+                attendedChart = result.Item5
             });
         }
     }
