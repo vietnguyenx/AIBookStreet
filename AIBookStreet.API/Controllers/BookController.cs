@@ -352,5 +352,56 @@ namespace AIBookStreet.API.Controllers
                 return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
+
+        [HttpGet("{id}/random-same-category")]
+        public async Task<IActionResult> GetRandomBooksBySameCategory(Guid id, [FromQuery] int count = 5)
+        {
+            try
+            {
+                if (id == Guid.Empty)
+                {
+                    return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ConstantMessage.EmptyId));
+                }
+
+                var book = await _bookService.GetById(id);
+                if (book == null)
+                {
+                    return StatusCode(ConstantHttpStatus.NOT_FOUND, new ItemResponse<BookModel>(ConstantMessage.NotFound));
+                }
+
+                if (book.BookCategories == null || !book.BookCategories.Any())
+                {
+                    return StatusCode(ConstantHttpStatus.NOT_FOUND, new ItemListResponse<BookModel>(ConstantMessage.NotFound, null));
+                }
+
+                var categoryIds = book.BookCategories.Select(bc => bc.CategoryId).ToList();
+
+                var searchModel = new BookModel
+                {
+                    BookCategories = categoryIds.Select(categoryId => new BookCategoryModel { CategoryId = categoryId }).ToList()
+                };
+
+                var books = await _bookService.SearchWithoutPagination(searchModel, null, null, null, null);
+                
+                if (books == null || !books.Any())
+                {
+                    return StatusCode(ConstantHttpStatus.NOT_FOUND, new ItemListResponse<BookModel>(ConstantMessage.NotFound, null));
+                }
+
+                var randomBooks = books
+                    .Where(b => b.Id != id) 
+                    .OrderBy(_ => Guid.NewGuid()) 
+                    .Take(count)
+                    .ToList();
+
+                return randomBooks.Any() 
+                    ? StatusCode(ConstantHttpStatus.OK, new ItemListResponse<BookModel>(ConstantMessage.Success, randomBooks))
+                    : StatusCode(ConstantHttpStatus.NOT_FOUND, new ItemListResponse<BookModel>(ConstantMessage.NotFound, null));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
+            }
+        }
     }
 }
