@@ -329,5 +329,49 @@ namespace AIBookStreet.Services.Services.Service
                 return (null, $"Error while deleting store: {ex.Message}");
             }
         }
+
+        public async Task<long> GetTotalCount()
+        {
+            return await _storeRepository.GetTotalCount();
+        }
+
+        public async Task<(long totalCount, double percentChange)> GetTotalStoreCountWithChangePercent()
+        {
+            try
+            {
+                // Get total count of stores
+                var totalCount = await GetTotalCount();
+                
+                // Get current month and year
+                var currentDate = DateTime.Now;
+                var currentMonth = currentDate.Month;
+                var currentYear = currentDate.Year;
+                
+                // Get previous month and year
+                var previousMonth = currentMonth == 1 ? 12 : currentMonth - 1;
+                var previousYear = currentMonth == 1 ? currentYear - 1 : currentYear;
+                
+                // Get stores from current month
+                var currentMonthStores = await _storeRepository.GetStoresByMonth(currentMonth, currentYear);
+                var currentMonthCount = currentMonthStores.Count();
+                
+                // Get stores from previous month
+                var previousMonthStores = await _storeRepository.GetStoresByMonth(previousMonth, previousYear);
+                var previousMonthCount = previousMonthStores.Count();
+                
+                // Calculate percent change
+                double percentChange = 0;
+                if (previousMonthCount > 0)
+                {
+                    percentChange = Math.Round(((double)(currentMonthCount - previousMonthCount) / previousMonthCount) * 100, 2);
+                }
+                
+                return (totalCount, percentChange);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
     }
 }

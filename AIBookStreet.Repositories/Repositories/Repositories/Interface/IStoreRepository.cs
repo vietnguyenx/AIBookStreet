@@ -14,5 +14,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
         Task<Store?> GetById(Guid id);
         Task<(List<Store>, long)> SearchPagination(Store store, int pageNumber, int pageSize, string sortField, int sortOrder);
         Task<List<Store>> SearchWithoutPagination(Store store);
+        Task<long> GetTotalCount();
+        Task<List<Store>> GetStoresByMonth(int month, int year);
     }
 }

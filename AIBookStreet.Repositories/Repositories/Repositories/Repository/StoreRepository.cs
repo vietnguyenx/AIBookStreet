@@ -45,7 +45,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             return bookStore;
         }
 
-        public async Task<(List<Store>, long)> SearchPagination(Store bookStore, int pageNumber, int pageSize, string sortField, int sortOrder)
+        public async Task<(List<Store>, long)> SearchPagination(Store store, int pageNumber, int pageSize, string sortField, int sortOrder)
         {
             var queryable = GetQueryable()
                 .Where(bs => !bs.IsDeleted);
@@ -53,45 +53,45 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             if (queryable.Any())
             {
-                if (!string.IsNullOrEmpty(bookStore.StoreName))
+                if (!string.IsNullOrEmpty(store.StoreName))
                 {
                     queryable = queryable.Where(bs =>
-                        EF.Functions.Collate(bs.StoreName, "Latin1_General_CI_AI").Contains(bookStore.StoreName));
+                        EF.Functions.Collate(bs.StoreName, "Latin1_General_CI_AI").Contains(store.StoreName));
                 }
 
-                if (!string.IsNullOrEmpty(bookStore.Address))
+                if (!string.IsNullOrEmpty(store.Address))
                 {
                     queryable = queryable.Where(bs =>
-                        EF.Functions.Collate(bs.Address, "Latin1_General_CI_AI").Contains(bookStore.Address));
+                        EF.Functions.Collate(bs.Address, "Latin1_General_CI_AI").Contains(store.Address));
                 }
 
-                if (!string.IsNullOrEmpty(bookStore.Phone))
+                if (!string.IsNullOrEmpty(store.Phone))
                 {
                     queryable = queryable.Where(bs =>
-                        EF.Functions.Collate(bs.Phone, "Latin1_General_CI_AI").Contains(bookStore.Phone));
+                        EF.Functions.Collate(bs.Phone, "Latin1_General_CI_AI").Contains(store.Phone));
                 }
 
-                if (!string.IsNullOrEmpty(bookStore.Email))
+                if (!string.IsNullOrEmpty(store.Email))
                 {
                     queryable = queryable.Where(bs =>
-                        EF.Functions.Collate(bs.Email, "Latin1_General_CI_AI").Contains(bookStore.Email));
+                        EF.Functions.Collate(bs.Email, "Latin1_General_CI_AI").Contains(store.Email));
                 }
 
-                if (!string.IsNullOrEmpty(bookStore.StoreTheme))
+                if (!string.IsNullOrEmpty(store.StoreTheme))
                 {
                     queryable = queryable.Where(bs =>
-                        EF.Functions.Collate(bs.StoreTheme, "Latin1_General_CI_AI").Contains(bookStore.StoreTheme));
+                        EF.Functions.Collate(bs.StoreTheme, "Latin1_General_CI_AI").Contains(store.StoreTheme));
                 }
 
-                if (!string.IsNullOrEmpty(bookStore.Type))
+                if (!string.IsNullOrEmpty(store.Type))
                 {
                     queryable = queryable.Where(bs =>
-                        EF.Functions.Collate(bs.Type, "Latin1_General_CI_AI").Contains(bookStore.Type));
+                        EF.Functions.Collate(bs.Type, "Latin1_General_CI_AI").Contains(store.Type));
                 }
 
-                if (bookStore.ZoneId.HasValue)
+                if (store.ZoneId.HasValue)
                 {
-                    queryable = queryable.Where(bs => bs.ZoneId == bookStore.ZoneId);
+                    queryable = queryable.Where(bs => bs.ZoneId == store.ZoneId);
                 }
             }
             var totalOrigin = queryable.Count();
@@ -105,53 +105,67 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             return (bookstores, totalOrigin);
         }
 
-        public async Task<List<Store>> SearchWithoutPagination(Store bookStore)
+        public async Task<List<Store>> SearchWithoutPagination(Store store)
         {
             var queryable = GetQueryable()
                 .Where(bs => !bs.IsDeleted);
 
-            if (!string.IsNullOrEmpty(bookStore.StoreName))
+            if (!string.IsNullOrEmpty(store.StoreName))
             {
                 queryable = queryable.Where(bs =>
-                    EF.Functions.Collate(bs.StoreName, "Latin1_General_CI_AI").Contains(bookStore.StoreName));
+                    EF.Functions.Collate(bs.StoreName, "Latin1_General_CI_AI").Contains(store.StoreName));
             }
 
-            if (!string.IsNullOrEmpty(bookStore.Address))
+            if (!string.IsNullOrEmpty(store.Address))
             {
                 queryable = queryable.Where(bs =>
-                    EF.Functions.Collate(bs.Address, "Latin1_General_CI_AI").Contains(bookStore.Address));
+                    EF.Functions.Collate(bs.Address, "Latin1_General_CI_AI").Contains(store.Address));
             }
 
-            if (!string.IsNullOrEmpty(bookStore.Phone))
+            if (!string.IsNullOrEmpty(store.Phone))
             {
                 queryable = queryable.Where(bs =>
-                    EF.Functions.Collate(bs.Phone, "Latin1_General_CI_AI").Contains(bookStore.Phone));
+                    EF.Functions.Collate(bs.Phone, "Latin1_General_CI_AI").Contains(store.Phone));
             }
 
-            if (!string.IsNullOrEmpty(bookStore.Email))
+            if (!string.IsNullOrEmpty(store.Email))
             {
                 queryable = queryable.Where(bs =>
-                    EF.Functions.Collate(bs.Email, "Latin1_General_CI_AI").Contains(bookStore.Email));
+                    EF.Functions.Collate(bs.Email, "Latin1_General_CI_AI").Contains(store.Email));
             }
 
-            if (!string.IsNullOrEmpty(bookStore.StoreTheme))
+            if (!string.IsNullOrEmpty(store.StoreTheme))
             {
                 queryable = queryable.Where(bs =>
-                    EF.Functions.Collate(bs.StoreTheme, "Latin1_General_CI_AI").Contains(bookStore.StoreTheme));
+                    EF.Functions.Collate(bs.StoreTheme, "Latin1_General_CI_AI").Contains(store.StoreTheme));
             }
 
-            if (!string.IsNullOrEmpty(bookStore.Type))
+            if (!string.IsNullOrEmpty(store.Type))
             {
                 queryable = queryable.Where(bs =>
-                    EF.Functions.Collate(bs.Type, "Latin1_General_CI_AI").Contains(bookStore.Type));
+                    EF.Functions.Collate(bs.Type, "Latin1_General_CI_AI").Contains(store.Type));
             }
             
-            if (bookStore.ZoneId.HasValue)
+            if (store.ZoneId.HasValue)
             {
-                queryable = queryable.Where(bs => bs.ZoneId == bookStore.ZoneId);
+                queryable = queryable.Where(bs => bs.ZoneId == store.ZoneId);
             }
 
             return await queryable.Include(bs => bs.Images).ToListAsync();
+        }
+
+        public async Task<long> GetTotalCount()
+        {
+            return await GetQueryable().Where(s => !s.IsDeleted).CountAsync();
+        }
+
+        public async Task<List<Store>> GetStoresByMonth(int month, int year)
+        {
+            return await GetQueryable()
+                .Where(s => s.CreatedDate.Month == month &&
+                       s.CreatedDate.Year == year &&
+                       !s.IsDeleted)
+                .ToListAsync();
         }
     }
 }
