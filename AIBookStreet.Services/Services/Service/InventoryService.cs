@@ -39,9 +39,9 @@ namespace AIBookStreet.Services.Services.Service
             return _mapper.Map<List<InventoryModel>>(inventories);
         }
 
-        public async Task<List<InventoryModel>?> GetByBookId(Guid bookId)
+        public async Task<List<InventoryModel>?> GetByEntityId(Guid entityId)
         {
-            var inventories = await _inventoryRepository.GetByBookId(bookId);
+            var inventories = await _inventoryRepository.GetByEntityId(entityId);
             if (!inventories.Any()) return null;
             return _mapper.Map<List<InventoryModel>>(inventories);
         }
@@ -74,7 +74,7 @@ namespace AIBookStreet.Services.Services.Service
                 }
 
                 // Check if inventory already exists
-                var inventory = await _inventoryRepository.GetByBookIdAndStoreId(inventoryModel.EntityId, inventoryModel.StoreId);
+                var inventory = await _inventoryRepository.GetByEntityIdAndStoreId(inventoryModel.EntityId, inventoryModel.StoreId);
                 if (inventory != null)
                 {
                     return (false, "Inventory already exists for this item in the store. Use Update instead.");
@@ -121,7 +121,7 @@ namespace AIBookStreet.Services.Services.Service
                 }
 
                 // Find inventory for this book/entity and store
-                var inventory = await _inventoryRepository.GetByBookIdAndStoreId(entityId, storeId);
+                var inventory = await _inventoryRepository.GetByEntityIdAndStoreId(entityId, storeId);
                 if (inventory == null)
                 {
                     return (false, "Inventory not found for this item in the store");
@@ -150,9 +150,9 @@ namespace AIBookStreet.Services.Services.Service
             }
         }
 
-        public async Task<bool> Delete(Guid bookId, Guid storeId)
+        public async Task<bool> Delete(Guid entityId, Guid storeId)
         {
-            var inventory = await _inventoryRepository.GetByBookIdAndStoreId(bookId, storeId);
+            var inventory = await _inventoryRepository.GetByEntityIdAndStoreId(entityId, storeId);
             if (inventory == null)
             {
                 return false;
@@ -191,7 +191,7 @@ namespace AIBookStreet.Services.Services.Service
                 var book = books.First();
                 
                 // Find inventory for this book and store
-                var inventory = await _inventoryRepository.GetByBookIdAndStoreId(book.Id, storeId);
+                var inventory = await _inventoryRepository.GetByEntityIdAndStoreId(book.Id, storeId);
                 if (inventory == null)
                 {
                     return (false, $"Inventory not found for book ISBN {ISBN} in this store");

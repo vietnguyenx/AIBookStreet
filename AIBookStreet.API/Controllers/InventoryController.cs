@@ -44,12 +44,12 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpGet("book/{bookId}")]
-        public async Task<IActionResult> GetByBookId(Guid bookId)
+        [HttpGet("entity/{entityId}")]
+        public async Task<IActionResult> GetByEntityId(Guid entityId)
         {
             try
             {
-                var inventories = await _inventoryService.GetByBookId(bookId);
+                var inventories = await _inventoryService.GetByEntityId(entityId);
                 return inventories switch
                 {
                     null => Ok(new ItemListResponse<InventoryModel>(ConstantMessage.NotFound)),
@@ -114,33 +114,33 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("update")]
-        public async Task<IActionResult> Update([FromBody] InventoryRequest request)
+        [HttpPut("{entityId}/{storeId}")]
+        public async Task<IActionResult> Update(Guid entityId, Guid storeId, [FromForm] int quantity)
         {
             try
             {
-                if (request.EntityId == null || request.EntityId == Guid.Empty)
+                if (entityId == Guid.Empty)
                 {
                     return BadRequest(new BaseResponse(false, "Entity ID is required"));
                 }
 
-                if (request.StoreId == null || request.StoreId == Guid.Empty)
+                if (storeId == Guid.Empty)
                 {
                     return BadRequest(new BaseResponse(false, "Store ID is required"));
                 }
 
-                if (request.Quantity < 0)
+                if (quantity < 0)
                 {
                     return BadRequest(new BaseResponse(false, "Quantity cannot be negative"));
                 }
 
                 var (success, message) = await _inventoryService.Update(
-                    (Guid)request.EntityId,
-                    (Guid)request.StoreId,
-                    request.Quantity);
-
-                return success
-                    ? Ok(new BaseResponse(true, message))
+                    entityId, 
+                    storeId, 
+                    quantity);
+                
+                return success 
+                    ? Ok(new BaseResponse(true, message)) 
                     : BadRequest(new BaseResponse(false, message));
             }
             catch (Exception ex)
@@ -150,14 +150,14 @@ namespace AIBookStreet.API.Controllers
         }
 
         [Authorize]
-        [HttpPatch("{idBook}/{idStore}")]
-        public async Task<IActionResult> Delete(Guid idBook, Guid idStore)
+        [HttpPatch("{idEntity}/{idStore}")]
+        public async Task<IActionResult> Delete(Guid idEntity, Guid idStore)
         {
             try
             {
-                if (idBook != Guid.Empty && idStore != Guid.Empty)
+                if (idEntity != Guid.Empty && idStore != Guid.Empty)
                 {
-                    var isInventory = await _inventoryService.Delete(idBook, idStore);
+                    var isInventory = await _inventoryService.Delete(idEntity, idStore);
 
                     return isInventory switch
                     {

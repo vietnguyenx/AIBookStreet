@@ -91,7 +91,7 @@ namespace AIBookStreet.Services.Services.Service
                 var existed = await _repository.OrderDetailRepository.GetAllOrderDetail(null, null, model.StoreId, model.EntityId);
                 if (existed == null)
                 {
-                    var inventory = await _repository.InventoryRepository.GetByBookIdAndStoreId(model.EntityId, model.StoreId);
+                    var inventory = await _repository.InventoryRepository.GetByEntityIdAndStoreId(model.EntityId, model.StoreId);
                     var orderDetail = new OrderDetail { 
                         InventoryId = inventory.Id,
                         Quantity = model.Quantity
