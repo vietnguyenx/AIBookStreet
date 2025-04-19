@@ -86,17 +86,66 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var isInventory = await _inventoryService.Add(_mapper.Map<InventoryModel>(inventoryRequest));
-
-                return isInventory switch
+                if (inventoryRequest.EntityId == null || inventoryRequest.EntityId == Guid.Empty)
                 {
-                    true => Ok(new BaseResponse(isInventory, ConstantMessage.Success)),
-                    _ => Ok(new BaseResponse(isInventory, ConstantMessage.Fail))
-                };
+                    return BadRequest(new BaseResponse(false, "Entity ID is required"));
+                }
+
+                if (inventoryRequest.StoreId == null || inventoryRequest.StoreId == Guid.Empty)
+                {
+                    return BadRequest(new BaseResponse(false, "Store ID is required"));
+                }
+
+                if (inventoryRequest.Quantity < 0)
+                {
+                    return BadRequest(new BaseResponse(false, "Quantity cannot be negative"));
+                }
+
+                var (success, message) = await _inventoryService.Add(_mapper.Map<InventoryModel>(inventoryRequest));
+
+                return success 
+                    ? Ok(new BaseResponse(true, message)) 
+                    : BadRequest(new BaseResponse(false, message));
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new BaseResponse(false, ex.Message));
+            }
+        }
+
+        [Authorize]
+        [HttpPut("update")]
+        public async Task<IActionResult> Update([FromBody] InventoryRequest request)
+        {
+            try
+            {
+                if (request.EntityId == null || request.EntityId == Guid.Empty)
+                {
+                    return BadRequest(new BaseResponse(false, "Entity ID is required"));
+                }
+
+                if (request.StoreId == null || request.StoreId == Guid.Empty)
+                {
+                    return BadRequest(new BaseResponse(false, "Store ID is required"));
+                }
+
+                if (request.Quantity < 0)
+                {
+                    return BadRequest(new BaseResponse(false, "Quantity cannot be negative"));
+                }
+
+                var (success, message) = await _inventoryService.Update(
+                    (Guid)request.EntityId,
+                    (Guid)request.StoreId,
+                    request.Quantity);
+
+                return success
+                    ? Ok(new BaseResponse(true, message))
+                    : BadRequest(new BaseResponse(false, message));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BaseResponse(false, ex.Message));
             }
         }
 

@@ -53,13 +53,101 @@ namespace AIBookStreet.Services.Services.Service
             return _mapper.Map<List<InventoryModel>>(inventories);
         }
 
-        public async Task<bool> Add(InventoryModel inventoryModel)
+        public async Task<(bool, string)> Add(InventoryModel inventoryModel)
         {
-            var inventory = await _inventoryRepository.GetByBookIdAndStoreId(inventoryModel.EntityId, inventoryModel.StoreId);
-            if (inventory != null) { return false; }
-            var mappedInventory = _mapper.Map<Inventory>(inventoryModel);
-            var newInventory = await SetBaseEntityToCreateFunc(mappedInventory);
-            return await _inventoryRepository.Add(newInventory);
+            try
+            {
+                // Validate input parameters
+                if (inventoryModel.EntityId == null || inventoryModel.EntityId == Guid.Empty)
+                {
+                    return (false, "Entity ID cannot be empty");
+                }
+
+                if (inventoryModel.StoreId == Guid.Empty)
+                {
+                    return (false, "Store ID cannot be empty");
+                }
+
+                if (inventoryModel.Quantity < 0)
+                {
+                    return (false, "Quantity cannot be negative");
+                }
+
+                // Check if inventory already exists
+                var inventory = await _inventoryRepository.GetByBookIdAndStoreId(inventoryModel.EntityId, inventoryModel.StoreId);
+                if (inventory != null)
+                {
+                    return (false, "Inventory already exists for this item in the store. Use Update instead.");
+                }
+
+                // Set IsInStock based on quantity
+                inventoryModel.IsInStock = inventoryModel.Quantity > 0;
+
+                // Map and create new inventory
+                var mappedInventory = _mapper.Map<Inventory>(inventoryModel);
+                var newInventory = await SetBaseEntityToCreateFunc(mappedInventory);
+                
+                var result = await _inventoryRepository.Add(newInventory);
+                if (!result)
+                {
+                    return (false, "Failed to add inventory");
+                }
+
+                return (true, $"Successfully added inventory with quantity: {inventoryModel.Quantity}");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Error adding inventory: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool, string)> Update(Guid entityId, Guid storeId, int quantity)
+        {
+            try
+            {
+                if (entityId == Guid.Empty)
+                {
+                    return (false, "Entity ID cannot be empty");
+                }
+
+                if (storeId == Guid.Empty)
+                {
+                    return (false, "Store ID cannot be empty");
+                }
+
+                if (quantity < 0)
+                {
+                    return (false, "Quantity cannot be negative");
+                }
+
+                // Find inventory for this book/entity and store
+                var inventory = await _inventoryRepository.GetByBookIdAndStoreId(entityId, storeId);
+                if (inventory == null)
+                {
+                    return (false, "Inventory not found for this item in the store");
+                }
+
+                // Update inventory quantity
+                inventory.Quantity = quantity;
+
+                // Update isInStock status based on quantity
+                inventory.IsInStock = quantity > 0;
+
+                // Update the last updated information
+                inventory = await SetBaseEntityToUpdateFunc(inventory);
+
+                var result = await _inventoryRepository.Update(inventory);
+                if (!result)
+                {
+                    return (false, "Failed to update inventory");
+                }
+
+                return (true, $"Successfully updated inventory. New quantity: {inventory.Quantity}");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Error updating inventory: {ex.Message}");
+            }
         }
 
         public async Task<bool> Delete(Guid bookId, Guid storeId)
