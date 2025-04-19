@@ -205,5 +205,26 @@ namespace AIBookStreet.API.Controllers
                 return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ex.Message));
             }
         }
+
+        [HttpGet("stats/total")]
+        public async Task<IActionResult> GetTotalStoreCount()
+        {
+            try
+            {
+                var result = await _storeService.GetTotalStoreCountWithChangePercent();
+                return Ok(new
+                {
+                    success = true,
+                    total = result.totalCount,
+                    currentMonthPercentChange = result.percentChange,
+                    changeDirection = result.percentChange > 0 ? "increase" : (result.percentChange < 0 ? "decrease" : "unchanged")
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(ConstantHttpStatus.INTERNAL_SERVER_ERROR, 
+                    new BaseResponse(false, $"Lỗi: {ex.Message}"));
+            }
+        }
     }
 }

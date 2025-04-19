@@ -18,5 +18,6 @@ namespace AIBookStreet.Services.Services.Interface
         Task<(StoreModel?, string)> Update(StoreModel storeModel);
         Task<(StoreModel?, string)> Delete(Guid storeId);
         Task<long> GetTotalCount();
+        Task<(long totalCount, double percentChange)> GetTotalStoreCountWithChangePercent();
     }
 }
