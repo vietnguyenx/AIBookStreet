@@ -53,6 +53,20 @@ namespace AIBookStreet.Services.Services.Service
             return _mapper.Map<List<InventoryModel>>(inventories);
         }
 
+        public async Task<List<InventoryModel>?> GetBooksByStoreId(Guid storeId)
+        {
+            var inventories = await _inventoryRepository.GetBooksByStoreId(storeId);
+            if (!inventories.Any()) return null;
+            return _mapper.Map<List<InventoryModel>>(inventories);
+        }
+
+        public async Task<List<InventoryModel>?> GetSouvenirsByStoreId(Guid storeId)
+        {
+            var inventories = await _inventoryRepository.GetSouvenirsByStoreId(storeId);
+            if (!inventories.Any()) return null;
+            return _mapper.Map<List<InventoryModel>>(inventories);
+        }
+
         public async Task<(bool, string)> Add(InventoryModel inventoryModel)
         {
             try
