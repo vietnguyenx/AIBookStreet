@@ -14,5 +14,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
         Task<List<Inventory?>> GetByStoreId(Guid storeId);
         Task<Inventory?> GetByEntityIdAndStoreId(Guid? entityId, Guid storeId);
         Task<Inventory?> GetByID(Guid? storeId);
+        Task<List<Inventory?>> GetBooksByStoreId(Guid storeId);
+        Task<List<Inventory?>> GetSouvenirsByStoreId(Guid storeId);
     }
 }

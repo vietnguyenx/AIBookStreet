@@ -80,6 +80,42 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
+        [HttpGet("store/{storeId}/books")]
+        public async Task<IActionResult> GetBooksByStoreId(Guid storeId)
+        {
+            try
+            {
+                var inventories = await _inventoryService.GetBooksByStoreId(storeId);
+                return inventories switch
+                {
+                    null => Ok(new ItemListResponse<InventoryModel>(ConstantMessage.NotFound)),
+                    not null => Ok(new ItemListResponse<InventoryModel>(ConstantMessage.Success, inventories))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("store/{storeId}/souvenirs")]
+        public async Task<IActionResult> GetSouvenirsByStoreId(Guid storeId)
+        {
+            try
+            {
+                var inventories = await _inventoryService.GetSouvenirsByStoreId(storeId);
+                return inventories switch
+                {
+                    null => Ok(new ItemListResponse<InventoryModel>(ConstantMessage.NotFound)),
+                    not null => Ok(new ItemListResponse<InventoryModel>(ConstantMessage.Success, inventories))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> Add(InventoryRequest inventoryRequest)

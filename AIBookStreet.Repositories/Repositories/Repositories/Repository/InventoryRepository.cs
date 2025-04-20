@@ -61,5 +61,23 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return author;
         }
+
+        public async Task<List<Inventory?>> GetBooksByStoreId(Guid storeId)
+        {
+            var query = GetQueryable(i => i.StoreId == storeId && i.Book != null);
+            return await query
+                .Include(i => i.Book)
+                .Include(i => i.Store)
+                .ToListAsync();
+        }
+
+        public async Task<List<Inventory?>> GetSouvenirsByStoreId(Guid storeId)
+        {
+            var query = GetQueryable(i => i.StoreId == storeId && i.Souvenir != null);
+            return await query
+                .Include(i => i.Souvenir)
+                .Include(i => i.Store)
+                .ToListAsync();
+        }
     }
 }

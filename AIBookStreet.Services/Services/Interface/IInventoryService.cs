@@ -12,6 +12,8 @@ namespace AIBookStreet.Services.Services.Interface
         Task<List<InventoryModel>> GetAll();
         Task<List<InventoryModel>?> GetByEntityId(Guid entityId);
         Task<List<InventoryModel>?> GetByStoreId(Guid storeId);
+        Task<List<InventoryModel>?> GetBooksByStoreId(Guid storeId);
+        Task<List<InventoryModel>?> GetSouvenirsByStoreId(Guid storeId);
         Task<(bool, string)> Add(InventoryModel inventoryModel);
         Task<(bool, string)> Update(Guid entityId, Guid storeId, int quantity);
         Task<bool> Delete(Guid entityId, Guid storeId);
