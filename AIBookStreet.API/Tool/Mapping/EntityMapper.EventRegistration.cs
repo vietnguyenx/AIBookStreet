@@ -12,7 +12,7 @@ namespace AIBookStreet.API.Tool.Mapping
         {
             CreateMap<EventRegistration, EventRegistrationModel>().ReverseMap();
             CreateMap<EventRegistrationModel, EventRegistrationRequest>().ReverseMap();
-            CreateMap<Event, EventRegistrationRequest>().ReverseMap();
+            CreateMap<EventRegistration, EventRegistrationRequest>().ReverseMap();
         }
     }
 }
