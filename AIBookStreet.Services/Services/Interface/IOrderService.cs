@@ -10,7 +10,7 @@ namespace AIBookStreet.Services.Services.Interface
 {
     public interface IOrderService
     {
-        Task<(long, Order?)> AddAnOrder(OrderModel model);
+        Task<(long, Order?, string?)> AddAnOrder(OrderModel model);
         Task<Order?> GetAnOrderById(Guid orderId);
         Task<(List<Order>?, long)> GetPaginationOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateOnly? startDate, DateOnly? endDate, int? pageNumber, int? pageSize, string? sortField, int? sortOrder);
         Task<List<Order>?> GetAllOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateOnly? startDate, DateOnly? endDate);
