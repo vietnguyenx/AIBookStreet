@@ -53,13 +53,12 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         public async Task<Inventory?> GetByID(Guid? id)
         {
             var query = GetQueryable(at => at.Id == id);
-            var author = await query
+            var inventory = await query
                 .Include(i => i.Book)
                 .Include(i => i.Souvenir)
-                .Include(i => i.Store)
                 .SingleOrDefaultAsync();
 
-            return author;
+            return inventory;
         }
 
         public async Task<List<Inventory?>> GetBooksByStoreId(Guid storeId)
