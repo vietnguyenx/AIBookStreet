@@ -25,7 +25,7 @@ namespace AIBookStreet.Services.Services.Service
         private readonly IUserRepository _repository;
         private readonly IImageService _imageService;
         private readonly IConfiguration _configuration;
-        private DateTime countDown = DateTime.Now.AddDays(0.5);
+        private DateTime countDown = DateTime.Now.AddDays(7);
         private static readonly Dictionary<string, (string Otp, DateTime Expiry)> OtpStore = new();
 
         public UserService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IHttpContextAccessor _httpContextAccessor, IImageService imageService) : base(mapper, unitOfWork, _httpContextAccessor)
