@@ -33,6 +33,26 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateAnOrderDetail([FromRoute] Guid id, int quantity)
+        {
+            try
+            {
+                var result = await _service.UpdateDetail(id, quantity);
+
+                return result.Item1 switch
+                {
+                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+                    2 => Ok(new ItemResponse<OrderDetailRequest>("Đã cập nhật thành công!", _mapper.Map<OrderDetailRequest>(result.Item2))),
+                    _ => Ok(new BaseResponse(false, "Không thể cập nhật!!!"))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAnOrderDetail([FromRoute] Guid id)
         {

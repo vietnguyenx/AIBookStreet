@@ -8,8 +8,7 @@ namespace AIBookStreet.Services.Model
 {
     public class OrderDetailModel
     {
-        public Guid? EntityId { get; set; }
-        public Guid StoreId { get; set; }
+        public Guid InventoryId { get; set; }
         public int Quantity { get; set; }
     }
 }

@@ -60,5 +60,17 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return orderDetail;
         }
+        public async Task<OrderDetail?> GetDetail(Guid inventoryId)
+        {
+            var query = GetQueryable(o => o.InventoryId == inventoryId && o.OrderId == null);
+            return await query.SingleOrDefaultAsync();
+        }
+        public async Task<OrderDetail?> GetForCreateOrder(Guid id)
+        {
+            var query = GetQueryable(o => o.Id == id);
+            var orderDetail = await query.SingleOrDefaultAsync();
+
+            return orderDetail;
+        }
     }
 }

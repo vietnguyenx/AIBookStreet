@@ -20,11 +20,12 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             _context = context;
         }
 
-        public async Task<List<Inventory?>> GetByBookId(Guid bookId)
+        public async Task<List<Inventory?>> GetByEntityId(Guid entityId)
         {
-            var query = GetQueryable(i => i.EntityId == bookId);
+            var query = GetQueryable(i => i.EntityId == entityId);
             return await query
                 .Include(i => i.Book)
+                .Include(i => i.Souvenir)
                 .Include(i => i.Store)
                 .ToListAsync();
         }
@@ -34,13 +35,14 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var query = GetQueryable(i => i.StoreId == storeId);
             return await query
                 .Include(i => i.Book)
+                .Include(i => i.Souvenir)
                 .Include(i => i.Store)
                 .ToListAsync();
         }
 
-        public async Task<Inventory?> GetByBookIdAndStoreId(Guid? bookId, Guid storeId)
+        public async Task<Inventory?> GetByEntityIdAndStoreId(Guid? entityId, Guid storeId)
         {
-            Inventory inventory = await _context.Inventories.Where(x => x.EntityId == bookId && x.StoreId == storeId)
+            Inventory inventory = await _context.Inventories.Where(x => x.EntityId == entityId && x.StoreId == storeId)
                 .Include(i => i.Book)
                 .Include(i => i.Souvenir)
                 .Include(i => i.Store)
@@ -51,12 +53,30 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         public async Task<Inventory?> GetByID(Guid? id)
         {
             var query = GetQueryable(at => at.Id == id);
-            var author = await query.Include(i => i.Book)
+            var inventory = await query
+                .Include(i => i.Book)
+                .Include(i => i.Souvenir)
+                .SingleOrDefaultAsync();
+
+            return inventory;
+        }
+
+        public async Task<List<Inventory?>> GetBooksByStoreId(Guid storeId)
+        {
+            var query = GetQueryable(i => i.StoreId == storeId && i.Book != null);
+            return await query
+                .Include(i => i.Book)
+                .Include(i => i.Store)
+                .ToListAsync();
+        }
+
+        public async Task<List<Inventory?>> GetSouvenirsByStoreId(Guid storeId)
+        {
+            var query = GetQueryable(i => i.StoreId == storeId && i.Souvenir != null);
+            return await query
                 .Include(i => i.Souvenir)
                 .Include(i => i.Store)
-                                  .SingleOrDefaultAsync();
-
-            return author;
+                .ToListAsync();
         }
     }
 }
