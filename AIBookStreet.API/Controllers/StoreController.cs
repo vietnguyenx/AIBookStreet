@@ -226,5 +226,31 @@ namespace AIBookStreet.API.Controllers
                     new BaseResponse(false, $"Lỗi: {ex.Message}"));
             }
         }
+
+        [HttpGet("{storeId}/stats/products")]
+        public async Task<IActionResult> GetStoreProductCounts(Guid storeId)
+        {
+            try
+            {
+                if (storeId == Guid.Empty)
+                {
+                    return StatusCode(ConstantHttpStatus.BAD_REQUEST, new BaseResponse(false, ConstantMessage.EmptyId));
+                }
+
+                var result = await _storeService.GetStoreProductCountsByCategory(storeId);
+                return Ok(new
+                {
+                    success = true,
+                    bookCount = result.bookCount,
+                    souvenirCount = result.souvenirCount,
+                    totalCount = result.totalCount
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(ConstantHttpStatus.INTERNAL_SERVER_ERROR, 
+                    new BaseResponse(false, $"Lỗi: {ex.Message}"));
+            }
+        }
     }
 }
