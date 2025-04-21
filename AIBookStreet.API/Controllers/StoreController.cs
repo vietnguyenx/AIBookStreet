@@ -216,7 +216,7 @@ namespace AIBookStreet.API.Controllers
                 {
                     success = true,
                     total = result.totalCount,
-                    currentMonthPercentChange = result.percentChange,
+                    currentMonthPercentChange = Math.Abs(result.percentChange),
                     changeDirection = result.percentChange > 0 ? "increase" : (result.percentChange < 0 ? "decrease" : "unchanged")
                 });
             }
