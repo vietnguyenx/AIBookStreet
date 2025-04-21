@@ -357,57 +357,6 @@ namespace AIBookStreet.API.Controllers
             }
         }
 
-        [HttpGet("login-google")]
-        public IActionResult GoogleLogin()
-        {
-            var properties = new AuthenticationProperties
-            {
-                RedirectUri = Url.Action("GoogleResponse", "User"),
-                Items =
-                {
-                    { "returnUrl", "/" }
-                }
-            };
-            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
-        }
-
-        [HttpGet("google-response")]
-        public async Task<IActionResult> GoogleResponse()
-        {
-            try
-            {
-                var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                if (!authenticateResult.Succeeded)
-                    return BadRequest(new BaseResponse(false, "Đăng nhập Google thất bại"));
-
-                var userModel = await _service.ProcessGoogleLoginAsync(authenticateResult.Principal);
-                if (userModel == null)
-                    return BadRequest(new BaseResponse(false, "Không thể xử lý thông tin người dùng từ Google"));
-
-                JwtSecurityToken token = _service.CreateToken(userModel);
-                string jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
-
-                var cookieOptions = new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.None,
-                    Expires = DateTime.UtcNow.AddDays(7),
-                    Domain = "azurewebsites.net"
-                };
-                
-                Response.Cookies.Append("auth_token", jwtToken, cookieOptions);
-                
-                var frontendUrl = "http://localhost:3000";
-                return Redirect(frontendUrl);
-                //return Redirect("/google-login-test.html?loginSuccess=true");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new BaseResponse(false, ex.Message));
-            }
-        }
-
         [HttpGet("test-token")]
         public IActionResult TestToken()
         {

@@ -373,5 +373,28 @@ namespace AIBookStreet.Services.Services.Service
                 throw;
             }
         }
+
+        public async Task<(int bookCount, int souvenirCount, int totalCount)> GetStoreProductCountsByCategory(Guid storeId)
+        {
+            try
+            {
+                // Get book inventories for this store
+                var bookInventories = await _unitOfWork.InventoryRepository.GetBooksByStoreId(storeId);
+                int bookCount = bookInventories?.Count ?? 0;
+                
+                // Get souvenir inventories for this store
+                var souvenirInventories = await _unitOfWork.InventoryRepository.GetSouvenirsByStoreId(storeId);
+                int souvenirCount = souvenirInventories?.Count ?? 0;
+                
+                // Calculate total
+                int totalCount = bookCount + souvenirCount;
+                
+                return (bookCount, souvenirCount, totalCount);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
     }
 }
