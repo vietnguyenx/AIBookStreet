@@ -18,7 +18,7 @@ namespace AIBookStreet.Services.Services.Service
     public class OrderService(IUnitOfWork repository, IMapper mapper, IHttpContextAccessor httpContextAccessor) : BaseService<Order>(mapper, repository, httpContextAccessor), IOrderService
     {
         private readonly IUnitOfWork _repository = repository;
-        public async Task<(long, Order?)> AddAnOrder(OrderModel model)
+        public async Task<(long, Order?, string?)> AddAnOrder(OrderModel model)
         {
             try
             {
@@ -39,46 +39,61 @@ namespace AIBookStreet.Services.Services.Service
                         {
                             if (inventory.Quantity < orderDetail.Quantity)
                             {
-                                return (1, null); //sl trong inventory khong du
+                                return (1, null, "Số lượng của '" + inventory.Book.Title + "' không đủ"); //sl trong inventory khong du
                             }
                             else
                             {
-                                inventory.Quantity -= orderDetail.Quantity;
+                                inventory.Quantity = inventory.Quantity - orderDetail.Quantity;
+                                inventory.IsInStock = inventory.Quantity > 0;
+                                inventory.LastUpdatedDate = DateTime.Now;
+
                                 totalAmount += (decimal)inventory.Book.Price * orderDetail.Quantity;
-                                if (!(await _repository.InventoryRepository.Update(inventory)))
-                                {
-                                    return (3, null);
-                                }
                             }
                         }
                         if (inventory != null && inventory.Souvenir != null)
                         {
                             if (inventory.Quantity < orderDetail.Quantity)
                             {
-                                return (1, null); //sl trong inventory khong du
+                                return (1, null, "Số lượng của '" + inventory.Souvenir.SouvenirName + "' không đủ"); //sl trong inventory khong du
                             }
                             else
                             {
-                                inventory.Quantity -= orderDetail.Quantity;
-                                totalAmount += (decimal)inventory.Souvenir.Price * orderDetail.Quantity;
-                                if (!(await _repository.InventoryRepository.Update(inventory)))
-                                {
-                                    return (3, null);
-                                }
+                                inventory.Quantity = inventory.Quantity - orderDetail.Quantity;
+                                inventory.IsInStock = inventory.Quantity > 0;
+                                inventory.LastUpdatedDate = DateTime.Now;
+
+                                totalAmount += (decimal)inventory.Souvenir.Price * orderDetail.Quantity;                                
                             }
 
                         }
-                        orderDetail.OrderId = setOrder.Id;
-                        orderDetail.LastUpdatedDate = DateTime.Now;
-                        await _repository.OrderDetailRepository.Update(orderDetail);
-                    }
+                        var result = await _repository.InventoryRepository.Update(inventory);
+                        if (!result)
+                        {
+                            return (3, null, "Không thể cập nhật số luong trong inventory");
+                        }
+                    }                    
                 }
                 
                 setOrder.TotalAmount = totalAmount;
                 
                 var isSuccess = await _repository.OrderRepository.Add(setOrder);
+                if (isSuccess)
+                {
+                    foreach (var orderDetail in orderDetails)
+                    {
+                        var item = await _repository.OrderDetailRepository.GetForCreateOrder(orderDetail.Id);
+                        item.OrderId = setOrder.Id;
+                        item.LastUpdatedDate = DateTime.Now;
+                        var result = await _repository.OrderDetailRepository.Update(item);
+                        if (!result)
+                        {
+                            return (3, null, "Không thể cập nhật order detail");
+                        }
+                    }
+                    return (2, setOrder, null);
+                }
 
-                return isSuccess ? (2, setOrder) : (3, null);
+                return (3, null, "Không thể tạo order");
             }
             catch (Exception)
             {

@@ -28,9 +28,9 @@ namespace AIBookStreet.API.Controllers
                 var result = await _service.AddAnOrder(model);
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Số lượng hàng trong kho không còn đủ!!")),
+                    1 => Ok(new BaseResponse(false, result.Item3)),
                     2 => Ok(new ItemResponse<OrderRequest>("Đã thêm đơn hàng", _mapper.Map<OrderRequest>(result.Item2))),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    _ => Ok(new BaseResponse(false, result.Item3))
                 };
             }
             catch (Exception ex)

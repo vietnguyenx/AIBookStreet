@@ -14,6 +14,7 @@ namespace AIBookStreet.Services.Services.Interface
         Task<(long, List<OrderDetail>?)> GetCart(Guid storeId);
         Task<List<OrderDetail>?> GetAllOrderDetail(Guid? orderId, Guid? storeId, Guid? entityId);
         Task<OrderDetail?> AddToCart(OrderDetailModel model);
+        Task<(long, OrderDetail?)> UpdateDetail(Guid id, int quantity);
         Task<(long,OrderDetail?)> RemoveFromCart(Guid id);
     }
 }

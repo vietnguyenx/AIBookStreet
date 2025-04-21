@@ -46,9 +46,9 @@ namespace AIBookStreet.Services.Services.Service
             if (order is null)
             {
                 return (3, null); //Order not found!!
-            }
-
-            int orderCode = int.Parse(DateTimeOffset.Now.ToString("yyyyMMddHHmmss"));
+            }            
+            var orders = await _unitOfWork.OrderRepository.GetAll();
+            int orderCode = orders.Count;
 
             var orderDetails = await _unitOfWork.OrderDetailRepository.GetAllOrderDetail(null, orderId, null, null);
             List<ItemData> items = [];
@@ -78,7 +78,7 @@ namespace AIBookStreet.Services.Services.Service
                 description: "Thanh toan hoa don",
                 items: items,
                 cancelUrl: "fail",
-                returnUrl: "success",
+                returnUrl: "https://smart-book-street-next-aso3.vercel.app",
                 expiredAt: expiredAt
             );
 

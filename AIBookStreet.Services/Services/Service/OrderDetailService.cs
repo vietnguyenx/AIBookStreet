@@ -88,12 +88,12 @@ namespace AIBookStreet.Services.Services.Service
         {
             try
             {
-                var existed = await _repository.OrderDetailRepository.GetAllOrderDetail(null, null, model.StoreId, model.EntityId);
+                //var inventory = await _repository.InventoryRepository.GetByID(model.InventoryId);
+                var existed = await _repository.OrderDetailRepository.GetDetail(model.InventoryId);
                 if (existed == null)
-                {
-                    var inventory = await _repository.InventoryRepository.GetByEntityIdAndStoreId(model.EntityId, model.StoreId);
+                {                    
                     var orderDetail = new OrderDetail { 
-                        InventoryId = inventory.Id,
+                        InventoryId = model.InventoryId,
                         Quantity = model.Quantity
                     };
                     var setOrderDetail = await SetBaseEntityToCreateFunc(orderDetail);
@@ -103,15 +103,39 @@ namespace AIBookStreet.Services.Services.Service
                         return setOrderDetail;
                     }
                 }
-                existed[0].Quantity += model.Quantity;
-                var setExisted = await SetBaseEntityToCreateFunc(existed[0]);
-                var isDone = await _repository.OrderDetailRepository.Add(setExisted);
+                existed.Quantity += model.Quantity;
+                var setExisted = await SetBaseEntityToUpdateFunc(existed);
+                var isDone = await _repository.OrderDetailRepository.Update(setExisted);
                 if (isDone)
                 {
                     return setExisted;
                 }
                 return null;
             } catch (Exception)
+            {
+                throw;
+            }
+        }
+        public async Task<(long, OrderDetail?)> UpdateDetail(Guid id, int quantity)
+        {
+            try
+            {
+                var existed = await _repository.OrderDetailRepository.GetByID(id);
+                if (existed == null)
+                {
+                    return (1, null); //khong ton tai
+                }
+                if (existed.OrderId != null)
+                {
+                    return (3, null);
+                }
+                existed.Quantity += quantity;
+                var setExisted = await SetBaseEntityToUpdateFunc(existed);
+                var result = existed.Quantity > 0 ? await _repository.OrderDetailRepository.Update(setExisted) : await _repository.OrderDetailRepository.Remove(existed);
+                return result ? (2, existed) //delete thanh cong
+                              : (3, null);
+            }
+            catch (Exception)
             {
                 throw;
             }
