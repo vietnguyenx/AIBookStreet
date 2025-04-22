@@ -68,8 +68,8 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var orders = request != null ? await _service.GetPaginationOrders(request.Result?.MinAmount, request.Result?.MaxAmount, request.Result?.PaymentMethod, request.Result?.Status, request.Result?.StartDate, request.Result?.EndDate, request.PageNumber, request.PageSize, request.SortField, request.SortOrder)
-                                             : await _service.GetPaginationOrders(null,null, null, null, null, null, 1,10, "CreatedDate", -1);
+                var orders = request != null ? await _service.GetPaginationOrders(request.Result?.MinAmount, request.Result?.MaxAmount, request.Result?.PaymentMethod, request.Result?.Status, request.Result?.StartDate, request.Result?.EndDate, request.Result?.StoreId, request.PageNumber, request.PageSize, request.SortField, request.SortOrder)
+                                             : await _service.GetPaginationOrders(null,null, null, null, null, null, null, 1,10, "CreatedDate", -1);
 
                 return orders.Item2 switch
                 {
@@ -89,8 +89,8 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var orders = request != null ? await _service.GetAllOrders(request?.MinAmount, request?.MaxAmount, request?.PaymentMethod, request?.Status, request?.StartDate, request?.EndDate)
-                                             : await _service.GetAllOrders(null, null, null, null, null, null);
+                var orders = request != null ? await _service.GetAllOrders(request?.MinAmount, request?.MaxAmount, request?.PaymentMethod, request?.Status, request?.StartDate, request?.EndDate, request?.StoreId)
+                                             : await _service.GetAllOrders(null, null, null, null, null, null, null);
 
                 return orders switch
                 {

@@ -10,6 +10,9 @@ using QRCoder;
 using System.Drawing.Imaging;
 using System.Drawing;
 using System.Text.Json;
+using FluentEmail.Core.Models;
+using Microsoft.Extensions.Logging;
+using SQLitePCL;
 
 namespace AIBookStreet.Services.Services.Service
 {
@@ -19,25 +22,56 @@ namespace AIBookStreet.Services.Services.Service
         private readonly IRazorTemplateEngine _razorTemplateEngine = razorTemplateEngine;
         public async Task<int> SendEmail(string email)
         {
-            var evtRegistration = new EventRegistration { 
+            var evtRegistration = new Ticket {
                 Id = Guid.NewGuid(),
-                RegistrantName = "Hiep",
-                RegistrantGender = "Nam",
-                RegistrantAgeRange = "18-25",
-                RegistrantEmail = email,
-                RegistrantPhoneNumber = "0983637752",
-                RegistrantAddress = "Bình Dương",
-                Event = new Event
-                {
+                TicketCode = "123",
+                SecretPasscode = "789456",
+                EventRegistration = new EventRegistration {
                     Id = Guid.NewGuid(),
-                    EventName = "Sự kiện mẫu",
-                    IsOpen = true,
-                    AllowAds = true,
-                    CreatedDate = DateTime.Now,
-                    IsDeleted = false,
+                    RegistrantName = "Hiep",
+                    RegistrantGender = "Nam",
+                    RegistrantAgeRange = "18-25",
+                    RegistrantEmail = email,
+                    RegistrantPhoneNumber = "0983637752",
+                    RegistrantAddress = "Bình Dương",
+                    Event = new Event
+                    {
+                        Id = Guid.NewGuid(),
+                        EventName = "Sự kiện mẫu",
+                        StartDate = DateTime.Parse("2025-04-22 10:00:00"),
+                        IsOpen = true,
+                        AllowAds = true,
+                        CreatedDate = DateTime.Now,
+                        IsDeleted = false,
+                        Zone = new Zone {
+                            ZoneName = "Zone A",
+                            Street = new Street
+                            {
+                                Address = "Đường sách Hồ Chí Minh, Đường Nguyễn Văn Bình, Phường Bến Nghé, Quận 1, TP.HCM"
+                            }
+                        }
+                    }
                 }
             };
-            string jsonData = JsonSerializer.Serialize(evtRegistration);
+            var qrData = new
+            {
+                id = evtRegistration.Id,
+                ticketCode = evtRegistration.TicketCode,
+                eventId = evtRegistration.EventRegistration.Event.EventName,
+                registrationId = evtRegistration.RegistrationId,
+                attendeeName = evtRegistration.EventRegistration.RegistrantName,
+                attendeeEmail = evtRegistration.EventRegistration.RegistrantEmail,
+                attendeePhone = evtRegistration.EventRegistration.RegistrantPhoneNumber,
+                attendeeAddress = evtRegistration.EventRegistration.RegistrantAddress,
+                eventName = evtRegistration.EventRegistration.Event.EventName,
+                eventStartDate = evtRegistration.EventRegistration.Event.StartDate,
+                eventEndDate = evtRegistration.EventRegistration.Event.EndDate,
+                eventLocation = evtRegistration.EventRegistration.Event.Zone.Street.Address,
+                zoneId = evtRegistration.EventRegistration.Event.ZoneId,
+                zoneName = evtRegistration.EventRegistration.Event.Zone.ZoneName,
+                issuedAt = evtRegistration.CreatedDate
+            };
+        string jsonData = JsonSerializer.Serialize("abc");
             QRCodeGenerator qrGenerator = new QRCodeGenerator();
             QRCodeData qrCodeData = qrGenerator.CreateQrCode(jsonData, QRCodeGenerator.ECCLevel.Q);
             QRCode qrCode = new QRCode(qrCodeData);
@@ -58,9 +92,9 @@ namespace AIBookStreet.Services.Services.Service
                     .To(email)
                     .Subject("[SmartBookStreet] Thư cảm ơn")                    
                     .Body(htmlBody, true)
-                    .AttachFromFilename(tempFilePath, MediaTypeNames.Image.Png, "QRCode.png")
+                    .AttachFromFilename(tempFilePath, MediaTypeNames.Image.Png, "qrcode.png")
                     .SendAsync();
-                File.Delete(tempFilePath);
+                
             }
             return 1;
         }

@@ -1,126 +1,308 @@
-﻿@model AIBookStreet.Repositories.Data.Entities.EventRegistration
+﻿@model AIBookStreet.Repositories.Data.Entities.Ticket
 <!DOCTYPE html>
-<html lang="en">
-  <head>
+<html lang="vi">
+<head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Xác nhận vé tham dự sự kiện</title>
     <style>
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
 
-      td {
-        text-align: left;
-        min-width: 100px;
-      }
-    </style>
-    <title></title>
-  </head>
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
 
-  <body style="font-family: 'Roboto', sans-serif">
-    <header style="background-color: #ffe5b4; padding: 20px">
-      <a
-        href=""
-        class=""
-        style="
-          color: black;
-          text-decoration: none;
-          display: flex;
-          gap: 4px;
-          justify-content: center;
-        "
-      >
-        <div class="">
-          <img
-            src="https://th.bing.com/th/id/OIP.Hysz-KWv7FXNrBEvEWn3agHaHa?rs=1&pid=ImgDetMain"
-            height="30"
-            width="30"
-            alt=""
-          />
-        </div>
-        <div
-          class=""
-          style="
-            font-size: 20px;
+        .header {
+            text-align: center;
+            padding: 20px;
+        }
+
+            .header img {
+                height: 40px;
+            }
+
+            .header h2 {
+                margin: 10px 0;
+            }
+
+        .divider {
+            border-top: 1px solid #ddd;
+            margin: 0 20px;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .ticket-box {
+            border: 1px solid #aaa;
+            border-radius: 8px;
+            display: block;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+            .ticket-box h3 {
+                width: 100%;
+                text-align: center;
+                background: #000;
+                color: #fff;
+                padding: 10px;
+                margin: 0;
+            }
+
+        .ticket-left {
+            flex: 1;
+            padding: 20px;
+            border-right: 1px dashed #949393;
+            border-bottom: 1px dashed #949393;
             display: flex;
+            justify-content: center;
             align-items: center;
+            width: 75%;
+        }
+
+        .ticket-right {
+            width: 220px;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px dashed #949393;
+            width: 25%; 
+            display:block;
+        }
+
+            .ticket-right .free {
+                color: red;
+                font-weight: bold;
+                font-size: 18px;
+            }
+
+            .ticket-right .name {
+                font-weight: bold;
+                margin: 10px 0;
+            }
+
+            .ticket-right .code {
+                background: #eee;
+                padding: 5px 10px;
+                display: inline-block;
+                border-radius: 5px;
+                font-size: 13px;
+                width: 80%;
+            }
+
+            .ticket-right img {
+                margin-top: 15px;
+                max-width: 100px;
+                border: 1px solid #ccc;
+            }
+
+        .barcode {
+            width: 100%;
+            background-color: #f2f2f2;
+            text-align: center;
+            padding-top: 20px;
+            font-size: 14px;
+        }
+
+            .barcode img {
+                height: 40px;
+            }
+
+        .code-box {
+            margin-top: 20px;
+            background-color: #f5f5f5;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 30px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+            .code-box h2 {
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 20px;
+                color: #333;
+            }
+
+        .recovery-code {
+            display: inline-block;
+            background-color: #ffffff;
+            padding: 12px 24px;
+            font-size: 32px;
             font-weight: bold;
-          "
-        >
-          Đường sách thành phố Hồ Chí Minh
+            color: #e53935;
+            border-radius: 6px;
+            letter-spacing: 10px;
+            margin-bottom: 15px;
+        }
+
+        .code-box p {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .warning {
+            background-color: #fff8e1;
+            border-left: 6px solid #ffc107;
+            padding: 20px 25px;
+            border-radius: 5px;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+
+            .warning strong {
+                display: block;
+                margin-bottom: 10px;
+                font-weight: bold;
+                color: #333;
+            }
+
+            .warning ul {
+                margin: 0;
+                padding-left: 20px;
+            }
+
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+            padding-bottom: 30px;
+        }
+
+            .footer strong {
+                display: block;
+                margin: 10px 0;
+            }
+
+            .footer a {
+                text-decoration: none;
+                color: #2196f3;
+                margin: 0 6px;
+                font-size: 13px;
+            }
+
+            .footer .contact {
+                margin-top: 15px;
+                font-size: 12px;
+                color: #888;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://th.bing.com/th/id/OIP.Hysz-KWv7FXNrBEvEWn3agHaHa?rs=1&pid=ImgDetMain" alt="Logo" style="border-radius: 10px;" />
+            <h2>XÁC NHẬN VÉ THAM DỰ SỰ KIỆN</h2>
         </div>
-      </a>
-    </header>
-    <main
-      style="
-        display: flex;
-        flex-direction: column;
-        margin-inline: auto;
-        padding-inline: 2em;
-      "
-    >
-      <p class="intro">
-        Chân thành cảm ơn ông/bà <strong>@Model.RegistrantName</strong> đã đăng
-        ký tham gia sự kiện, dưới đây là thông tin chi tiết đơn đăng ký:
-      </p>
-      <div class="info-table-wrapper" style="width: 100%">
-        <table class="info-table" style="width: 20%">
-          <tbody style="text-align: center">
-            <tr>
-              <td>
-                <li><strong>Tên:</strong></li>
-              </td>
-              <td>@Model.RegistrantName</td>
-            </tr>
-            <tr>
-              <td>
-                <li><strong>Giới tính:</strong></li>
-              </td>
-              <td>@Model.RegistrantGender</td>
-            </tr>
-            <tr>
-              <td>
-                <li><strong>Độ tuổi:</strong></li>
-              </td>
-              <td>@Model.RegistrantAgeRange</td>
-            </tr>
-            <tr>
-              <td>
-                <li><strong>Email:</strong></li>
-              </td>
-              <td>@Model.RegistrantEmail</td>
-            </tr>
-            <tr>
-              <td>
-                <li><strong>SĐT:</strong></li>
-              </td>
-              <td>@Model.RegistrantPhoneNumber</td>
-            </tr>
-            <tr>
-              <td>
-                <li><strong>Địa chỉ:</strong></li>
-              </td>
-              <td>@Model.RegistrantAddress</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      @* <div
-        class="info-table-wrapper"
-        style="width: 100%; display: flex; justify-content: center"
-      >
-            <img src="cid:qrCodeImage" style="height: auto; width: 20%" alt="" />
-      </div> *@
-     
-      <p>
-        Nếu bạn có bất kì sai sót gì hãy liên hệ ngay với chúng tôi để được giải
-        đáp kịp thời
-      </p>
-      <p>Số điện thoại nhân viên: <strong>0123456789</strong></p>
-    </main>
-  </body>
+        <div class="divider"></div>
+        <div class="content">
+            <p>Xin chào <strong>@Model.EventRegistration.RegistrantName</strong>,</p>
+            <p>Cảm ơn bạn đã đăng ký tham dự sự kiện. Đây là vé tham dự của bạn.</p>
+
+            <div class="ticket-box">
+                <h3>KIẾM TIỀN CÙNG CHATGPT</h3>
+                <div style="display: flex; width: 100%"> 
+                    <div class="ticket-left">
+                        <table>
+                            <tbody style="text-align: left">
+                                <tr>
+                                    <td style="width: 120px">
+                                        <strong>Thời gian:</strong>
+                                    </td>
+                                    <td>@Model.EventRegistration.Event.StartDate.Value.ToString("dd/MM/yyyy")</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Giờ mở cửa:</strong>
+                                    </td>
+                                    <td>@Model.EventRegistration.Event.StartDate.Value.ToString("HH:mm")</td>
+                                </tr>
+                                <tr>
+                                    <td style="display: flex">
+                                        <strong>Địa điểm:</strong>
+                                    </td>
+                                    <td>
+                                        @Model.EventRegistration.Event.Zone.Street.Address
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Khu vực:</strong>
+                                    </td>
+                                    <td>@Model.EventRegistration.Event.Zone.ZoneName</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Loại vé:</strong>
+                                    </td>
+                                    <td>Vé tham dự sự kiện</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="ticket-right" >
+                        <div class="free">Miễn phí</div>
+                        <div class="name">@Model.EventRegistration.RegistrantName</div>
+                        <div class="code">@Model.TicketCode</div>
+                        <img src="cid:qrcode.png" alt="QR Code" />
+                    </div>
+                </div>
+                <div class="barcode">
+                    <img src="barcode.png" alt="Barcode" /><br />
+                    <p>@Model.Id | @Model.TicketCode | @Model.EventRegistration.RegistrantName</p>
+                </div>
+            </div>
+
+
+
+            <div class="code-box">
+                <h2>MÃ KHÔI PHỤC VÉ CỦA BẠN:</h2>
+                <div class="recovery-code">@Model.SecretPasscode</div>
+                <p><em>Lưu ý: Vui lòng giữ mã này bí mật và sử dụng khi cần khôi phục vé.</em></p>
+            </div>
+
+            <div class="warning">
+                <strong>Lưu ý:</strong>
+                <ul>
+                    <li>Vui lòng xuất trình vé này (bản in hoặc điện tử) khi đến tham dự sự kiện.</li>
+                    <li>Đến sớm 15 phút để hoàn tất thủ tục vào cửa.</li>
+                    <li>Sự kiện sẽ diễn ra đúng giờ, vui lòng đến đúng giờ để không bỏ lỡ nội dung quan trọng.</li>
+                    <li>Mỗi vé chỉ được sử dụng một lần và không được chuyển nhượng.</li>
+                </ul>
+            </div>
+
+            <div class="footer">
+                Trân trọng, <br>
+                <strong>Ban tổ chức sự kiện</strong>
+
+                <div>
+                    <a href="https://duongsachtphcm.com/">Website</a> |
+                    <a href="https://www.facebook.com/duongsachtphcmvn">Facebook</a>
+                </div>
+
+                <div class="contact">
+                    © 2017 - Đường Sách TP.HCM. Tất cả các quyền được bảo lưu.<br>
+                    Địa chỉ: 161B, Lý Chính Thắng, Phường 7, Quận 3, TP.HCM |
+                    Email: ctyduongsachtphcm@gmail.com |
+                    Hotline: (08) 39 316 211 ext 286
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
 </html>
+
