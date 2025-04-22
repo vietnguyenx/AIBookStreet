@@ -1,9 +1,11 @@
 ﻿using AIBookStreet.Repositories.Data.Entities;
+using AIBookStreet.Services.Common;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace AIBookStreet.Services.Model
@@ -12,6 +14,7 @@ namespace AIBookStreet.Services.Model
     {
         public string ISBN { get; set; }
         public string? Title { get; set; }
+        [JsonConverter(typeof(DateTimeFormatConverter))]
         public DateTime? PublicationDate { get; set; }
         public decimal? Price { get; set; }
         public string? Languages { get; set; }
