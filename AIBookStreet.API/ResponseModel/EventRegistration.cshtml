@@ -258,11 +258,11 @@
                         <div class="free">Miễn phí</div>
                         <div class="name">@Model.EventRegistration.RegistrantName</div>
                         <div class="code">@Model.TicketCode</div>
-                        <img src="cid:qrcode.png" alt="QR Code" />
+                        <img src="cid:qrImage" alt="QR Code" />
                     </div>
                 </div>
                 <div class="barcode">
-                    <img src="barcode.png" alt="Barcode" /><br />
+                    <img src="cid:barImage" alt="Barcode" style="height: 150px"/><br />
                     <p>@Model.Id | @Model.TicketCode | @Model.EventRegistration.RegistrantName</p>
                 </div>
             </div>

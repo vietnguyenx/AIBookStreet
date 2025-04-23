@@ -13,12 +13,18 @@ using System.Text.Json;
 using FluentEmail.Core.Models;
 using Microsoft.Extensions.Logging;
 using SQLitePCL;
+using AIBookStreet.Services.Model;
+using Microsoft.Extensions.Options;
+using BarcodeStandard;
+using Microsoft.SqlServer.Server;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AIBookStreet.Services.Services.Service
 {
-    public class QRGeneratorService(IFluentEmailFactory fluentEmailFactory, IRazorTemplateEngine razorTemplateEngine) : IQRGeneratorService
+    public class QRGeneratorService(SmtpClient smtpClient, IOptions<SmtpSettings> smtpSettings, IRazorTemplateEngine razorTemplateEngine) : IQRGeneratorService
     {
-        private readonly IFluentEmailFactory _fluentEmailFactory = fluentEmailFactory;
+        private readonly SmtpClient _smtpClient = smtpClient;
+        private readonly SmtpSettings _smtpSettings = smtpSettings.Value;
         private readonly IRazorTemplateEngine _razorTemplateEngine = razorTemplateEngine;
         public async Task<int> SendEmail(string email)
         {
@@ -71,31 +77,60 @@ namespace AIBookStreet.Services.Services.Service
                 zoneName = evtRegistration.EventRegistration.Event.Zone.ZoneName,
                 issuedAt = evtRegistration.CreatedDate
             };
-        string jsonData = JsonSerializer.Serialize("abc");
+        string jsonData = JsonSerializer.Serialize(qrData);
             QRCodeGenerator qrGenerator = new QRCodeGenerator();
             QRCodeData qrCodeData = qrGenerator.CreateQrCode(jsonData, QRCodeGenerator.ECCLevel.Q);
             QRCode qrCode = new QRCode(qrCodeData);
-            Bitmap qrCodeImage = qrCode.GetGraphic(20);
-            using (MemoryStream ms = new())
-            {
-                //qrCodeImage.Save(ms, ImageFormat.Png);
-                //ms.Position = 0;
-                //ContentType contentType = new(MediaTypeNames.Image.Png);
-                //LinkedResource qrCodeResource = new(ms, contentType);
-                //qrCodeResource.ContentId = "qrCodeImage";
+            Bitmap qrCodeImage = qrCode.GetGraphic(5);
+            //using (MemoryStream ms = new())
+            //{
+            //    var htmlBody = await _razorTemplateEngine.RenderAsync("ResponseModel/EventRegistration.cshtml", evtRegistration);
+            //    string tempFilePath = Path.Combine(Path.GetTempPath(), "qrCode.png");
+            //    qrCodeImage.Save(tempFilePath, ImageFormat.Png);
 
-                var htmlBody = await _razorTemplateEngine.RenderAsync("ResponseModel/EventRegistration.cshtml", evtRegistration);
-                string tempFilePath = Path.Combine(Path.GetTempPath(), "qrCode.png");
-                qrCodeImage.Save(tempFilePath, ImageFormat.Png);
-                                
-                await _fluentEmailFactory.Create()
-                    .To(email)
-                    .Subject("[SmartBookStreet] Thư cảm ơn")                    
-                    .Body(htmlBody, true)
-                    .AttachFromFilename(tempFilePath, MediaTypeNames.Image.Png, "qrcode.png")
-                    .SendAsync();
-                
-            }
+            //    await _fluentEmailFactory.Create()
+            //        .To(email)
+            //        .Subject("[SmartBookStreet] Thư cảm ơn")                    
+            //        .Body(htmlBody, true)
+            //        .AttachFromFilename(tempFilePath, MediaTypeNames.Image.Png, "qrcode.png")
+            //        .SendAsync();
+
+            //}
+
+            var barCodeInfor = evtRegistration.Id + " " + evtRegistration.TicketCode;
+            Barcode barcode = new();
+            barcode.Encode(BarcodeStandard.Type.Code128, barCodeInfor, 600, 200);
+            string tempBarFilePath = Path.Combine(Path.GetTempPath(), "test-bar.png");
+            barcode.SaveImage(tempBarFilePath, SaveTypes.Png);
+
+            var from = new MailAddress(_smtpSettings.From);
+            var to = new MailAddress(email);
+            var htmlBody = await _razorTemplateEngine.RenderAsync("ResponseModel/EventRegistration.cshtml", evtRegistration);
+
+            var mail = new MailMessage(from, to)
+            {
+                Subject = "[SmartBookStreet] Thư cảm ơn",
+                IsBodyHtml = true
+            };
+            string tempQRFilePath = Path.Combine(Path.GetTempPath(), "qrCode.png");
+            qrCodeImage.Save(tempQRFilePath, ImageFormat.Png);
+            var view = AlternateView.CreateAlternateViewFromString(htmlBody, null, MediaTypeNames.Text.Html);
+            var image = new LinkedResource(tempQRFilePath, MediaTypeNames.Image.Png)
+            {
+                ContentId = "qrImage",
+                TransferEncoding = TransferEncoding.Base64
+            };
+            var image2 = new LinkedResource(tempBarFilePath, MediaTypeNames.Image.Png)
+            {
+                ContentId = "barImage",
+                TransferEncoding = TransferEncoding.Base64
+            };
+            view.LinkedResources.Add(image);
+            view.LinkedResources.Add(image2);
+            mail.AlternateViews.Add(view);
+
+            await _smtpClient.SendMailAsync(mail);
+            
             return 1;
         }
         public int GenerateQRCode(string name, int age)
@@ -117,6 +152,14 @@ namespace AIBookStreet.Services.Services.Service
                 Directory.CreateDirectory(directoryPath);
             }
             qrCodeImage.Save(savePath, ImageFormat.Png);
+            return 1;
+        }
+        public int GenerateBarCode(string infor)
+        {
+            Barcode barcode = new();
+            barcode.Encode(BarcodeStandard.Type.Code128, infor, 600, 3200);
+            string savePath = @"D:/test-bar.png";
+            barcode.SaveImage(savePath, SaveTypes.Png);
             return 1;
         }
     }

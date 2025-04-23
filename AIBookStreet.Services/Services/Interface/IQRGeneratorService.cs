@@ -10,5 +10,6 @@ namespace AIBookStreet.Services.Services.Interface
     {
         Task<int> SendEmail(string email);
         int GenerateQRCode(string name, int age);
+        int GenerateBarCode(string infor);
     }
 }
