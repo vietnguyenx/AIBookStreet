@@ -26,7 +26,7 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var result = await _service.AddACategory(model);
-                return result == null ? Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!")) : Ok(new BaseResponse(true, "Đã thêm"));
+                return result == null ? BadRequest(new BaseResponse(false, "Đã xảy ra lỗi!!!")) : Ok(new BaseResponse(true, "Đã thêm"));
             }
             catch (Exception ex)
             {
@@ -43,9 +43,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new BaseResponse(true, "Đã cập nhật thông tin!")),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
             catch (Exception ex)
@@ -63,9 +63,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new BaseResponse(true, "Đã xóa thông tin!")),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
             catch (Exception ex)
@@ -83,7 +83,7 @@ namespace AIBookStreet.API.Controllers
 
                 return category switch
                 {
-                    null => Ok(new ItemResponse<Category>(ConstantMessage.NotFound)),
+                    null => BadRequest(new ItemResponse<Category>(ConstantMessage.NotFound)),
                     not null => Ok(new ItemResponse<Category>(ConstantMessage.Success, category))
                 };
             }
@@ -103,7 +103,7 @@ namespace AIBookStreet.API.Controllers
 
                 return categories switch
                 {
-                    null => Ok(new ItemListResponse<CategoryRequest>(ConstantMessage.Success, null)),
+                    null => BadRequest(new ItemListResponse<CategoryRequest>(ConstantMessage.Success, null)),
                     not null => Ok(new ItemListResponse<CategoryRequest>(ConstantMessage.Success, _mapper.Map<List<CategoryRequest>>(categories)))
                 };
             }
@@ -123,7 +123,7 @@ namespace AIBookStreet.API.Controllers
 
                 return categories switch
                 {
-                    null => Ok(new ItemListResponse<CategoryRequest>(ConstantMessage.Success, null)),
+                    null => BadRequest(new ItemListResponse<CategoryRequest>(ConstantMessage.Success, null)),
                     not null => Ok(new ItemListResponse<CategoryRequest>(ConstantMessage.Success, _mapper.Map<List<CategoryRequest>>(categories)))
                 };
             }
@@ -142,7 +142,7 @@ namespace AIBookStreet.API.Controllers
 
                 return categories.Item2 switch
                 {
-                    0 => Ok(new PaginatedListResponse<CategoryRequest>(ConstantMessage.Success, null)),
+                    0 => BadRequest(new PaginatedListResponse<CategoryRequest>(ConstantMessage.Success, null)),
                     _ => Ok(new PaginatedListResponse<CategoryRequest>(ConstantMessage.Success, _mapper.Map<List<CategoryRequest>>(categories.Item1), categories.Item2, request != null ? request.PageNumber: 1, request != null ? request.PageSize : 10, request != null? request.SortField : "CreatedDate", request != null ? request.SortOrder : 1))
                 };
             }

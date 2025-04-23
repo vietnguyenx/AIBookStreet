@@ -42,9 +42,10 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new ItemResponse<OrderDetailRequest>("Đã cập nhật thành công!", _mapper.Map<OrderDetailRequest>(result.Item2))),
-                    _ => Ok(new BaseResponse(false, "Không thể cập nhật!!!"))
+                    3 => BadRequest(new BaseResponse(false, "Không thể cập nhật!!!")),
+                    4 => BadRequest(new BaseResponse(false, "Đã quá số lượng trong kho, không thể cập nhật!!!"))
                 };
             }
             catch (Exception ex)
@@ -107,11 +108,26 @@ namespace AIBookStreet.API.Controllers
                     return BadRequest("Id is empty");
                 }
                 var cart = await _service.GetCart(storeId);
+                var cartObject = new List<object>();
+                if (cart.Item2 != null)
+                {
+                    foreach (var item in cart.Item2)
+                    {
+                        cartObject.Add(new
+                        {
+                            Id = item.Id,
+                            ProductName = item.Inventory.Book != null ? item.Inventory.Book.Title : item.Inventory.Souvenir.SouvenirName,
+                            Quantity = item.Quantity,
+                            Price = (int)(item.Inventory.Book != null ? item.Inventory.Book.Price : item.Inventory.Souvenir.Price),
+                            ImgUrl = item.Inventory.Book != null ? item.Inventory.Book.Images.FirstOrDefault().Url : item.Inventory.Souvenir.BaseImgUrl
+                        });
+                    }
+                }
 
                 return cart.Item1 switch
                 {
                     0 => Ok(new ItemResponse<OrderDetail>(ConstantMessage.NotFound)),
-                    _ => Ok(new ItemListResponse<OrderDetail>(ConstantMessage.Success, cart.Item2))
+                    _ => Ok(new ItemListResponse<object>(ConstantMessage.Success, cartObject))
                 };
             }
             catch (Exception ex)

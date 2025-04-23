@@ -28,9 +28,9 @@ namespace AIBookStreet.API.Controllers
                 var result = await _service.AddAnOrder(model);
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, result.Item3)),
+                    1 => BadRequest(new BaseResponse(false, result.Item3)),
                     2 => Ok(new ItemResponse<OrderRequest>("Đã thêm đơn hàng", _mapper.Map<OrderRequest>(result.Item2))),
-                    _ => Ok(new BaseResponse(false, result.Item3))
+                    _ => BadRequest(new BaseResponse(false, result.Item3))
                 };
             }
             catch (Exception ex)
@@ -52,7 +52,7 @@ namespace AIBookStreet.API.Controllers
 
                 return order switch
                 {
-                    null => Ok(new ItemResponse<Order>(ConstantMessage.NotFound)),
+                    null => BadRequest(new ItemResponse<Order>(ConstantMessage.NotFound)),
                     not null => Ok(new ItemResponse<Order>(ConstantMessage.Success, order))
                 };
             }
@@ -74,6 +74,7 @@ namespace AIBookStreet.API.Controllers
                 return orders.Item2 switch
                 {
                     0 => Ok(new PaginatedListResponse<OrderRequest>(ConstantMessage.Success, null)),
+                    -1 => BadRequest(new BaseResponse(false, "Vui lòng đăng nhập vào cửa hàng!!!")),
                     _ => Ok(new PaginatedListResponse<OrderRequest>(ConstantMessage.Success, _mapper.Map<List<OrderRequest>>(orders.Item1), orders.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? -1 : 1))
                 };
             }

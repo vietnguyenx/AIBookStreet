@@ -29,9 +29,9 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var result = await _service.AddAnEvent(model);
-                return result.Item1 == 1 ? Ok(new BaseResponse(false, "Đã có sự kiện trong thời gian trên đường sách này")) 
+                return result.Item1 == 1 ? BadRequest(new BaseResponse(false, "Đã có sự kiện trong thời gian trên khu vực này")) 
                      : result.Item1 == 2 ? Ok(new ItemResponse<EventRequest>("Đã thêm", _mapper.Map<EventRequest>(result.Item2)))
-                     :                     Ok(new BaseResponse(false, "Đã xảy ra lỗi"));
+                     :                     BadRequest(new BaseResponse(false, "Đã xảy ra lỗi"));
             }
             catch (Exception ex)
             {
@@ -48,9 +48,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new ItemResponse<EventRequest>("Đã cập nhật thông tin!", _mapper.Map<EventRequest>(result.Item2))),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
             catch (Exception ex)
@@ -68,9 +68,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new ItemResponse<EventRequest>("Đã xóa thành công!", _mapper.Map<EventRequest>(result.Item2))),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại!!!"))
+                    _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại!!!"))
                 };
             }
             catch (Exception ex)
@@ -87,7 +87,7 @@ namespace AIBookStreet.API.Controllers
                 var result = await _service.GetAnEventById(id);
                 if (result.Item1 == null)
                 {
-                    return Ok(new ItemResponse<EventRequest>(ConstantMessage.NotFound));
+                    return BadRequest(new ItemResponse<EventRequest>(ConstantMessage.NotFound));
                 }
                 var eventInfor = _mapper.Map<EventRequest>(result.Item1);
                 eventInfor.AgeChart = result.Item2;

@@ -27,5 +27,12 @@ namespace AIBookStreet.API.Controllers
             var result = _service.GenerateQRCode(name, age);
             return result == 1 ? Ok(new BaseResponse(true, "Đã tạo")) : Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!"));
         }
+        [AllowAnonymous]
+        [HttpPost("create-bar-code")]
+        public IActionResult Mt([FromForm] string name)
+        {
+            var result = _service.GenerateBarCode(name);
+            return result == 1 ? Ok(new BaseResponse(true, "Đã tạo")) : Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!"));
+        }
     }
 }

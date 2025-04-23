@@ -20,6 +20,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                                             .ThenInclude(i => i.Souvenir)
                                         .Include(od => od.Inventory)
                                             .ThenInclude(i => i.Book)
+                                                .ThenInclude(b => b.Images)
                                             .Where(od => od.Inventory.StoreId == storeId && od.OrderId == null).ToListAsync();
         }
         public async Task<List<OrderDetail>?> GetAllOrderDetail(List<Guid>? storeIds, Guid? orderId, Guid? storeId, Guid? entityId)

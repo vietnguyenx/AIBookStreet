@@ -26,9 +26,9 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var result = await _service.AddAStreet(model);
-                return result.Item1 == 1 ? Ok(new BaseResponse(false, "Đã tồn tại!")) :
+                return result.Item1 == 1 ? BadRequest(new BaseResponse(false, "Đã tồn tại!")) :
                         result.Item1 == 2 ? Ok(new ItemResponse<StreetRequest>("Đã thêm", _mapper.Map<StreetRequest>(result))) :
-                                            Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!"));
+                                            BadRequest(new BaseResponse(false, "Đã xảy ra lỗi!!!"));
             }
             catch (Exception ex)
             {
@@ -45,9 +45,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new ItemResponse<StreetRequest>("Đã cập nhật thông tin!", _mapper.Map<StreetRequest>(result.Item2))),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
             catch (Exception ex)
@@ -65,9 +65,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new ItemResponse<StreetRequest>("Đã xóa thành công!", _mapper.Map<StreetRequest>(result.Item2))),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
             catch (Exception ex)
@@ -85,7 +85,7 @@ namespace AIBookStreet.API.Controllers
 
                 return street switch
                 {
-                    null => Ok(new ItemResponse<Street>(ConstantMessage.NotFound)),
+                    null => BadRequest(new ItemResponse<Street>(ConstantMessage.NotFound)),
                     not null => Ok(new ItemResponse<Street>(ConstantMessage.Success, street))
                 };
             }

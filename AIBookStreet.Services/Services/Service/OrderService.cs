@@ -137,6 +137,10 @@ namespace AIBookStreet.Services.Services.Service
                 //    }
 
                 //}
+                if (storeId == null)
+                {
+                    return (null, -1);
+                }
                 var orders = await _repository.OrderRepository.GetAllPagination(null, minAmount, maxAmount, paymentMethod, status, startDate, endDate, storeId, pageNumber, pageSize, sortField, sortOrder);
                 return orders.Item1.Count > 0 ? (orders.Item1, orders.Item2) : (null, 0);
             } catch (Exception)

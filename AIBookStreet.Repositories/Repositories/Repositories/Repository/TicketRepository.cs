@@ -42,7 +42,8 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var query = GetQueryable(t=> t.Id == id);
             var ticket = await query.Include(t => t.EventRegistration)
                                         .ThenInclude(er => er.Event)
-                                            .ThenInclude(e => e.Zone).SingleOrDefaultAsync();
+                                            .ThenInclude(e => e.Zone)
+                                                .ThenInclude(z => z.Street).SingleOrDefaultAsync();
             return ticket;
         }
         public async Task<Ticket?> GetTicket(string email, string passcode)
