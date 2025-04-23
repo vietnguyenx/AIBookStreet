@@ -25,7 +25,7 @@ namespace AIBookStreet.API.Controllers
 
                 return ticket switch
                 {
-                    null => Ok(new ItemResponse<Ticket>(ConstantMessage.NotFound)),
+                    null => BadRequest(new ItemResponse<Ticket>(ConstantMessage.NotFound)),
                     not null => Ok(new ItemResponse<TicketRequest>(ConstantMessage.Success, _mapper.Map<TicketRequest>(ticket)))
                 };
             }

@@ -104,7 +104,7 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.OrderRepository.GetByID(orderId);
         }
-        public async Task<(List<Order>?, long)> GetPaginationOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateOnly? startDate, DateOnly? endDate, int? pageNumber, int? pageSize, string? sortField, int? sortOrder)
+        public async Task<(List<Order>?, long)> GetPaginationOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate, Guid? storeId, int? pageNumber, int? pageSize, string? sortField, int? sortOrder)
         {
             try
             {
@@ -137,16 +137,18 @@ namespace AIBookStreet.Services.Services.Service
                 //    }
 
                 //}
-                DateTime? startDateTime = startDate.HasValue ? startDate.Value.ToDateTime(TimeOnly.MinValue) : null;
-                DateTime? endDateTime = endDate.HasValue ? endDate.Value.ToDateTime(TimeOnly.MaxValue) : null;
-                var orders = await _repository.OrderRepository.GetAllPagination(null, minAmount, maxAmount, paymentMethod, status, startDateTime, endDateTime, pageNumber, pageSize, sortField, sortOrder);
+                if (storeId == null)
+                {
+                    return (null, -1);
+                }
+                var orders = await _repository.OrderRepository.GetAllPagination(null, minAmount, maxAmount, paymentMethod, status, startDate, endDate, storeId, pageNumber, pageSize, sortField, sortOrder);
                 return orders.Item1.Count > 0 ? (orders.Item1, orders.Item2) : (null, 0);
             } catch (Exception)
             {
                 throw;
             }
         }
-        public async Task<List<Order>?> GetAllOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateOnly? startDate, DateOnly? endDate)
+        public async Task<List<Order>?> GetAllOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate, Guid? storeId)
         {
             try
             {
@@ -179,9 +181,7 @@ namespace AIBookStreet.Services.Services.Service
                 //    }
 
                 //}
-                DateTime? startDateTime = startDate.HasValue ? startDate.Value.ToDateTime(TimeOnly.MinValue) : null;
-                DateTime? endDateTime = endDate.HasValue ? endDate.Value.ToDateTime(TimeOnly.MaxValue) : null;
-                var orders = await _repository.OrderRepository.GetAllNotPagination(null, minAmount, maxAmount, paymentMethod, status, startDateTime, endDateTime);
+                var orders = await _repository.OrderRepository.GetAllNotPagination(null, minAmount, maxAmount, paymentMethod, status, startDate, endDate, storeId);
                 return orders.Count > 0 ? orders : null;
             }
             catch (Exception)

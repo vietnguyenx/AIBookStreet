@@ -27,7 +27,7 @@ namespace AIBookStreet.API.Controllers
                 var result = await _service.AddAnEventRegistration(model);
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Đã tồn tại!!!")),
+                    1 => BadRequest(new BaseResponse(false, "Đã tồn tại!!!")),
                     2 => Ok(new ItemResponse<object>("Đã thêm!", new
                     {
                         id = result.Item2.Id,
@@ -105,7 +105,7 @@ namespace AIBookStreet.API.Controllers
 
                 return eventRegistration switch
                 {
-                    null => Ok(new ItemResponse<EventRegistration>(ConstantMessage.NotFound)),
+                    null => BadRequest(new ItemResponse<EventRegistration>(ConstantMessage.NotFound)),
                     not null => Ok(new ItemResponse<EventRegistration>(ConstantMessage.Success, eventRegistration))
                 };
             }

@@ -26,7 +26,7 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var result = await _service.AddAZone(model);
-                return result == null ? Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!")) : Ok(new BaseResponse(true, "Đã thêm"));
+                return result == null ? BadRequest(new BaseResponse(false, "Đã xảy ra lỗi!!!")) : Ok(new BaseResponse(true, "Đã thêm"));
             }
             catch (Exception ex)
             {
@@ -43,9 +43,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new BaseResponse(true, "Đã cập nhật thông tin!")),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
             catch (Exception ex)
@@ -63,9 +63,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new BaseResponse(true, "Đã xóa thông tin!")),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
             catch (Exception ex)
@@ -83,7 +83,7 @@ namespace AIBookStreet.API.Controllers
 
                 return zone switch
                 {
-                    null => Ok(new ItemResponse<Zone>(ConstantMessage.NotFound)),
+                    null => BadRequest(new ItemResponse<Zone>(ConstantMessage.NotFound)),
                     not null => Ok(new ItemResponse<Zone>(ConstantMessage.Success, zone))
                 };
             }

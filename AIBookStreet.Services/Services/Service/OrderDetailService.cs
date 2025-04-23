@@ -129,7 +129,16 @@ namespace AIBookStreet.Services.Services.Service
                 {
                     return (3, null);
                 }
-                existed.Quantity += quantity;
+                var inventory = await _repository.InventoryRepository.GetByID(existed.InventoryId);
+                if (inventory == null)
+                {
+                    return (1, null); //khong ton tai
+                }
+                if (quantity > inventory.Quantity)
+                {
+                    return (4, null); 
+                }
+                existed.Quantity = quantity;
                 var setExisted = await SetBaseEntityToUpdateFunc(existed);
                 var result = existed.Quantity > 0 ? await _repository.OrderDetailRepository.Update(setExisted) : await _repository.OrderDetailRepository.Remove(existed);
                 return result ? (2, existed) //delete thanh cong

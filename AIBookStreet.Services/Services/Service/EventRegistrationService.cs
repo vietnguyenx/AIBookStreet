@@ -18,14 +18,18 @@ using FluentEmail.Core;
 using Razor.Templating.Core;
 using System.Net.Mail;
 using System.Net.Mime;
+using Microsoft.Extensions.Options;
+using BarcodeStandard;
+using static QRCoder.PayloadGenerator;
 
 namespace AIBookStreet.Services.Services.Service
 {
-    public class EventRegistrationService(IUnitOfWork repository, IMapper mapper, IHttpContextAccessor httpContextAccessor, IFluentEmailFactory fluentEmailFactory, IRazorTemplateEngine razorTemplateEngine, ITicketService ticketService) : BaseService<EventRegistration>(mapper, repository, httpContextAccessor), IEventRegistrationService
+    public class EventRegistrationService(IUnitOfWork repository, IMapper mapper, IHttpContextAccessor httpContextAccessor, SmtpClient smtpClient, IOptions<SmtpSettings> smtpSettings, IRazorTemplateEngine razorTemplateEngine, ITicketService ticketService) : BaseService<EventRegistration>(mapper, repository, httpContextAccessor), IEventRegistrationService
     {
         private readonly IUnitOfWork _repository = repository;
-        private readonly IFluentEmailFactory _fluentEmailFactory = fluentEmailFactory;
         private readonly IRazorTemplateEngine _razorTemplateEngine = razorTemplateEngine;
+        private readonly SmtpClient _smtpClient = smtpClient;
+        private readonly SmtpSettings _smtpSettings = smtpSettings.Value;
         private readonly ITicketService _ticketService = ticketService;
         public async Task<(long, Ticket?)> AddAnEventRegistration(EventRegistrationModel model)
         {
@@ -40,7 +44,7 @@ namespace AIBookStreet.Services.Services.Service
             if (isSuccess)
             {
                 var evtRegis = await _repository.EventRegistrationRepository.GetByID(setEventRegistrationModel.Id);
-                await SendEmail(evtRegis);
+               // await SendEmail(evtRegis);
 
                 var ticketCode = GenerateRandomString(10);
                 var ticketCodeExist = _repository.TicketRepository.SearchTicketCode(evtRegis.EventId, ticketCode);
@@ -65,7 +69,9 @@ namespace AIBookStreet.Services.Services.Service
                 var addTicket = await _ticketService.AddATicket(ticket);
                 if (addTicket != null)
                 {
-                    return (2, await _repository.TicketRepository.GetByID(addTicket.Id));
+                    var setTicket = await _repository.TicketRepository.GetByID(addTicket.Id);
+
+                    return (2, setTicket);
                 }
 
                 return (3, null);
@@ -121,50 +127,66 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.EventRegistrationRepository.GetStatistic(eventId);
         }
-
-        //public async Task GenerateQRCode(EventRegistration model)
-        //{
-        //    var evt = await _repository.EventRepository.GetByID(model.EventId);
-        //    object data = new
-        //    {
-        //        Id = model.Id,
-        //        EventName = evt.EventName,
-        //        Name = model.RegistrantName,
-        //        Gender = model.RegistrantGender,
-        //        Age = model.RegistrantAgeRange,
-        //        Email = model.RegistrantEmail,
-        //        Phone = model.RegistrantPhoneNumber,
-        //        Address = model.RegistrantAddress
-        //    };
-        //    string jsonData = JsonSerializer.Serialize(data);
-        //    QRCodeGenerator qrGenerator = new QRCodeGenerator();
-        //    QRCodeData qrCodeData = qrGenerator.CreateQrCode(jsonData, QRCodeGenerator.ECCLevel.Q);
-        //    QRCode qrCode = new(qrCodeData);
-        //    Bitmap qrCodeImage = qrCode.GetGraphic(20);
-        //    string tempFilePath = Path.Combine(Path.GetTempPath(), "qrCode.png");
-        //    qrCodeImage.Save(tempFilePath, ImageFormat.Png);
-        //    await SendEmail(model, evt.EventName, tempFilePath);
-        //    File.Delete(tempFilePath);
-        //}
-        //public async Task SendEmail(EventRegistration data, string eventName, string tempFilePath)
-        //{
-        //    var htmlBody = await _razorTemplateEngine.RenderAsync("ResponseModel/EventRegistration.cshtml", data);
-        //    await _fluentEmailFactory.Create()
-        //        .To(data.RegistrantEmail)
-        //        .Subject("[SmartBookStreet] THƯ MỜI THAM DỰ SỰ KIỆN: " + eventName)
-        //        .Body(htmlBody, true)
-        //        .AttachFromFilename(tempFilePath, MediaTypeNames.Image.Png, "QRCode.png")
-        //        .SendAsync();
-        //}
-        public async Task SendEmail(EventRegistration data)
+        public async void SendEmai(Ticket ticket)
         {
-            var htmlBody = await _razorTemplateEngine.RenderAsync("ResponseModel/EventRegistration.cshtml", data);
-            await _fluentEmailFactory.Create()
-                .To(data.RegistrantEmail)
-                .Subject("[SmartBookStreet] THƯ MỜI THAM DỰ SỰ KIỆN: " + data.Event.EventName)
-                .Body(htmlBody, true)
-                .SendAsync();
-        }
+            var qrData = new
+            {
+                id = ticket.Id,
+                ticketCode = ticket.TicketCode,
+                eventId = ticket.EventRegistration.Event.EventName,
+                registrationId = ticket.RegistrationId,
+                attendeeName = ticket.EventRegistration.RegistrantName,
+                attendeeEmail = ticket.EventRegistration.RegistrantEmail,
+                attendeePhone = ticket.EventRegistration.RegistrantPhoneNumber,
+                attendeeAddress = ticket.EventRegistration.RegistrantAddress,
+                eventName = ticket.EventRegistration.Event.EventName,
+                eventStartDate = ticket.EventRegistration.Event.StartDate,
+                eventEndDate = ticket.EventRegistration.Event.EndDate,
+                eventLocation = ticket.EventRegistration.Event.Zone.Street.Address,
+                zoneId = ticket.EventRegistration.Event.ZoneId,
+                zoneName = ticket.EventRegistration.Event.Zone.ZoneName,
+                issuedAt = ticket.CreatedDate
+            };
+            string jsonData = JsonSerializer.Serialize(qrData);
+            QRCodeGenerator qrGenerator = new QRCodeGenerator();
+            QRCodeData qrCodeData = qrGenerator.CreateQrCode(jsonData, QRCodeGenerator.ECCLevel.Q);
+            QRCode qrCode = new QRCode(qrCodeData);
+            Bitmap qrCodeImage = qrCode.GetGraphic(5);
+
+            var barCodeInfor = ticket.Id + " " + ticket.TicketCode;
+            Barcode barcode = new();
+            barcode.Encode(BarcodeStandard.Type.Code128, barCodeInfor, 600, 200);
+            string tempBarFilePath = Path.Combine(Path.GetTempPath(), "test-bar.png");
+            barcode.SaveImage(tempBarFilePath, SaveTypes.Png);
+
+            var from = new MailAddress(_smtpSettings.From);
+            var to = new MailAddress(ticket.EventRegistration.RegistrantEmail);
+            var htmlBody = await _razorTemplateEngine.RenderAsync("ResponseModel/EventRegistration.cshtml", ticket);
+
+            var mail = new MailMessage(from, to)
+            {
+                Subject = "[SmartBookStreet] Thư cảm ơn",
+                IsBodyHtml = true
+            };
+            string tempQRFilePath = Path.Combine(Path.GetTempPath(), "qrCode.png");
+            qrCodeImage.Save(tempQRFilePath, ImageFormat.Png);
+            var view = AlternateView.CreateAlternateViewFromString(htmlBody, null, MediaTypeNames.Text.Html);
+            var image = new LinkedResource(tempQRFilePath, MediaTypeNames.Image.Png)
+            {
+                ContentId = "qrImage",
+                TransferEncoding = TransferEncoding.Base64
+            };
+            var image2 = new LinkedResource(tempBarFilePath, MediaTypeNames.Image.Png)
+            {
+                ContentId = "barImage",
+                TransferEncoding = TransferEncoding.Base64
+            };
+            view.LinkedResources.Add(image);
+            view.LinkedResources.Add(image2);
+            mail.AlternateViews.Add(view);
+
+            await _smtpClient.SendMailAsync(mail);
+        }        
         public static string GenerateRandomString(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

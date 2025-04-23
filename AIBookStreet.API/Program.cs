@@ -12,9 +12,12 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Net.payOS;
+using System.Net.Mail;
+using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -182,13 +185,25 @@ PayOS payOS = new(builder.Configuration["payOS:ClientId"] ?? throw new Exception
 builder.Services.AddSingleton(payOS);
 
 //add mail configuration
-string defaultFromEmail = builder.Configuration["EmailSettings:From"]!;
-string host = builder.Configuration["EmailSettings:SmtpServer"]!;
-int port = int.Parse(builder.Configuration["EmailSettings:Port"]!);
-string username = builder.Configuration["EmailSettings:Email"]!;
-string password = builder.Configuration["EmailSettings:Password"]!;
+//string defaultFromEmail = builder.Configuration["EmailSettings:From"]!;
+//string host = builder.Configuration["EmailSettings:SmtpServer"]!;
+//int port = int.Parse(builder.Configuration["EmailSettings:Port"]!);
+//string username = builder.Configuration["EmailSettings:Email"]!;
+//string password = builder.Configuration["EmailSettings:Password"]!;
 
-builder.Services.AddFluentEmail(defaultFromEmail).AddSmtpSender(host, port, username, password);
+//builder.Services.AddFluentEmail(defaultFromEmail).AddSmtpSender(host, port, username, password);
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddSingleton<SmtpClient>(sp =>
+{
+    var smtpConfig = sp.GetRequiredService<IOptions<SmtpSettings>>().Value;
+
+    return new SmtpClient(smtpConfig.SmtpServer, smtpConfig.Port)
+    {
+        EnableSsl = smtpConfig.EnableSsl,
+        Credentials = new NetworkCredential(smtpConfig.Email, smtpConfig.Password)
+    };
+});
+
 builder.Services.AddRazorTemplating();
 
 var app = builder.Build();

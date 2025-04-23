@@ -28,9 +28,9 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var result = await _service.AddABookAuthor(model);
-                return result.Item2 == 1 ? Ok(new BaseResponse(false, "Đã tồn tại!")) : 
+                return result.Item2 == 1 ? BadRequest(new BaseResponse(false, "Đã tồn tại!")) : 
                        result.Item2 == 2 ? Ok(new BaseResponse(true, "Đã thêm")) :
-                                           Ok(new BaseResponse(false, "Đã xảy ra lỗi!!!"));
+                                           BadRequest(new BaseResponse(false, "Đã xảy ra lỗi!!!"));
             }
             catch (Exception ex)
             {
@@ -77,9 +77,9 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new BaseResponse(true, "Đã xóa thông tin!")),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
             catch (Exception ex)
@@ -122,7 +122,7 @@ namespace AIBookStreet.API.Controllers
 
                 if (bookAuthors == null)
                 {
-                    return Ok(new ItemListResponse<BookAuthorRequest>(ConstantMessage.Success, null));
+                    return BadRequest(new ItemListResponse<BookAuthorRequest>(ConstantMessage.Success, null));
                 }
                 
                 return Ok(new ItemListResponse<BookAuthorRequest>(ConstantMessage.Success, _mapper.Map<List<BookAuthorRequest>>(bookAuthors)));
@@ -143,7 +143,7 @@ namespace AIBookStreet.API.Controllers
 
                 return bookAuthors.Item2 switch
                 {
-                    0 => Ok(new PaginatedListResponse<BookAuthorRequest>(ConstantMessage.Success, null)),
+                    0 => BadRequest(new PaginatedListResponse<BookAuthorRequest>(ConstantMessage.Success, null)),
                     _ => Ok(new PaginatedListResponse<BookAuthorRequest>(ConstantMessage.Success, _mapper.Map<List<BookAuthorRequest>>(bookAuthors.Item1), bookAuthors.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize: 10, request != null ? request.SortField : "CreatedDate", request != null ? request.SortOrder : 1))
                 };
             }
@@ -162,7 +162,7 @@ namespace AIBookStreet.API.Controllers
 
                 return bookAuthors switch
                 {
-                    null => Ok(new ItemListResponse<BookAuthorRequest>(ConstantMessage.Success, null)),
+                    null => BadRequest(new ItemListResponse<BookAuthorRequest>(ConstantMessage.Success, null)),
                     _ => Ok(new ItemListResponse<BookAuthorRequest>(ConstantMessage.Success, _mapper.Map<List<BookAuthorRequest>>(bookAuthors)))
                 };
             }

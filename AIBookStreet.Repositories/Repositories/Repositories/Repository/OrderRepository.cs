@@ -17,7 +17,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
     public class OrderRepository(BSDbContext context) : BaseRepository<Order>(context), IOrderRepository
     {
         private readonly BSDbContext _context = context;
-        public async Task<List<Order>?> GetAllNotPagination(List<Guid>? orderIds, decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate)
+        public async Task<List<Order>?> GetAllNotPagination(List<Guid>? orderIds, decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate, Guid? storeId)
         {
             var queryable = GetQueryable();
             queryable = queryable.Where(o => !o.IsDeleted);
@@ -51,12 +51,16 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 {
                     queryable = queryable.Where(o => o.LastUpdatedDate <= endDate.Value);
                 }
+                if (storeId != null && storeId.HasValue)
+                {
+                    queryable = queryable.Where(o => o.StoreId <= storeId.Value);
+                }
             }
 
             var orders = await queryable.ToListAsync();
             return orders;
         }
-        public async Task<(List<Order>, long)> GetAllPagination(List<Guid>? orderIds, decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate, int? pageNumber, int? pageSize, string? sortField, int? sortOrder)
+        public async Task<(List<Order>, long)> GetAllPagination(List<Guid>? orderIds, decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate, Guid? storeId, int? pageNumber, int? pageSize, string? sortField, int? sortOrder)
         {
             var queryable = GetQueryable();
             string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
@@ -91,6 +95,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 if (endDate.HasValue)
                 {
                     queryable = queryable.Where(o => o.LastUpdatedDate <= endDate.Value);
+                }
+                if (storeId != null && storeId.HasValue)
+                {
+                    queryable = queryable.Where(o => o.StoreId <= storeId.Value);
                 }
             }
             var totalOrigin = queryable.Count();
