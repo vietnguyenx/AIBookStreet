@@ -6,6 +6,7 @@ using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace AIBookStreet.API.Controllers
 {
@@ -27,6 +28,46 @@ namespace AIBookStreet.API.Controllers
                 {
                     null => BadRequest(new ItemResponse<Ticket>(ConstantMessage.NotFound)),
                     not null => Ok(new ItemResponse<TicketRequest>(ConstantMessage.Success, _mapper.Map<TicketRequest>(ticket)))
+                };
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            };
+        }
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> Create (Guid registrantId)
+        {
+            try
+            {
+                var ticket = await _service.AddATicket(registrantId);
+
+                return ticket.Item2 switch
+                {
+                    null => BadRequest(new ItemResponse<Ticket>(ConstantMessage.NotFound)),
+                    not null => Ok(new ItemResponse<TicketRequest>(ConstantMessage.Success, _mapper.Map<TicketRequest>(ticket.Item2)))
+                };
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            };
+        }
+        [AllowAnonymous]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAnEventResgisById([FromRoute]Guid id)
+            {
+            try
+            {
+                var ticket = await _service.GetTicketById(id);
+
+                return ticket switch
+                {
+                    null => BadRequest(new ItemResponse<Ticket>(ConstantMessage.NotFound)),
+                    not null => Ok(new ItemResponse<Ticket>(ConstantMessage.Success, ticket))
                 };
             }
             catch (Exception ex)

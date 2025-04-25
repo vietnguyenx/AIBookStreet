@@ -95,6 +95,7 @@ namespace AIBookStreet.API.Controllers
                 eventInfor.ReferenceChart = result.Item4;
                 eventInfor.AddressChart = result.Item5;
                 eventInfor.AttendedChart = result.Item6;
+                eventInfor.TotalRegistrations = result.Item7;
                 return Ok(new ItemResponse<object>(ConstantMessage.Success, eventInfor));
 
                 //return result.Item1 switch

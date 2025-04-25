@@ -10,11 +10,12 @@ namespace AIBookStreet.Services.Services.Interface
 {
     public interface IEventRegistrationService
     {
-        Task<(long, Ticket?)> AddAnEventRegistration(EventRegistrationModel model);
-        //Task<(long, EventRegistration?)> UpdateAnEventRegistration(Guid? id, EventRegistrationModel model);
+        Task<(long, EventRegistration?,string?)> AddAnEventRegistration(EventRegistrationModel model);
+        Task<int> SendEmai(Ticket? ticket);
+        Task<(long, EventRegistration?)> CheckAttend(CheckAttendModel model);
         //Task<(long, EventRegistration?)> DeleteAnEventRegistration(Guid id);
         Task<EventRegistration?> GetAnEventRegistrationById(Guid id);
         Task<List<EventRegistration>?> GetAllActiveEventRegistrations(Guid eventId);
-        Task<(List<object>, List<object>, List<object>, List<object>, List<object>)> Test (Guid eventId);
+        Task<(List<object>, List<object>, List<object>, List<object>, List<object>, int, int)> Test (Guid eventId);
     }
 }

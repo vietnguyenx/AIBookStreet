@@ -604,6 +604,7 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.RegistrantAddress).HasMaxLength(255).IsRequired(false);
                 e.Property(x => x.ReferenceSource).HasMaxLength(1000).IsRequired();
                 e.Property(x => x.HasAttendedBefore).IsRequired();
+                e.Property(x => x.IsAttended).IsRequired();
 
                 e.HasOne(x => x.Event)
                  .WithMany(ev => ev.EventRegistrations)

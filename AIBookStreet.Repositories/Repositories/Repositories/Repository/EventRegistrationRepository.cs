@@ -35,7 +35,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return eventRegistration;
         }
-        public async Task<(List<object>, List<object>, List<object>, List<object>, List<object>)> GetStatistic(Guid? eventId)
+        public async Task<(List<object>, List<object>, List<object>, List<object>, List<object>, int, int)> GetStatistic(Guid? eventId)
         {
             var queryable = GetQueryable();
             queryable = queryable.Where(z => !z.IsDeleted && z.EventId == eventId);
@@ -115,7 +115,9 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                     Value = group.Count
                 });
             }
-            return (ageStatistic, genderStatistic, referenceStatistic, addressStatistic, hasAttendedBeforeStatic);
+            var totalRegistrations = await queryable.CountAsync();
+            var attend = await queryable.CountAsync(er => er.IsAttended);
+            return (ageStatistic, genderStatistic, referenceStatistic, addressStatistic, hasAttendedBeforeStatic, totalRegistrations, attend);
         }
     }
 }

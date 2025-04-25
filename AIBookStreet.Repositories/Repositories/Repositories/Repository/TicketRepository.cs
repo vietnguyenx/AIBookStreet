@@ -18,12 +18,9 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         public async Task<Ticket?> SearchTicketCode(Guid? eventId, string ticketCode)
         {
             var query = GetQueryable();
-            query = query.Include(t => t.EventRegistration);
-            if (query.Any())
-            {
-                query = query.Where(t => t.EventRegistration.EventId == eventId && t.TicketCode == ticketCode);
-            }
-            var ticket = await query.FirstOrDefaultAsync();
+            query = query.Include(t => t.EventRegistration)
+                        .Where(t => t.EventRegistration.EventId == eventId && t.TicketCode == ticketCode);
+            var ticket = await query.SingleOrDefaultAsync();
             return ticket;
         }
         public async Task<Ticket?> SearchSecretPasscode(Guid? eventId, string secretPasscode)

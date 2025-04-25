@@ -96,6 +96,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var query = GetQueryable(c => c.Id == id);
             var category = await query.Include(c => c.BookCategories)
                                         .ThenInclude(bc => bc.Book)
+                                            .ThenInclude(b => b.Images)
                                   .SingleOrDefaultAsync();
 
             return category;

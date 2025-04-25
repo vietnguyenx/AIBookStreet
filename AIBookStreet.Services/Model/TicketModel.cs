@@ -8,8 +8,8 @@ namespace AIBookStreet.Services.Model
 {
     public class TicketModel
     {
-        public string TicketCode { get; set; }
-        public string SecretPasscode { get; set; }
+        public string TicketCode { get; set; } = null!;
+        public string SecretPasscode { get; set; } = null!;
         public Guid? RegistrationId { get; set; }
     }
 }

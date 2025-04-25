@@ -210,7 +210,7 @@
         </div>
         <div class="divider"></div>
         <div class="content">
-            <p>Xin chào <strong>@Model.EventRegistration.RegistrantName</strong>,</p>
+            <p>Xin chào <strong>@Model.EventRegistration?.RegistrantName</strong>,</p>
             <p>Cảm ơn bạn đã đăng ký tham dự sự kiện. Đây là vé tham dự của bạn.</p>
 
             <div class="ticket-box">
@@ -223,27 +223,27 @@
                                     <td style="width: 120px">
                                         <strong>Thời gian:</strong>
                                     </td>
-                                    <td>@Model.EventRegistration.Event.StartDate.Value.ToString("dd/MM/yyyy")</td>
+                                    <td>@Model.EventRegistration?.Event?.StartDate?.ToString("dd/MM/yyyy")</td>
                                 </tr>
                                 <tr>
                                     <td>
                                         <strong>Giờ mở cửa:</strong>
                                     </td>
-                                    <td>@Model.EventRegistration.Event.StartDate.Value.ToString("HH:mm")</td>
+                                    <td>@Model.EventRegistration?.Event?.StartDate?.ToString("HH:mm")</td>
                                 </tr>
                                 <tr>
                                     <td style="display: flex">
                                         <strong>Địa điểm:</strong>
                                     </td>
                                     <td>
-                                        @Model.EventRegistration.Event.Zone.Street.Address
+                                        @Model.EventRegistration?.Event?.Zone?.Street?.Address
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>
                                         <strong>Khu vực:</strong>
                                     </td>
-                                    <td>@Model.EventRegistration.Event.Zone.ZoneName</td>
+                                    <td>@Model.EventRegistration?.Event?.Zone?.ZoneName</td>
                                 </tr>
                                 <tr>
                                     <td>
@@ -256,14 +256,14 @@
                     </div>
                     <div class="ticket-right" >
                         <div class="free">Miễn phí</div>
-                        <div class="name">@Model.EventRegistration.RegistrantName</div>
+                        <div class="name">@Model.EventRegistration?.RegistrantName</div>
                         <div class="code">@Model.TicketCode</div>
                         <img src="cid:qrImage" alt="QR Code" />
                     </div>
                 </div>
                 <div class="barcode">
                     <img src="cid:barImage" alt="Barcode" style="height: 150px"/><br />
-                    <p>@Model.Id | @Model.TicketCode | @Model.EventRegistration.RegistrantName</p>
+                    <p>@Model.Id | @Model.TicketCode | @Model.EventRegistration?.RegistrantName</p>
                 </div>
             </div>
 

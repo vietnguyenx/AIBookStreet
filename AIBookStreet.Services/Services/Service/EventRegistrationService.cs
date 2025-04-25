@@ -31,76 +31,45 @@ namespace AIBookStreet.Services.Services.Service
         private readonly SmtpClient _smtpClient = smtpClient;
         private readonly SmtpSettings _smtpSettings = smtpSettings.Value;
         private readonly ITicketService _ticketService = ticketService;
-        public async Task<(long, Ticket?)> AddAnEventRegistration(EventRegistrationModel model)
+        public async Task<(long, EventRegistration?, string?)> AddAnEventRegistration(EventRegistrationModel model)
         {
             var existed = await _repository.EventRegistrationRepository.GetByEmail(model.EventId, model.RegistrantEmail);
             if (existed != null)
             {
-                return (1, null); //da ton tai
+                return (1, null, "Đã tồn tại người đăng ký email này cho sự kiện này"); //da ton tai
+            }
+            var evt = await _repository.EventRepository.GetByID(model.EventId);
+            if (evt == null)
+            {
+                return (3, null, "Không tìm thấy sự kiện"); //khong tim thay
             }
             var eventRegistrationModel = _mapper.Map<EventRegistration>(model);
+            eventRegistrationModel.IsAttended = false;
             var setEventRegistrationModel = await SetBaseEntityToCreateFunc(eventRegistrationModel);
             var isSuccess = await _repository.EventRegistrationRepository.Add(setEventRegistrationModel);
             if (isSuccess)
             {
-                var evtRegis = await _repository.EventRegistrationRepository.GetByID(setEventRegistrationModel.Id);
-               // await SendEmail(evtRegis);
-
-                var ticketCode = GenerateRandomString(10);
-                var ticketCodeExist = _repository.TicketRepository.SearchTicketCode(evtRegis.EventId, ticketCode);
-                while (ticketCodeExist != null)
-                {
-                    ticketCode = GenerateRandomString(10);
-                    ticketCodeExist = _repository.TicketRepository.SearchTicketCode(evtRegis.EventId, ticketCode);
-                }
-                var secretPasscode = GenerateRandomNumber(1000, 999999);
-                var secretPasscodeExist = _repository.TicketRepository.SearchSecretPasscode(evtRegis.EventId, secretPasscode.ToString());
-                while (secretPasscodeExist != null)
-                {
-                    secretPasscode = GenerateRandomNumber(1000, 999999);
-                    secretPasscodeExist = _repository.TicketRepository.SearchSecretPasscode(evtRegis.EventId, secretPasscode.ToString());
-                }
-
-                var ticket = new TicketModel { 
-                    TicketCode = ticketCode,
-                    SecretPasscode = secretPasscode.ToString(),
-                    RegistrationId = setEventRegistrationModel.Id,
-                };
-                var addTicket = await _ticketService.AddATicket(ticket);
-                if (addTicket != null)
-                {
-                    var setTicket = await _repository.TicketRepository.GetByID(addTicket.Id);
-
-                    return (2, setTicket);
-                }
-
+                    return (2, setEventRegistrationModel, null);
+            }
+            return (3, null, "Không thể đăng ký");
+        }
+        public async Task<(long, EventRegistration?)> CheckAttend(CheckAttendModel model)
+        {
+            var existed = await _repository.EventRegistrationRepository.GetByID(model.Id);
+            if (existed == null)
+            {
+                return (1, null); //khong ton tai
+            }
+            if (existed.IsDeleted)
+            {
                 return (3, null);
             }
-            return (3, null);
+            
+            existed.IsAttended = model.IsAttended;
+            existed = await SetBaseEntityToUpdateFunc(existed);
+            return await _repository.EventRegistrationRepository.Update(existed) ? (2, existed) //update thanh cong
+                                                                          : (3, null);       //update fail
         }
-        //public async Task<(long, EventRegistration?)> UpdateAnEventRegistration(Guid? id, EventRegistrationModel model)
-        //{
-        //    var existed = await _repository.EventRegistrationRepository.GetByID(id);
-        //    if (existed == null)
-        //    {
-        //        return (1, null); //khong ton tai
-        //    }
-        //    if (existed.IsDeleted)
-        //    {
-        //        return (3, null);
-        //    }
-        //    existed.RegistrantName = model.RegistrantName;
-        //    existed.RegistrantEmail = model.RegistrantEmail;
-        //    existed.RegistrantPhoneNumber = model.RegistrantPhoneNumber;
-        //    existed.RegistrantAgeRange = model.RegistrantAgeRange;
-        //    existed.RegistrantGender = model.RegistrantGender;
-        //    existed.RegistrantAddress = model.RegistrantAddress ?? existed.RegistrantAddress;
-        //    existed.ReferenceSource = model.ReferenceSource ?? existed.ReferenceSource;
-        //    existed.EventId = model.EventId ?? existed.EventId;
-        //    existed = await SetBaseEntityToUpdateFunc(existed) ;
-        //    return await _repository.EventRegistrationRepository.Update(existed) ? (2, existed) //update thanh cong
-        //                                                                  : (3, null);       //update fail
-        //}
         //public async Task<(long, EventRegistration?)> DeleteAnEventRegistration(Guid id)
         //{
         //    var existed = await _repository.EventRegistrationRepository.GetByID(id);
@@ -123,39 +92,46 @@ namespace AIBookStreet.Services.Services.Service
 
             return eventRegistrations.Count == 0 ? null : eventRegistrations;
         }
-        public async Task<(List<object>, List<object>, List<object>, List<object>, List<object>)> Test (Guid eventId)
+        public async Task<(List<object>, List<object>, List<object>, List<object>, List<object>, int, int)> Test (Guid eventId)
         {
             return await _repository.EventRegistrationRepository.GetStatistic(eventId);
         }
-        public async void SendEmai(Ticket ticket)
+        public async Task<int> SendEmai(Ticket? ticket)
         {
+            //var qrData = new
+            //{
+            //    id = ticket?.Id,
+            //    ticketCode = ticket?.TicketCode,
+            //    eventId = ticket?.EventRegistration?.Event?.EventName,
+            //    registrationId = ticket?.RegistrationId,
+            //    attendeeName = ticket?.EventRegistration?.RegistrantName,
+            //    attendeeEmail = ticket?.EventRegistration?.RegistrantEmail,
+            //    attendeePhone = ticket?.EventRegistration?.RegistrantPhoneNumber,
+            //    attendeeAddress = ticket?.EventRegistration?.RegistrantAddress,
+            //    eventName = ticket?.EventRegistration?.Event?.EventName,
+            //    eventStartDate = ticket?.EventRegistration?.Event?.StartDate,
+            //    eventEndDate = ticket?.EventRegistration?.Event?.EndDate,
+            //    eventLocation = ticket?.EventRegistration?.Event?.Zone?.Street?.Address,
+            //    zoneId = ticket?.EventRegistration?.Event?.ZoneId,
+            //    zoneName = ticket?.EventRegistration?.Event?.Zone?.ZoneName,
+            //    issuedAt = ticket?.CreatedDate
+            //};
             var qrData = new
             {
-                id = ticket.Id,
-                ticketCode = ticket.TicketCode,
-                eventId = ticket.EventRegistration.Event.EventName,
-                registrationId = ticket.RegistrationId,
-                attendeeName = ticket.EventRegistration.RegistrantName,
-                attendeeEmail = ticket.EventRegistration.RegistrantEmail,
-                attendeePhone = ticket.EventRegistration.RegistrantPhoneNumber,
-                attendeeAddress = ticket.EventRegistration.RegistrantAddress,
-                eventName = ticket.EventRegistration.Event.EventName,
-                eventStartDate = ticket.EventRegistration.Event.StartDate,
-                eventEndDate = ticket.EventRegistration.Event.EndDate,
-                eventLocation = ticket.EventRegistration.Event.Zone.Street.Address,
-                zoneId = ticket.EventRegistration.Event.ZoneId,
-                zoneName = ticket.EventRegistration.Event.Zone.ZoneName,
-                issuedAt = ticket.CreatedDate
+                id = ticket?.Id,
+                ticketCode = ticket?.TicketCode,
+                registrationId = ticket?.RegistrationId,
+                issuedAt = ticket?.CreatedDate
             };
             string jsonData = JsonSerializer.Serialize(qrData);
-            QRCodeGenerator qrGenerator = new QRCodeGenerator();
+            QRCodeGenerator qrGenerator = new();
             QRCodeData qrCodeData = qrGenerator.CreateQrCode(jsonData, QRCodeGenerator.ECCLevel.Q);
-            QRCode qrCode = new QRCode(qrCodeData);
+            QRCode qrCode = new(qrCodeData);
             Bitmap qrCodeImage = qrCode.GetGraphic(5);
 
-            var barCodeInfor = ticket.Id + " " + ticket.TicketCode;
+            var barCodeInfor = ticket?.Id.ToString();
             Barcode barcode = new();
-            barcode.Encode(BarcodeStandard.Type.Code128, barCodeInfor, 600, 200);
+            barcode.Encode(BarcodeStandard.Type.Code128, barCodeInfor, 500, 200);
             string tempBarFilePath = Path.Combine(Path.GetTempPath(), "test-bar.png");
             barcode.SaveImage(tempBarFilePath, SaveTypes.Png);
 
@@ -186,18 +162,7 @@ namespace AIBookStreet.Services.Services.Service
             mail.AlternateViews.Add(view);
 
             await _smtpClient.SendMailAsync(mail);
+            return 1;
         }        
-        public static string GenerateRandomString(int length)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            Random random = new Random();
-            return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
-        public static int GenerateRandomNumber(int min, int max)
-        {
-            Random random = new Random();
-            return random.Next(min, max + 1);
-        }
     }
 }

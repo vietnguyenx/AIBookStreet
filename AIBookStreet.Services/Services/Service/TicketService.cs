@@ -4,6 +4,7 @@ using AIBookStreet.Services.Base;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,30 +13,66 @@ using System.Threading.Tasks;
 
 namespace AIBookStreet.Services.Services.Service
 {
-    public class TicketService(IUnitOfWork repository, IMapper mapper) : BaseService<Ticket>(mapper, repository), ITicketService
+    public class TicketService(IUnitOfWork repository, IMapper mapper, IHttpContextAccessor httpContextAccessor) : BaseService<Ticket>(mapper, repository, httpContextAccessor), ITicketService
     {
         private readonly IUnitOfWork _repository = repository;
-        public async Task<Ticket?> AddATicket(TicketModel model)
+        public async Task<(long, Ticket?, string?)> AddATicket(Guid registrationId)
         {
-            try
+                var evtRegis = await _repository.EventRegistrationRepository.GetByID(registrationId);
+            if (evtRegis == null)
             {
+                return (1, null, "Không tìm thấy đơn đăng ký");
+            }
+                var ticketCode = GenerateRandomString(6);
+                var ticketCodeExist = await _repository.TicketRepository.SearchTicketCode(evtRegis?.EventId, ticketCode);
+                while (ticketCodeExist != null)
+                {
+                    ticketCode = GenerateRandomString(6);
+                    ticketCodeExist = await _repository.TicketRepository.SearchTicketCode(evtRegis?.EventId, ticketCode);
+                }
+                var secretPasscode = GenerateRandomNumber(1000, 999999);
+                var secretPasscodeExist = await _repository.TicketRepository.SearchSecretPasscode(evtRegis?.EventId, secretPasscode.ToString());
+                while (secretPasscodeExist != null)
+                {
+                    secretPasscode = GenerateRandomNumber(1000, 999999);
+                    secretPasscodeExist = await _repository.TicketRepository.SearchSecretPasscode(evtRegis?.EventId, secretPasscode.ToString());
+                }
+                var model = new TicketModel
+                {
+                    TicketCode = ticketCode,
+                    SecretPasscode = secretPasscode.ToString(),
+                    RegistrationId = registrationId,
+
+                };
                 var ticket = _mapper.Map<Ticket>(model);
                 var setTicket = await SetBaseEntityToCreateFunc(ticket);
                 var isSuccess = await _repository.TicketRepository.Add(setTicket);
                 if (isSuccess)
                 {
-                    return setTicket;
+                    var detailTicket = await _repository.TicketRepository.GetByID(ticket.Id);
+                    return (2,detailTicket,null);
                 }
-                return null;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+                return (1,null,"Không tạo được vé");
         }
         public async Task<Ticket?> GetTicket(string email, string passcode)
         {
             return await _repository.TicketRepository.GetTicket(email, passcode);
+        }
+        public static string GenerateRandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            Random random = new();
+            return new string(Enumerable.Repeat(chars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+        public static int GenerateRandomNumber(int min, int max)
+        {
+            Random random = new();
+            return random.Next(min, max + 1);
+        }
+        public async Task<Ticket?> GetTicketById (Guid guid)
+        {
+            return await _repository.TicketRepository.GetByID(guid);
         }
     }
 }

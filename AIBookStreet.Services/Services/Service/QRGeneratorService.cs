@@ -30,7 +30,7 @@ namespace AIBookStreet.Services.Services.Service
         {
             var evtRegistration = new Ticket {
                 Id = Guid.NewGuid(),
-                TicketCode = "123",
+                TicketCode = "123456",
                 SecretPasscode = "789456",
                 EventRegistration = new EventRegistration {
                     Id = Guid.NewGuid(),

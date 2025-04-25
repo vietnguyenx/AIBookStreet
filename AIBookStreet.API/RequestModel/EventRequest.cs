@@ -21,5 +21,6 @@ namespace AIBookStreet.API.RequestModel
         public List<object>? ReferenceChart { get; set; }
         public List<object>? AddressChart { get; set; }
         public List<object>? AttendedChart { get; set; }
+        public int TotalRegistrations { get; set; }
     }
 }

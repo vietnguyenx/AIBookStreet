@@ -10,7 +10,8 @@ namespace AIBookStreet.Services.Services.Interface
 {
     public interface ITicketService
     {
-        Task<Ticket?> AddATicket(TicketModel model);
+        Task<(long,Ticket?,string?)> AddATicket(Guid registrantId);
         Task<Ticket?> GetTicket(string email, string passcode);
+        Task<Ticket?> GetTicketById(Guid guid);
     }
 }
