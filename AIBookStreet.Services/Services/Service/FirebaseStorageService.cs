@@ -5,11 +5,6 @@ using Google.Cloud.Storage.V1;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Formats.Webp;
-using System.IO;
 
 namespace AIBookStreet.Services.Services.Service
 {
@@ -18,8 +13,6 @@ namespace AIBookStreet.Services.Services.Service
         private readonly StorageClient _storageClient;
         private readonly string _bucketName;
         private readonly ILogger<FirebaseStorageService> _logger;
-        private const int ImageSize = 600; // Fixed size for all images
-        private readonly bool _useWebP; // Flag to determine whether to use WebP or PNG
 
         public FirebaseStorageService(IOptions<FirebaseSettings> settings, ILogger<FirebaseStorageService> logger)
         {
@@ -27,9 +20,6 @@ namespace AIBookStreet.Services.Services.Service
             _storageClient = StorageClient.Create(credential);
             _bucketName = settings.Value.Bucket ?? throw new ArgumentNullException(nameof(settings.Value.Bucket));
             _logger = logger;
-            
-            // Default to PNG, but you can set this to true in appsettings to use WebP instead
-            _useWebP = settings.Value.UseWebP ?? false;
         }
 
         public string GetFileUrl(string fileName)
@@ -43,80 +33,22 @@ namespace AIBookStreet.Services.Services.Service
             {
                 await ValidateFileAsync(file);
 
-                // Determine format and extension based on configuration
-                string fileExtension = _useWebP ? ".webp" : ".png";
-                string contentType = _useWebP ? "image/webp" : "image/png";
-                
+                using var stream = new MemoryStream();
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+
                 // Generate unique filename if not provided
-                var fileName = customFileName ?? $"{Guid.NewGuid()}{fileExtension}";
+                var fileName = customFileName ?? $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
 
-                if (file.ContentType.StartsWith("image/"))
-                {
-                    // Process image - resize and convert to desired format
-                    using var outputStream = new MemoryStream();
-                    using (var inputStream = new MemoryStream())
-                    {
-                        await file.CopyToAsync(inputStream);
-                        inputStream.Position = 0;
+                // Upload to Firebase
+                var obj = await _storageClient.UploadObjectAsync(
+                    _bucketName,
+                    fileName,
+                    file.ContentType,
+                    stream
+                );
 
-                        using var image = await Image.LoadAsync(inputStream);
-                        // Resize to 600x600
-                        image.Mutate(x => x.Resize(new ResizeOptions
-                        {
-                            Size = new Size(ImageSize, ImageSize),
-                            Mode = ResizeMode.Crop // Crop to ensure exact dimensions
-                        }));
-
-                        // Save in the configured format
-                        if (_useWebP)
-                        {
-                            // WebP with good quality but smaller file size
-                            var encoder = new WebpEncoder
-                            {
-                                Quality = 85, // Good balance between quality and size
-                                FileFormat = WebpFileFormatType.Lossy
-                            };
-                            await image.SaveAsync(outputStream, encoder);
-                        }
-                        else
-                        {
-                            // PNG with good compression
-                            var encoder = new PngEncoder
-                            {
-                                CompressionLevel = PngCompressionLevel.BestCompression
-                            };
-                            await image.SaveAsync(outputStream, encoder);
-                        }
-                    }
-
-                    outputStream.Position = 0;
-
-                    // Upload the processed image
-                    var obj = await _storageClient.UploadObjectAsync(
-                        _bucketName,
-                        fileName,
-                        contentType,
-                        outputStream
-                    );
-
-                    return GetFileUrl(obj.Name);
-                }
-                else
-                {
-                    // For non-image files, upload as-is
-                    using var stream = new MemoryStream();
-                    await file.CopyToAsync(stream);
-                    stream.Position = 0;
-
-                    var obj = await _storageClient.UploadObjectAsync(
-                        _bucketName,
-                        fileName,
-                        file.ContentType,
-                        stream
-                    );
-
-                    return GetFileUrl(obj.Name);
-                }
+                return GetFileUrl(obj.Name);
             }
             catch (Exception ex)
             {

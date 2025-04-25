@@ -7,6 +7,5 @@ namespace AIBookStreet.Services.Model
         public string? AuthEmail { get; set; }
         public string? AuthPassword { get; set; }
         public string? ServiceAccountKeyPath { get; set; }
-        public bool? UseWebP { get; set; }
     }
 } 
