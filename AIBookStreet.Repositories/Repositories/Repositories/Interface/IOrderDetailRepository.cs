@@ -15,5 +15,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
         Task<List<OrderDetail>?> GetAllOrderDetail(List<Guid>? storeIds, Guid? orderId, Guid? storeId, Guid? entityId);
         Task<OrderDetail?> GetDetail(Guid entityId);
         Task<OrderDetail?> GetForCreateOrder(Guid id);
+        Task<List<OrderDetail>?> GetCartForCreateOrder(Guid storeId);
     }
 }

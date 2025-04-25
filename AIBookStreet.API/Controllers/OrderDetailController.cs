@@ -45,7 +45,7 @@ namespace AIBookStreet.API.Controllers
                     1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new ItemResponse<OrderDetailRequest>("Đã cập nhật thành công!", _mapper.Map<OrderDetailRequest>(result.Item2))),
                     3 => BadRequest(new BaseResponse(false, "Không thể cập nhật!!!")),
-                    4 => BadRequest(new BaseResponse(false, "Đã quá số lượng trong kho, không thể cập nhật!!!"))
+                    _ => BadRequest(new BaseResponse(false, "Đã quá số lượng trong kho, không thể cập nhật!!!"))
                 };
             }
             catch (Exception ex)
@@ -118,7 +118,7 @@ namespace AIBookStreet.API.Controllers
                             Id = item.Id,
                             ProductName = item.Inventory.Book != null ? item.Inventory.Book.Title : item.Inventory.Souvenir.SouvenirName,
                             Quantity = item.Quantity,
-                            Price = (int)(item.Inventory.Book != null ? item.Inventory.Book.Price : item.Inventory.Souvenir.Price),
+                            Price = (int?)(item.Inventory.Book != null ? item.Inventory.Book.Price : item.Inventory.Souvenir.Price),
                             ImgUrl = item.Inventory.Book != null ? item.Inventory.Book.Images.FirstOrDefault().Url : item.Inventory.Souvenir.BaseImgUrl
                         });
                     }

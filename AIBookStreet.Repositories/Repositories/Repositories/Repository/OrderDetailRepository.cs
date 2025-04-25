@@ -73,5 +73,15 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return orderDetail;
         }
+        public async Task<List<OrderDetail>?> GetCartForCreateOrder(Guid id)
+        {
+            var queryable = GetQueryable();
+            var cart = await queryable.Include(od => od.Inventory).Where(od => od.Inventory.StoreId == id && od.OrderId == null).ToListAsync();
+            foreach (var item in cart)
+            {
+                item.Inventory = null;
+            }
+            return cart;
+        }
     }
 }
