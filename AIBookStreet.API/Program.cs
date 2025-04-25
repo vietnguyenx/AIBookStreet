@@ -135,7 +135,8 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
         "http://localhost:3000",
         "https://aibookstreet.azurewebsites.net",
-        "https://smart-book-street-next-aso3.vercel.app"
+        "https://smart-book-street-next-aso3.vercel.app",
+        "https://street-book-visitor.vercel.app"
     )
     .AllowAnyHeader()
     .AllowAnyMethod()
