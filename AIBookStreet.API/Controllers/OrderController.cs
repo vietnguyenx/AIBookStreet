@@ -5,18 +5,22 @@ using AIBookStreet.API.Tool.Constant;
 using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
+using AIBookStreet.Services.Services.Service;
 using AutoMapper;
 using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Net.payOS.Types;
+using System.Diagnostics;
 
 namespace AIBookStreet.API.Controllers
 {
     [Route("api/orders")]
     [ApiController]
-    public class OrderController(IOrderService service, IMapper mapper) : ControllerBase
+    public class OrderController(IOrderService service, IMapper mapper, IPayOSService payOSService) : ControllerBase
     {
         private readonly IOrderService _service = service;
+        private readonly IPayOSService _payOSService = payOSService;
         private readonly IMapper _mapper = mapper;
 
         [Authorize]
@@ -26,11 +30,63 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var result = await _service.AddAnOrder(model);
+                if (result.Item1 == 2)
+                {
+                    var payoss = await _payOSService.CreatePaymentLink(result.Item2.Id);
+                    if (payoss.Item1 == 4)
+                    {
+                        var res = _mapper.Map<OrderRequest>(result.Item2);
+                        res.PaymentLink = payoss.Item2?.checkoutUrl;
+                        return Ok(new ItemResponse<OrderRequest>("Đã thêm đơn hàng", res));
+                    }
+                    return payoss.Item1 switch
+                    {
+                        0 => Ok(new BaseResponse(false, "ClientId not found")),
+                        1 => Ok(new BaseResponse(false, "ApiKey not found")),
+                        2 => Ok(new BaseResponse(false, "ChecksumKey not found")),
+                        _ => Ok(new BaseResponse(false, "Order not found!!"))
+                    };
+                }
                 return result.Item1 switch
                 {
                     1 => BadRequest(new BaseResponse(false, result.Item3)),
-                    2 => Ok(new ItemResponse<OrderRequest>("Đã thêm đơn hàng", _mapper.Map<OrderRequest>(result.Item2))),
                     _ => BadRequest(new BaseResponse(false, result.Item3))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [Authorize]
+        [HttpPatch("confirm-order/{orderId}")]
+        public async Task<IActionResult> Confirm([FromRoute] Guid orderId)
+        {
+            try
+            {
+                var result = await _service.ConfirmOrder(orderId);
+                return result.Item1 switch
+                {
+                    1 => BadRequest(new BaseResponse(false, result.Item3)),
+                    _ => Ok(new ItemResponse<OrderRequest>("Đã xác nhận đơn hàng", _mapper.Map<OrderRequest>(result.Item2)))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [Authorize]
+        [HttpPatch("cancel-order/{orderId}")]
+        public async Task<IActionResult> Cancel([FromRoute] Guid orderId)
+        {
+            try
+            {
+                var result = await _service.CancelAnOrder(orderId);
+                return result.Item1 switch
+                {
+                    1 => BadRequest(new BaseResponse(false, result.Item3)),
+                    _ => Ok(new ItemResponse<OrderRequest>("Đã hủy đơn hàng", _mapper.Map<OrderRequest>(result.Item2)))
                 };
             }
             catch (Exception ex)
@@ -49,12 +105,33 @@ namespace AIBookStreet.API.Controllers
                     return BadRequest("Id is empty");
                 }
                 var order = await _service.GetAnOrderById(id);
-
-                return order switch
+                if (order == null){
+                    return BadRequest(new ItemResponse<Order>(ConstantMessage.NotFound));
+                }
+                var orderItems = new List<object>();
+                foreach (var item in order.OrderDetails)
                 {
-                    null => BadRequest(new ItemResponse<Order>(ConstantMessage.NotFound)),
-                    not null => Ok(new ItemResponse<Order>(ConstantMessage.Success, order))
+                    orderItems.Add(new
+                    {
+                        id = item.Id,
+                        productName = item.Inventory.Book != null ? item.Inventory.Book.Title : item.Inventory.Souvenir.SouvenirName,
+                        imgUrl = item.Inventory.Book != null ? item.Inventory.Book.Images.First().Url : item.Inventory.Souvenir.BaseImgUrl,
+                        quantity = item.Quantity,
+                        price =(int?) (item.Inventory.Book != null ? item.Inventory.Book.Price : item.Inventory.Souvenir.Price)
+                    });
+                }
+
+                var response = new
+                {
+                    id = order.Id,
+                    totalAmount = order.TotalAmount,
+                    paymentMethod = order.PaymentMethod,
+                    status = order.Status,
+                    store = order.OrderDetails.First().Inventory.Store.StoreName,
+                    createDate = order.CreatedDate,
+                    orderDetails = orderItems
                 };
+                return Ok(new ItemResponse<object>(ConstantMessage.Success, response));
             }
             catch (Exception ex)
             {
@@ -95,7 +172,7 @@ namespace AIBookStreet.API.Controllers
 
                 return orders switch
                 {
-                    null => Ok(new ItemListResponse<OrderRequest>(ConstantMessage.Success, null)),
+                    null => BadRequest(new BaseResponse(false, "Vui lòng đăng nhập vào cửa hàng")),
                     not null => Ok(new ItemListResponse<OrderRequest>(ConstantMessage.Success, _mapper.Map<List<OrderRequest>>(orders)))
                 };
             }

@@ -11,6 +11,8 @@ namespace AIBookStreet.Services.Services.Interface
     public interface IOrderService
     {
         Task<(long, Order?, string?)> AddAnOrder(OrderModel model);
+        Task<(long, Order?, string?)> ConfirmOrder(Guid id);
+        Task<(long, Order?, string?)> CancelAnOrder(Guid id);
         Task<Order?> GetAnOrderById(Guid orderId);
         Task<(List<Order>?, long)> GetPaginationOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate, Guid? storeId, int? pageNumber, int? pageSize, string? sortField, int? sortOrder);
         Task<List<Order>?> GetAllOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate, Guid? storeId);

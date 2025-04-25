@@ -121,6 +121,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                                     .Include(o => o.OrderDetails)
                                      .ThenInclude(od => od.Inventory)
                                         .ThenInclude(i => i.Book)
+                                        .ThenInclude(b => b.Images)
                                     .Include(o => o.OrderDetails)
                                      .ThenInclude(od => od.Inventory)
                                         .ThenInclude(i => i.Souvenir)
