@@ -16,5 +16,6 @@ namespace AIBookStreet.Services.Services.Interface
         Task<Category?> GetACategoryById(Guid id);
         Task<List<Category>?> GetAllActiveCategories(string? name, Guid? authorId);
         Task<(List<Category>?, long)> GetAllCategoriesPagination(string? key, Guid? authorId, int? pageNumber, int? pageSize, string? sortField, bool? desc);
+        Task<List<Category?>> GetTopCategory(int number);
     }
 }

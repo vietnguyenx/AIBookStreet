@@ -27,15 +27,24 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var order = desc != null && (desc != false);
             queryable = order ? base.ApplySort(queryable, field, 0) : base.ApplySort(queryable, field, 1);
             queryable = queryable.Where(bc => !bc.IsDeleted);
+
+            queryable = queryable.Include(bc => bc.Book).ThenInclude(b => b.Images).Include(bc => bc.Category);
             queryable = queryable.Where(bc => !bc.Book.IsDeleted && !bc.Category.IsDeleted);
 
-            queryable = queryable.Include(bc => bc.Book).Include(bc => bc.Category);
             if (queryable.Any())
             {
                 if (!string.IsNullOrEmpty(key))
                 {
                     queryable = queryable.Where(bc => bc.Category.CategoryName.ToLower().Trim().Contains(key.ToLower().Trim())
                                                    || (!string.IsNullOrEmpty(bc.Book.Title) && bc.Book.Title.ToLower().Trim().Contains(key.ToLower().Trim())));
+                }
+                if (bookID != null)
+                {
+                    queryable = queryable.Where(bc => bc.BookId == bookID);
+                }
+                if (categoryID != null)
+                {
+                    queryable = queryable.Where(bc => bc.CategoryId == categoryID);
                 }
             }
 
@@ -56,13 +65,21 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var order = desc != null && (desc != false);
             queryable = order ? base.ApplySort(queryable, field, 0) : base.ApplySort(queryable, field, 1);
 
-            queryable = queryable.Include(bc => bc.Book).Include(bc => bc.Category);
+            queryable = queryable.Include(bc => bc.Book).ThenInclude(b => b.Images).Include(bc => bc.Category);
             if (queryable.Any())
             {
                 if (!string.IsNullOrEmpty(key))
                 {
                     queryable = queryable.Where(bc => bc.Category.CategoryName.ToLower().Trim().Contains(key.ToLower().Trim())
                                                    || (!string.IsNullOrEmpty(bc.Book.Title) && bc.Book.Title.ToLower().Trim().Contains(key.ToLower().Trim())));
+                }
+                if (bookID != null)
+                {
+                    queryable = queryable.Where(bc => bc.BookId == bookID);
+                }
+                if (categoryID != null)
+                {
+                    queryable = queryable.Where(bc => bc.CategoryId == categoryID);
                 }
             }
 
@@ -106,5 +123,23 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return bookCategories;
         }
-    }
+        public async Task<List<Guid>> GetTopCategory(int number)
+        {
+            var queryable = GetQueryable();
+            queryable = queryable.Include(bc => bc.Category);
+            queryable = queryable.Where(bc => !bc.IsDeleted && !bc.Category.IsDeleted);
+            var bookCategoryCount =await queryable.GroupBy(bc => bc.CategoryId)
+                                        .Select(group => new
+                                        {
+                                            CategoryId = group.Key,
+                                            Count = group.Count()
+                                        }).OrderByDescending(a => a.Count).Take(number).ToListAsync();
+            var bookCategoryResponse = new List<Guid>();
+            foreach (var group in bookCategoryCount)
+            {
+                bookCategoryResponse.Add(group.CategoryId);
+            }
+            return bookCategoryResponse;
+        }
+}
 }

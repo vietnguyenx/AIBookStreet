@@ -152,5 +152,55 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
+        [AllowAnonymous]
+        [HttpGet("top-categories")]
+        public async Task<IActionResult> TopCategories(int number)
+        {
+            try
+            {
+                var categories = await _service.GetTopCategory(number);
+                if (categories == null)
+                {
+                    return BadRequest(new PaginatedListResponse<CategoryRequest>(ConstantMessage.Success, null));
+                }
+                var resp = new List<object>();
+                foreach (var category in categories)
+                {
+                    var bookList = new List<object>();
+                    var bookCollecction = category.BookCategories.OrderByDescending(bc => bc.Book.PublicationDate).Take(5).ToList();
+                    foreach(var book in bookCollecction)
+                    {
+                        var bookImages = new List<object>();
+                        foreach(var img in book.Book.Images)
+                        {
+                            bookImages.Add(new
+                            {
+                                url = img.Url,
+                                altText = img.AltText
+                            });
+                        }
+                        bookList.Add(new { 
+                            id = book.Book.Id,
+                            title = book.Book.Title,
+                            price = book.Book.Price,
+                            languages = book.Book.Languages,
+                            images = bookImages
+                        });
+                    }
+                    resp.Add(new
+                    {
+                        id = category?.Id,
+                        categoryName = category?.CategoryName,
+                        books = bookList
+                    });
+                }
+                return Ok(new ItemListResponse<object>(ConstantMessage.Success, resp));
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            };
+        }
     }
 }

@@ -155,5 +155,16 @@ namespace AIBookStreet.Services.Services.Service
                                                        : await _repository.CategoryRepository.GetAllPagination(key, categoryIds, pageNumber, pageSize, sortField, desc);
             return categories.Item1.Count > 0 ? (categories.Item1, categories.Item2) : (null, 0);
         }
+        public async Task<List<Category?>> GetTopCategory(int number)
+        {
+            var categories = new List<Category?>();
+            var bookCategories = await _repository.BookCategoryRepository.GetTopCategory(number);
+            foreach (var bookCategory in bookCategories)
+            {
+                var category = await _repository.CategoryRepository.GetByID(bookCategory);
+                categories.Add(category);
+            }
+            return categories;
+        }
     }
 }
