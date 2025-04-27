@@ -5,7 +5,11 @@ using AIBookStreet.Services.Common;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
+using Google.Apis.Storage.v1.Data;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Net.payOS;
+using Net.payOS.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,9 +20,10 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AIBookStreet.Services.Services.Service
 {
-    public class OrderService(IUnitOfWork repository, IMapper mapper, IHttpContextAccessor httpContextAccessor) : BaseService<Order>(mapper, repository, httpContextAccessor), IOrderService
+    public class OrderService(IUnitOfWork repository, IMapper mapper, IHttpContextAccessor httpContextAccessor, IConfiguration configuration) : BaseService<Order>(mapper, repository, httpContextAccessor), IOrderService
     {
         private readonly IUnitOfWork _repository = repository;
+        private readonly IConfiguration _configuration = configuration;
         public async Task<(long, Order?, string?)> AddAnOrder(OrderModel model)
         {
             try
@@ -37,10 +42,10 @@ namespace AIBookStreet.Services.Services.Service
                 var order = new Order
                 {
                     PaymentMethod = model.PaymentMethod,
-                    StoreId = model.StoreId,
-                    Status = OrderConstant.ORDER_PROGRESS
+                    StoreId = model.StoreId
                 };
                 var setOrder = await SetBaseEntityToCreateFunc(order);
+                List<ItemData> items = [];
                 if (orderDetails != null && orderDetails.Count > 0)
                 {
                     foreach (var orderDetail in orderDetails)
@@ -59,6 +64,9 @@ namespace AIBookStreet.Services.Services.Service
                             }
                             else
                             {
+                                var price = (int)inventory.Book.Price * orderDetail.Quantity;
+                                items.Add(new ItemData(inventory.Book.Title, orderDetail.Quantity, price));
+
                                 inventory.Quantity -= orderDetail.Quantity;
                                 inventory.IsInStock = inventory.Quantity > 0;
                                 inventory.LastUpdatedDate = DateTime.Now;
@@ -74,6 +82,9 @@ namespace AIBookStreet.Services.Services.Service
                             }
                             else
                             {
+                                var price = (int)inventory.Souvenir.Price * orderDetail.Quantity;
+                                items.Add(new ItemData(inventory.Souvenir.SouvenirName, orderDetail.Quantity, price));
+
                                 inventory.Quantity -= orderDetail.Quantity;
                                 inventory.IsInStock = inventory.Quantity > 0;
                                 inventory.LastUpdatedDate = DateTime.Now;
@@ -90,8 +101,9 @@ namespace AIBookStreet.Services.Services.Service
                         }
                     }
                     setOrder.TotalAmount = totalAmount;
-
+                    setOrder.Status = model.PaymentMethod == PaymentMethodConstant.CASH ? OrderConstant.ORDER_PROGRESS : OrderConstant.ORDER_COMPLETED;
                     var isSuccess = await _repository.OrderRepository.Add(setOrder);
+                    var orderId = setOrder.Id;
                     if (isSuccess)
                     {
                         foreach (var orderDetail in orderDetails)
@@ -101,7 +113,7 @@ namespace AIBookStreet.Services.Services.Service
                             {
                                 return (1, null, "Không tìm thấy thông tin đơn hàng");
                             }
-                            item.OrderId = setOrder.Id;
+                            item.OrderId = orderId;
                             item.LastUpdatedDate = DateTime.Now;
                             var result = await _repository.OrderDetailRepository.Update(item);
                             if (!result)
@@ -109,7 +121,47 @@ namespace AIBookStreet.Services.Services.Service
                                 return (3, null, "Không thể cập nhật chi tiết đơn hàng");
                             }
                         }
-                        return (2, setOrder, null);
+                        if (model.PaymentMethod == PaymentMethodConstant.CASH)
+                        {
+                            return (2, setOrder, null);
+                        } else if (model.PaymentMethod.Equals(PaymentMethodConstant.TRANSFER))
+                        {
+                            var clientId = _configuration["payOS:ClientId"];
+                            if (clientId == null)
+                            {
+                                return (0, null, "ClientId not found"); //ClientId not found
+                            }
+                            var apiKey = _configuration["payOS:ApiKey"];
+                            if (apiKey == null)
+                            {
+                                return (0, null, "ApiKey not found"); //ApiKey not found
+                            }
+                            var checksumKey = _configuration["payOS:ChecksumKey"];
+                            if (checksumKey == null)
+                            {
+                                return (0, null, "ChecksumKey not found"); //ChecksumKey not found
+                            }
+                            PayOS _payOS = new(
+                                clientId,
+                                apiKey,
+                                checksumKey
+                            );
+                            int orderCode = await _repository.OrderRepository.GetNumberOrders();
+                            long expiredAt = (long)(DateTime.UtcNow.AddMinutes(10) - new DateTime(1970, 1, 1)).TotalSeconds;
+
+                            PaymentData paymentData = new(
+                                orderCode: orderCode,
+                                amount: (int)totalAmount,
+                                description: "Thanh toan hoa don #"+orderCode,
+                                items: items,
+                                cancelUrl: "fail",
+                                returnUrl: "https://smart-book-street-next-aso3.vercel.app",
+                                expiredAt: expiredAt
+                            );
+
+                            CreatePaymentResult createPayment = await _payOS.createPaymentLink(paymentData);
+                            return (2, setOrder, createPayment.checkoutUrl);
+                        }
                     }
                 }
                 return (3, null, "Đơn hàng chưa có vật phẩm");

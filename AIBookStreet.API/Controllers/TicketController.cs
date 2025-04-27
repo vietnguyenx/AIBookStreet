@@ -23,12 +23,12 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var ticket = await _service.GetTicket(email, passcode);
-
-                return ticket switch
+                if (ticket == null)
                 {
-                    null => BadRequest(new ItemResponse<Ticket>(ConstantMessage.NotFound)),
-                    not null => Ok(new ItemResponse<TicketRequest>(ConstantMessage.Success, _mapper.Map<TicketRequest>(ticket)))
-                };
+                    return BadRequest(new ItemResponse<Ticket>(ConstantMessage.NotFound));
+                }
+
+                return Ok(new ItemResponse<TicketRequest>(ConstantMessage.Success, _mapper.Map<TicketRequest>(ticket)));
             }
             catch (Exception ex)
             {
@@ -67,7 +67,7 @@ namespace AIBookStreet.API.Controllers
                 return ticket switch
                 {
                     null => BadRequest(new ItemResponse<Ticket>(ConstantMessage.NotFound)),
-                    not null => Ok(new ItemResponse<Ticket>(ConstantMessage.Success, ticket))
+                    not null => Ok(new ItemResponse<TicketRequest>(ConstantMessage.Success, _mapper.Map<TicketRequest>(ticket)))
                 };
             }
             catch (Exception ex)

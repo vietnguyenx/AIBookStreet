@@ -17,10 +17,9 @@ namespace AIBookStreet.API.Controllers
 {
     [Route("api/orders")]
     [ApiController]
-    public class OrderController(IOrderService service, IMapper mapper, IPayOSService payOSService) : ControllerBase
+    public class OrderController(IOrderService service, IMapper mapper) : ControllerBase
     {
         private readonly IOrderService _service = service;
-        private readonly IPayOSService _payOSService = payOSService;
         private readonly IMapper _mapper = mapper;
 
         [Authorize]
@@ -32,20 +31,10 @@ namespace AIBookStreet.API.Controllers
                 var result = await _service.AddAnOrder(model);
                 if (result.Item1 == 2)
                 {
-                    var payoss = await _payOSService.CreatePaymentLink(result.Item2.Id);
-                    if (payoss.Item1 == 4)
-                    {
                         var res = _mapper.Map<OrderRequest>(result.Item2);
-                        res.PaymentLink = payoss.Item2?.checkoutUrl;
+                        res.PaymentLink = result.Item3;
                         return Ok(new ItemResponse<OrderRequest>("Đã thêm đơn hàng", res));
-                    }
-                    return payoss.Item1 switch
-                    {
-                        0 => Ok(new BaseResponse(false, "ClientId not found")),
-                        1 => Ok(new BaseResponse(false, "ApiKey not found")),
-                        2 => Ok(new BaseResponse(false, "ChecksumKey not found")),
-                        _ => Ok(new BaseResponse(false, "Order not found!!"))
-                    };
+                    
                 }
                 return result.Item1 switch
                 {

@@ -256,5 +256,19 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return (orderResult, amountResult, totalOrigin, totalProfit);
         }
+        public async Task<List<Order>> GetAllSortByCreateDate()
+        {
+            var queryable = GetQueryable();
+            queryable = queryable.Where(o => !o.IsDeleted).OrderBy(o => o.CreatedDate);
+            var orderResult = await queryable.ToListAsync();
+            return orderResult;
+        }
+        public async Task<int> GetNumberOrders()
+        {
+            var queryable = GetQueryable();
+            queryable = queryable.Where(o => !o.IsDeleted).OrderBy(o => o.CreatedDate);
+            var orderResult = await queryable.ToListAsync();
+            return orderResult.Count;
+        }
     }
 }

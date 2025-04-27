@@ -10,6 +10,9 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using AIBookStreet.Repositories.Data.Entities;
+using AIBookStreet.Services.Common;
+using Google.Apis.Storage.v1.Data;
+using AIBookStreet.Services.Model;
 
 namespace AIBookStreet.Services.Services.Service
 {
@@ -46,7 +49,14 @@ namespace AIBookStreet.Services.Services.Service
             if (order is null)
             {
                 return (3, null); //Order not found!!
-            }            
+            }          
+            order.Status = OrderConstant.ORDER_COMPLETED;
+
+            var updateSuccess = await _unitOfWork.OrderRepository.Update(order);
+            if (!updateSuccess)
+            {
+                return (3, null); //update fail
+            }
             var orders = await _unitOfWork.OrderRepository.GetAll();
             int orderCode = orders.Count;
 
@@ -135,10 +145,18 @@ namespace AIBookStreet.Services.Services.Service
                 return (3, null); //not found
             }
             PaymentLinkInformation paymentLinkInformation = await _payOS.cancelPaymentLink(orderCode);
-
+            
+            var orders = await _unitOfWork.OrderRepository.GetAllSortByCreateDate();
+            var order = orders[orderCode - 1];
+            order.Status = OrderConstant.ORDER_CANCELLED;
+            var updateSuccess = await _unitOfWork.OrderRepository.Update(order);
+            if (!updateSuccess)
+            {
+                return (3, null); //update fail
+            }
             return (4, paymentLinkInformation);
         }
-        public (long, int?) VerifyPaymentWebhookData(WebhookType body)
+        public async Task<(long, int?)> VerifyPaymentWebhookData(WebhookType body)
         {
             try
             {
@@ -162,9 +180,18 @@ namespace AIBookStreet.Services.Services.Service
                 WebhookData data = _payOS.verifyPaymentWebhookData(body);
 
                 string responseCode = data.code;
+                var orderCode =(int)data.orderCode;
 
                 if (responseCode == "00")
                 {
+                    var orders = await _unitOfWork.OrderRepository.GetAllSortByCreateDate();
+                    var order = orders[orderCode - 1];
+                    order.Status = OrderConstant.ORDER_COMPLETED;
+                    var updateSuccess = await _unitOfWork.OrderRepository.Update(order);
+                    if (!updateSuccess)
+                    {
+                        return (3, null); //update fail
+                    }
                     return (3, 0); // "Payment success"
                 }
                 return (4, 1); // "Payment failed"
