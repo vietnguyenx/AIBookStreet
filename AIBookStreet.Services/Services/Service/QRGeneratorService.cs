@@ -100,8 +100,11 @@ namespace AIBookStreet.Services.Services.Service
             var barCodeInfor = evtRegistration.Id + " " + evtRegistration.TicketCode;
             Barcode barcode = new();
             barcode.Encode(BarcodeStandard.Type.Code128, barCodeInfor, 600, 200);
-            string tempBarFilePath = Path.Combine(Path.GetTempPath(), "test-bar.png");
-            barcode.SaveImage(tempBarFilePath, SaveTypes.Png);
+            using MemoryStream ms1 = new();
+            barcode.SaveImage(ms1, SaveTypes.Png);
+            ms1.Position = 0;
+            //string tempBarFilePath = Path.Combine(Path.GetTempPath(), "test-bar.png");
+            //barcode.SaveImage(tempBarFilePath, SaveTypes.Png);
 
             var from = new MailAddress(_smtpSettings.From);
             var to = new MailAddress(email);
@@ -112,15 +115,18 @@ namespace AIBookStreet.Services.Services.Service
                 Subject = "[SmartBookStreet] Thư cảm ơn",
                 IsBodyHtml = true
             };
-            string tempQRFilePath = Path.Combine(Path.GetTempPath(), "qrCode.png");
-            qrCodeImage.Save(tempQRFilePath, ImageFormat.Png);
+            //string tempQRFilePath = Path.Combine(Path.GetTempPath(), "qrCode.png");
+            //qrCodeImage.Save(tempQRFilePath, ImageFormat.Png);
+            using MemoryStream ms2 = new();
+            qrCodeImage.Save(ms2, ImageFormat.Png);
+            ms2.Position = 0;
             var view = AlternateView.CreateAlternateViewFromString(htmlBody, null, MediaTypeNames.Text.Html);
-            var image = new LinkedResource(tempQRFilePath, MediaTypeNames.Image.Png)
+            var image = new LinkedResource(ms2, MediaTypeNames.Image.Webp)
             {
                 ContentId = "qrImage",
                 TransferEncoding = TransferEncoding.Base64
             };
-            var image2 = new LinkedResource(tempBarFilePath, MediaTypeNames.Image.Png)
+            var image2 = new LinkedResource(ms1, MediaTypeNames.Image.Webp)
             {
                 ContentId = "barImage",
                 TransferEncoding = TransferEncoding.Base64
