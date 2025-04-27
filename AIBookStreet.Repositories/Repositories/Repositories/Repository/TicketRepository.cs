@@ -46,7 +46,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         public async Task<Ticket?> GetTicket(string email, string passcode)
         {
             var query = GetQueryable();
-            query = query.Include(t => t.EventRegistration);
+            query = query.Include(t => t.EventRegistration).ThenInclude(er => er.Event).ThenInclude(e => e.Zone).ThenInclude(z => z.Street);
             if (query.Any())
             {
                 query = query.Where(t => t.EventRegistration.RegistrantEmail == email && t.SecretPasscode == passcode);

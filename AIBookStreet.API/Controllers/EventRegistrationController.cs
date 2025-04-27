@@ -68,7 +68,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [AllowAnonymous]
+        [Authorize]
         [HttpPut("check-attendend")]
         public async Task<IActionResult> UpdateAnEventRegistration(CheckAttendModel model)
         {
@@ -78,9 +78,10 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => Ok(new BaseResponse(false, "Không tồn tại!!!")),
+                    0 => BadRequest("Hãy đăng nhập với vai trò quản trị viên"),
+                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new BaseResponse(true, "Đã cập nhật trạng thái!")),
-                    _ => Ok(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
             catch (Exception ex)
@@ -128,7 +129,7 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
-        [AllowAnonymous]
+        [Authorize]
         [HttpGet("get-all/{eventId}")]
         public async Task<IActionResult> GetAllEventRegistrations([FromRoute]Guid eventId)
         {
@@ -136,10 +137,11 @@ namespace AIBookStreet.API.Controllers
             {
                 var eventRegistrations = await _service.GetAllActiveEventRegistrations(eventId);
 
-                return eventRegistrations switch
+                return eventRegistrations.Item1 switch
                 {
-                    null => Ok(new ItemListResponse<EventRegistrationRequest>(ConstantMessage.Success, null)),
-                    not null => Ok(new ItemListResponse<EventRegistrationRequest>(ConstantMessage.Success, _mapper.Map<List<EventRegistrationRequest>>(eventRegistrations)))
+                    0 => BadRequest("Hãy đăng nhập với vai trò quản trị viên"),
+                    1 => Ok(new ItemListResponse<EventRegistrationRequest>(ConstantMessage.Success, null)),
+                    _ => Ok(new ItemListResponse<EventRegistrationRequest>(ConstantMessage.Success, _mapper.Map<List<EventRegistrationRequest>>(eventRegistrations)))
                 };
             }
             catch (Exception ex)
