@@ -167,7 +167,7 @@ namespace AIBookStreet.API.Controllers
                 foreach (var category in categories)
                 {
                     var bookList = new List<object>();
-                    var bookCollecction = category.BookCategories.OrderByDescending(bc => bc.Book.PublicationDate).Take(5).ToList();
+                    var bookCollecction = category.BookCategories.OrderByDescending(bc => Guid.NewGuid()).Take(5).ToList();
                     foreach(var book in bookCollecction)
                     {
                         var bookImages = new List<object>();
