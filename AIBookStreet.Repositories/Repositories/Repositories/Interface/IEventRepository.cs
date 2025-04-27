@@ -18,5 +18,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
         Task<List<Event>?> GetByDate(DateTime? date);
         Task<List<Event>> GetRandom(int number);
         Task<object> GetNumberEventInMonth(int month);
+        Task<(List<Event>, long)> GetEventsForStaff(DateTime? date, int? pageNumber, int? pageSize, string? sortField, bool? desc);
     }
 }

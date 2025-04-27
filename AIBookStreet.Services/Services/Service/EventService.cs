@@ -210,7 +210,7 @@ namespace AIBookStreet.Services.Services.Service
             {
                 foreach (var userRole in user.UserRoles)
                 {
-                    if (userRole.Role.RoleName == "Quản trị viên")
+                    if (userRole.Role.RoleName == "Admin")
                     {
                         isAdmin = true;
                     }
@@ -249,6 +249,27 @@ namespace AIBookStreet.Services.Services.Service
         public async Task<object> GetNumberEventInMonth(int month)
         {
             return await _repository.EventRepository.GetNumberEventInMonth(month);
+        }
+        public async Task<(List<Event>?, long)> GetEventsForStaff(DateTime? date, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        {
+            var user = await GetUserInfo();
+            var isStaff = false;
+            if (user != null)
+            {
+                foreach (var userRole in user.UserRoles)
+                {
+                    if (userRole.Role.RoleName == "Staff")
+                    {
+                        isStaff = true;
+                    }
+                }
+            }
+            if (!isStaff)
+            {
+                return (null, 99);
+            }
+            var events = await _repository.EventRepository.GetEventsForStaff(date, pageNumber, pageSize, sortField, desc);
+            return (events.Item1, events.Item2);
         }
     }
 }

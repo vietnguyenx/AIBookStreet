@@ -231,5 +231,26 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [Authorize]
+        [HttpPost("staff")]
+        public async Task<IActionResult> GetAllEventsPaginationForStaff(PaginatedRequest<DateEventSearchRequest> request)
+        {
+            try
+            {
+                var events = await _service.GetEventsForStaff(request.Result?.Date, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == -1);
+
+                return events.Item2 switch
+                {
+                    99 => BadRequest("Hãy đăng nhập với vai trò Nhân viên"),
+                    0 => Ok("Không có sự kiện trong HÔM NAY"),
+                    _ => Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<List<EventRequest>>(events.Item1), events.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "StartDate", request != null && request.SortOrder != -1 ? 1 : -1))
+                };
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            };
+        }
     }
 }
