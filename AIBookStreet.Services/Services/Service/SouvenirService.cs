@@ -56,7 +56,7 @@ namespace AIBookStreet.Services.Services.Service
                         var image = new FileModel
                         {
                             File = imageFile,
-                            Type = "Quà lưu niệm",
+                            Type = "souvenir_additional",
                             AltText = "Ảnh quà lưu niệm " + setSouvenir.SouvenirName,
                             EntityId = setSouvenir.Id
                         };
@@ -172,7 +172,7 @@ namespace AIBookStreet.Services.Services.Service
             {
                 foreach (var userRole in user.UserRoles)
                 {
-                    if (userRole.Role.RoleName == "Quản trị viên")
+                    if (userRole.Role.RoleName == "Admin")
                     {
                         isAdmin = true;
                     }

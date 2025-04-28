@@ -154,11 +154,11 @@ namespace AIBookStreet.API.Controllers
         }
         [AllowAnonymous]
         [HttpGet("top-categories")]
-        public async Task<IActionResult> TopCategories(int number)
+        public async Task<IActionResult> TopCategories(int numberCategory, int numberBookPerCate)
         {
             try
             {
-                var categories = await _service.GetTopCategory(number);
+                var categories = await _service.GetTopCategory(numberCategory);
                 if (categories == null)
                 {
                     return BadRequest(new PaginatedListResponse<CategoryRequest>(ConstantMessage.Success, null));
@@ -167,7 +167,7 @@ namespace AIBookStreet.API.Controllers
                 foreach (var category in categories)
                 {
                     var bookList = new List<object>();
-                    var bookCollecction = category.BookCategories.OrderByDescending(bc => bc.Book.PublicationDate).Take(5).ToList();
+                    var bookCollecction = category.BookCategories.OrderByDescending(bc => Guid.NewGuid()).Take(numberBookPerCate).ToList();
                     foreach(var book in bookCollecction)
                     {
                         var bookImages = new List<object>();

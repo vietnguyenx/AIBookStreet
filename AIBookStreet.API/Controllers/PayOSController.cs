@@ -47,9 +47,9 @@ namespace AIBookStreet.API.Controllers
         //    return Ok(result);
         //}
         [HttpPost("payos_transfer_handler")]
-        public IActionResult PayOSTransferHandler(WebhookType body)
+        public async Task<IActionResult> PayOSTransferHandler(WebhookType body)
         {
-            var result = _payOSService.VerifyPaymentWebhookData(body);
+            var result = await _payOSService.VerifyPaymentWebhookData(body);
             return result.Item1 switch
             {
                 0 => Ok(new BaseResponse(false, "ClientId not found")),

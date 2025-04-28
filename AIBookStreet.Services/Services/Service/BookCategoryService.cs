@@ -79,7 +79,7 @@ namespace AIBookStreet.Services.Services.Service
             {
                 foreach (var userRole in user.UserRoles)
                 {
-                    if (userRole.Role.RoleName == "Quản trị viên")
+                    if (userRole.Role.RoleName == "Admin")
                     {
                         isAdmin = true;
                     }

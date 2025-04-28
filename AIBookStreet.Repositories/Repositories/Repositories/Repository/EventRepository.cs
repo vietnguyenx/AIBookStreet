@@ -24,7 +24,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
             var order = desc != null && (desc != false);
             queryable = order ? base.ApplySort(queryable, field, 0) : base.ApplySort(queryable, field, 1);
-            queryable = queryable.Where(ev => !ev.IsDeleted);
+            queryable = queryable.Where(ev => !ev.IsDeleted && ev.EndDate.Value.Date >= DateTime.Now.Date);
             if (allowAds != null)
             {
                 queryable = queryable.Where(e => e.AllowAds == allowAds);
@@ -231,6 +231,29 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             );
             var eventRegistrations = await queryable.ToListAsync();
             return eventRegistrations.Count;
+        }
+        public async Task<(List<Event>, long)> GetEventsForStaff(DateTime? date, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        {
+            var queryable = GetQueryable();
+            queryable = base.ApplySort(queryable, "StartDate", 1);
+            var count = await queryable.CountAsync();
+            date = date != null ? date : DateTime.Now;
+            queryable = queryable.Where(ev => !ev.IsDeleted && ev.StartDate.Value.Date <= date.Value.Date && ev.EndDate.Value.Date >= date.Value.Date);
+
+            var totalOrigin = queryable.Count();
+            var x = await queryable.CountAsync();
+
+            pageNumber = pageNumber == null ? 1 : pageNumber;
+            pageSize = pageSize == null ? 10 : pageSize;
+
+            queryable = GetQueryablePagination(queryable, (int)pageNumber, (int)pageSize);
+
+            var events = await queryable
+                .Include(at => at.Images)
+                .Include(ev => ev.Zone)
+                .ToListAsync();
+
+            return (events, totalOrigin);
         }
     }
 }

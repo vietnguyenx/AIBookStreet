@@ -10,7 +10,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
 {
     public interface IEventRegistrationRepository : IBaseRepository<EventRegistration>
     {
-        Task<List<EventRegistration>> GetAll(Guid eventId);
+        Task<List<EventRegistration>> GetAll(Guid eventId, string? searchKey);
         Task<EventRegistration?> GetByID(Guid? id);
         Task<EventRegistration?> GetByEmail(Guid? eventId, string email);
         Task<(List<object>, List<object>, List<object>, List<object>, List<object>, int, int)> GetStatistic(Guid? eventId);

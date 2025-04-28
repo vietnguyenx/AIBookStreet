@@ -36,12 +36,16 @@ namespace AIBookStreet.Services.Services.Service
             var existed = await _repository.EventRegistrationRepository.GetByEmail(model.EventId, model.RegistrantEmail);
             if (existed != null)
             {
-                return (1, null, "Đã tồn tại người đăng ký email này cho sự kiện này"); //da ton tai
+                return (3, null, "Đã tồn tại người đăng ký email này cho sự kiện này"); //da ton tai
             }
             var evt = await _repository.EventRepository.GetByID(model.EventId);
             if (evt == null)
             {
                 return (3, null, "Không tìm thấy sự kiện"); //khong tim thay
+            }
+            if (evt.StartDate.Value.Date <= DateTime.Now.Date)
+            {
+                return (3, null, "Sự kiện đã/đang diễn ra, không thể đăng ký");
             }
             var eventRegistrationModel = _mapper.Map<EventRegistration>(model);
             eventRegistrationModel.IsAttended = false;
@@ -55,6 +59,22 @@ namespace AIBookStreet.Services.Services.Service
         }
         public async Task<(long, EventRegistration?)> CheckAttend(CheckAttendModel model)
         {
+            var user = await GetUserInfo();
+            var isStaff = false;
+            if (user != null)
+            {
+                foreach (var userRole in user.UserRoles)
+                {
+                    if (userRole.Role.RoleName == "Staff")
+                    {
+                        isStaff = true;
+                    }
+                }
+            }
+            if (!isStaff)
+            {
+                return (0, null);
+            }
             var existed = await _repository.EventRegistrationRepository.GetByID(model.Id);
             if (existed == null)
             {
@@ -86,11 +106,27 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.EventRegistrationRepository.GetByID(id);
         }
-        public async Task<List<EventRegistration>?> GetAllActiveEventRegistrations(Guid eventId)
+        public async Task<(long, List<EventRegistration>?)> GetAllActiveEventRegistrations(Guid eventId, string? searchKey)
         {
-            var eventRegistrations = await _repository.EventRegistrationRepository.GetAll(eventId);
+            var user = await GetUserInfo();
+            var isStaff = false;
+            if (user != null)
+            {
+                foreach (var userRole in user.UserRoles)
+                {
+                    if (userRole.Role.RoleName == "Staff")
+                    {
+                        isStaff = true;
+                    }
+                }
+            }
+            if (!isStaff)
+            {
+                return (0, null);
+            }
+            var eventRegistrations = await _repository.EventRegistrationRepository.GetAll(eventId, searchKey);
 
-            return eventRegistrations.Count == 0 ? null : eventRegistrations;
+            return eventRegistrations.Count == 0 ? (1, null) : (2, eventRegistrations);
         }
         public async Task<(List<object>, List<object>, List<object>, List<object>, List<object>, int, int)> Test (Guid eventId)
         {
@@ -120,6 +156,7 @@ namespace AIBookStreet.Services.Services.Service
             {
                 id = ticket?.Id,
                 ticketCode = ticket?.TicketCode,
+                secretPassCode = ticket?.SecretPasscode,
                 registrationId = ticket?.RegistrationId,
                 issuedAt = ticket?.CreatedDate
             };
@@ -131,9 +168,12 @@ namespace AIBookStreet.Services.Services.Service
 
             var barCodeInfor = ticket?.Id.ToString();
             Barcode barcode = new();
-            barcode.Encode(BarcodeStandard.Type.Code128, barCodeInfor, 500, 200);
-            string tempBarFilePath = Path.Combine(Path.GetTempPath(), "test-bar.png");
-            barcode.SaveImage(tempBarFilePath, SaveTypes.Png);
+            barcode.Encode(BarcodeStandard.Type.Code128, barCodeInfor, 1200, 400);
+            //string tempBarFilePath = Path.Combine(Path.GetTempPath(), "test-bar.png");
+            //barcode.SaveImage(tempBarFilePath, SaveTypes.Png);
+            using MemoryStream ms1 = new();
+            barcode.SaveImage(ms1, SaveTypes.Png);
+            ms1.Position = 0;
 
             var from = new MailAddress(_smtpSettings.From);
             var to = new MailAddress(ticket.EventRegistration.RegistrantEmail);
@@ -144,15 +184,18 @@ namespace AIBookStreet.Services.Services.Service
                 Subject = "[SmartBookStreet] Thư cảm ơn",
                 IsBodyHtml = true
             };
-            string tempQRFilePath = Path.Combine(Path.GetTempPath(), "qrCode.png");
-            qrCodeImage.Save(tempQRFilePath, ImageFormat.Png);
+            //string tempQRFilePath = Path.Combine(Path.GetTempPath(), "qrCode.png");
+            //qrCodeImage.Save(tempQRFilePath, ImageFormat.Png);
+            using MemoryStream ms2 = new();
+            qrCodeImage.Save(ms2, ImageFormat.Png);
+            ms2.Position = 0;
             var view = AlternateView.CreateAlternateViewFromString(htmlBody, null, MediaTypeNames.Text.Html);
-            var image = new LinkedResource(tempQRFilePath, MediaTypeNames.Image.Png)
+            var image = new LinkedResource(ms2, MediaTypeNames.Image.Webp)
             {
                 ContentId = "qrImage",
                 TransferEncoding = TransferEncoding.Base64
             };
-            var image2 = new LinkedResource(tempBarFilePath, MediaTypeNames.Image.Png)
+            var image2 = new LinkedResource(ms1, MediaTypeNames.Image.Webp)
             {
                 ContentId = "barImage",
                 TransferEncoding = TransferEncoding.Base64

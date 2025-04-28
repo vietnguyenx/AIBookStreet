@@ -74,5 +74,27 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.TicketRepository.GetByID(guid);
         }
+
+        public async Task<(long, List<Ticket>?)> GetAllTicketOnEvent(Guid eventId)
+        {
+            var user = await GetUserInfo();
+            var isStaff = false;
+            if (user != null)
+            {
+                foreach (var userRole in user.UserRoles)
+                {
+                    if (userRole.Role.RoleName == "Staff")
+                    {
+                        isStaff = true;
+                    }
+                }
+            }
+            if (!isStaff)
+            {
+                return (0, null);
+            }
+            var result = await _repository.TicketRepository.GetAllTicketOnEvent(eventId);
+            return result.Count > 0 ? (2, result): (1,null);
+        }
     }
 }

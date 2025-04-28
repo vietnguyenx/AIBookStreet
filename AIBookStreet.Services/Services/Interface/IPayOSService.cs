@@ -13,6 +13,6 @@ namespace AIBookStreet.Services.Services.Interface
         Task<(long, CreatePaymentResult?)> CreatePaymentLink(Guid orderId);
         Task<(long, PaymentLinkInformation?)> GetPaymentLinkInformation(long orderCode);
         Task<(long, PaymentLinkInformation?)> CancelOrder(int orderCode);
-        (long, int?) VerifyPaymentWebhookData(WebhookType body);
+        Task<(long, int?)> VerifyPaymentWebhookData(WebhookType body);
     }
 }

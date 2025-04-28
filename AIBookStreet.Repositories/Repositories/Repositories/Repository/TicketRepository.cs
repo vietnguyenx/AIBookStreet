@@ -46,13 +46,22 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         public async Task<Ticket?> GetTicket(string email, string passcode)
         {
             var query = GetQueryable();
-            query = query.Include(t => t.EventRegistration);
+            query = query.Include(t => t.EventRegistration).ThenInclude(er => er.Event).ThenInclude(e => e.Zone).ThenInclude(z => z.Street);
             if (query.Any())
             {
                 query = query.Where(t => t.EventRegistration.RegistrantEmail == email && t.SecretPasscode == passcode);
             }
             var ticket = await query.FirstOrDefaultAsync();
             return ticket;
+        }
+        public async Task<List<Ticket>> GetAllTicketOnEvent(Guid eventId)
+        {
+            var queryable = GetQueryable();
+            queryable = queryable.Where(z => !z.IsDeleted);
+            queryable = queryable.Include(t => t.EventRegistration).ThenInclude(er => er.Event).ThenInclude(e => e.Zone). ThenInclude(z => z.Street);
+            queryable = queryable.Where(t => t.EventRegistration.EventId == eventId);
+            var tickets = await queryable.ToListAsync();
+            return tickets;
         }
     }
 }
