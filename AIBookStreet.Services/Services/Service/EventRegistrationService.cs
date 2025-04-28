@@ -36,14 +36,14 @@ namespace AIBookStreet.Services.Services.Service
             var existed = await _repository.EventRegistrationRepository.GetByEmail(model.EventId, model.RegistrantEmail);
             if (existed != null)
             {
-                return (1, null, "Đã tồn tại người đăng ký email này cho sự kiện này"); //da ton tai
+                return (3, null, "Đã tồn tại người đăng ký email này cho sự kiện này"); //da ton tai
             }
             var evt = await _repository.EventRepository.GetByID(model.EventId);
             if (evt == null)
             {
                 return (3, null, "Không tìm thấy sự kiện"); //khong tim thay
             }
-            if (evt.StartDate <= DateTime.Now)
+            if (evt.StartDate.Value.Date <= DateTime.Now.Date)
             {
                 return (3, null, "Sự kiện đã/đang diễn ra, không thể đăng ký");
             }
@@ -106,7 +106,7 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.EventRegistrationRepository.GetByID(id);
         }
-        public async Task<(long, List<EventRegistration>?)> GetAllActiveEventRegistrations(Guid eventId)
+        public async Task<(long, List<EventRegistration>?)> GetAllActiveEventRegistrations(Guid eventId, string? searchKey)
         {
             var user = await GetUserInfo();
             var isStaff = false;
@@ -124,7 +124,7 @@ namespace AIBookStreet.Services.Services.Service
             {
                 return (0, null);
             }
-            var eventRegistrations = await _repository.EventRegistrationRepository.GetAll(eventId);
+            var eventRegistrations = await _repository.EventRegistrationRepository.GetAll(eventId, searchKey);
 
             return eventRegistrations.Count == 0 ? (1, null) : (2, eventRegistrations);
         }
@@ -156,6 +156,7 @@ namespace AIBookStreet.Services.Services.Service
             {
                 id = ticket?.Id,
                 ticketCode = ticket?.TicketCode,
+                secretPassCode = ticket?.SecretPasscode,
                 registrationId = ticket?.RegistrationId,
                 issuedAt = ticket?.CreatedDate
             };
@@ -167,7 +168,7 @@ namespace AIBookStreet.Services.Services.Service
 
             var barCodeInfor = ticket?.Id.ToString();
             Barcode barcode = new();
-            barcode.Encode(BarcodeStandard.Type.Code128, barCodeInfor, 600, 200);
+            barcode.Encode(BarcodeStandard.Type.Code128, barCodeInfor, 1200, 400);
             //string tempBarFilePath = Path.Combine(Path.GetTempPath(), "test-bar.png");
             //barcode.SaveImage(tempBarFilePath, SaveTypes.Png);
             using MemoryStream ms1 = new();

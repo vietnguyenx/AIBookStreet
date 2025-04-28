@@ -59,7 +59,7 @@ namespace AIBookStreet.API.Controllers
                 }
                 return result.Item1 switch
                 {
-                    1 => BadRequest(new BaseResponse(false, result.Item3)),
+                    3 => BadRequest(new BaseResponse(false, result.Item3)),
                     _ => Ok(new BaseResponse(false, result.Item3))
                 };
             }
@@ -131,17 +131,17 @@ namespace AIBookStreet.API.Controllers
         }
         [Authorize]
         [HttpGet("get-all/{eventId}")]
-        public async Task<IActionResult> GetAllEventRegistrations([FromRoute]Guid eventId)
+        public async Task<IActionResult> GetAllEventRegistrations([FromRoute]Guid eventId, string? searchKey)
         {
             try
             {
-                var eventRegistrations = await _service.GetAllActiveEventRegistrations(eventId);
+                var eventRegistrations = await _service.GetAllActiveEventRegistrations(eventId, searchKey);
 
                 return eventRegistrations.Item1 switch
                 {
                     0 => BadRequest("Hãy đăng nhập với vai trò quản trị viên"),
                     1 => Ok(new ItemListResponse<EventRegistrationRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new ItemListResponse<EventRegistrationRequest>(ConstantMessage.Success, _mapper.Map<List<EventRegistrationRequest>>(eventRegistrations)))
+                    _ => Ok(new ItemListResponse<EventRegistrationRequest>(ConstantMessage.Success, _mapper.Map<List<EventRegistrationRequest>>(eventRegistrations.Item2)))
                 };
             }
             catch (Exception ex)

@@ -34,7 +34,7 @@ namespace AIBookStreet.Services.Services.Service
                 SecretPasscode = "789456",
                 EventRegistration = new EventRegistration {
                     Id = Guid.NewGuid(),
-                    RegistrantName = "Hiep",
+                    RegistrantName = "Nguyen Tran Ngoc Trieu Linh Linh",
                     RegistrantGender = "Nam",
                     RegistrantAgeRange = "18-25",
                     RegistrantEmail = email,
@@ -97,9 +97,9 @@ namespace AIBookStreet.Services.Services.Service
 
             //}
 
-            var barCodeInfor = evtRegistration.Id + " " + evtRegistration.TicketCode;
+            var barCodeInfor = evtRegistration.Id + " " + evtRegistration.TicketCode + " " + evtRegistration.EventRegistration.RegistrantName;
             Barcode barcode = new();
-            barcode.Encode(BarcodeStandard.Type.Code128, barCodeInfor, 600, 200);
+            barcode.Encode(BarcodeStandard.Type.Code128, barCodeInfor, 1200, 400);
             using MemoryStream ms1 = new();
             barcode.SaveImage(ms1, SaveTypes.Png);
             ms1.Position = 0;

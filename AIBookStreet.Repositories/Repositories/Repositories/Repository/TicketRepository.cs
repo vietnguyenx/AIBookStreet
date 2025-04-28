@@ -54,5 +54,14 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var ticket = await query.FirstOrDefaultAsync();
             return ticket;
         }
+        public async Task<List<Ticket>> GetAllTicketOnEvent(Guid eventId)
+        {
+            var queryable = GetQueryable();
+            queryable = queryable.Where(z => !z.IsDeleted);
+            queryable = queryable.Include(t => t.EventRegistration).ThenInclude(er => er.Event).ThenInclude(e => e.Zone). ThenInclude(z => z.Street);
+            queryable = queryable.Where(t => t.EventRegistration.EventId == eventId);
+            var tickets = await queryable.ToListAsync();
+            return tickets;
+        }
     }
 }

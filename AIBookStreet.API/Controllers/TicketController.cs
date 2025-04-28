@@ -3,6 +3,7 @@ using AIBookStreet.API.ResponseModel;
 using AIBookStreet.API.Tool.Constant;
 using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Services.Services.Interface;
+using AIBookStreet.Services.Services.Service;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -75,6 +76,53 @@ namespace AIBookStreet.API.Controllers
 
                 return BadRequest(ex.Message);
             };
+        }
+        [Authorize]
+        [HttpGet("all-on-event/{eventId}")]
+        public async Task<IActionResult> GetAll([FromRoute] Guid eventId)
+        {
+            try
+            {
+                var result = await _service.GetAllTicketOnEvent(eventId);
+                //var resp = new List<object>();
+                if (result.Item1 == 2)
+                {                    
+                    //foreach(var ticket in result.Item2)
+                    //{
+                    //    resp.Add(new
+                    //    {
+                    //        id = ticket.Id,
+                    //        ticketCode = ticket.TicketCode,
+                    //        secretPasscode = ticket.SecretPasscode,
+                    //        eventId = ticket.EventRegistration?.EventId,
+                    //        registrationId = ticket.RegistrationId,
+                    //        attendeeName = ticket.EventRegistration?.RegistrantName,
+                    //        attendeeEmail = ticket.EventRegistration?.RegistrantEmail,
+                    //        attendeePhone = ticket.EventRegistration?.RegistrantPhoneNumber,
+                    //        attendeeAddress = ticket.EventRegistration?.RegistrantAddress,
+                    //        eventName = ticket.EventRegistration?.Event?.EventName,
+                    //        eventStartDate = ticket.EventRegistration?.Event?.StartDate,
+                    //        eventEndDate = ticket.EventRegistration?.Event?.EndDate,
+                    //        zoneId = ticket.EventRegistration?.Event?.ZoneId,
+                    //        zoneName = ticket.EventRegistration?.Event?.Zone?.ZoneName,
+                    //        latitude = ticket.EventRegistration?.Event?.Zone?.Latitude,
+                    //        longitude = ticket.EventRegistration?.Event?.Zone?.Longitude,
+                    //        issuedAt = ticket.CreatedDate
+                    //    });
+                    //}
+                    return Ok(new ItemListResponse<TicketRequest>(ConstantMessage.Success, _mapper.Map<List<TicketRequest>>(result.Item2)));
+
+                }
+                return result.Item1 switch
+                {
+                    0 => BadRequest(new BaseResponse(false, "Vui lòng đăng nhập với vai trò Nhân viên")),
+                    _ => Ok(new ItemListResponse<object>(ConstantMessage.Success, null ))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

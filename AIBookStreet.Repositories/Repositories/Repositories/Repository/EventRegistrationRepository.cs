@@ -13,10 +13,16 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 {
     public class EventRegistrationRepository(BSDbContext context) : BaseRepository<EventRegistration>(context), IEventRegistrationRepository
     {
-        public async Task<List<EventRegistration>> GetAll(Guid eventId)
+        public async Task<List<EventRegistration>> GetAll(Guid eventId, string? searchKey)
         {
             var queryable = GetQueryable();
             queryable = queryable.Where(z => !z.IsDeleted && z.EventId == eventId);
+            if (!string.IsNullOrEmpty(searchKey))
+            {
+                queryable = queryable.Where(er => er.RegistrantName.ToLower().Contains(searchKey.ToLower()) || 
+                                                  er.RegistrantEmail.ToLower().Contains(searchKey.ToLower()) ||
+                                                  er.RegistrantAddress.ToLower().Contains(searchKey.ToLower()));
+            }
             var eventRegistrations = await queryable.ToListAsync();
             return eventRegistrations;
         }
