@@ -10,10 +10,8 @@ namespace AIBookStreet.API.Tool.Mapping
     {
         public void UserMapping()
         {
-            CreateMap<User, UserModel>().ReverseMap()
-                .ForMember(dest => dest.Password, opt => opt.Ignore());
-            CreateMap<UserModel, UserRequest>().ReverseMap()
-                .ForMember(dest => dest.Password, opt => opt.Ignore());
+            CreateMap<User, UserModel>().ReverseMap();
+            CreateMap<UserModel, UserRequest>().ReverseMap();
             CreateMap<UserModel, UserSearchRequest>().ReverseMap()
                 .ForMember(dest => dest.Password, opt => opt.Ignore());
 
