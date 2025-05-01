@@ -344,7 +344,7 @@ namespace AIBookStreet.API.Controllers
                 return book switch
                 {
                     null => StatusCode(ConstantHttpStatus.NOT_FOUND, new BaseResponse(false, "Book not found in Google Books")),
-                    not null => StatusCode(ConstantHttpStatus.OK, new ItemResponse<BookModel>("Success", book))
+                    not null => StatusCode(ConstantHttpStatus.OK, new ItemResponse<GoogleBookResponseModel>("Success", book))
                 };
             }
             catch (Exception ex)
