@@ -325,10 +325,9 @@ namespace AIBookStreet.Services.Services.Service
                 simplifiedBook.BookCategories = new List<BookCategoryModel>();
                 
                 // Add author information - simplified
-                var bookAuthors = await _unitOfWork.BookAuthorRepository.GetByElement(book.Id, null);
-                if (bookAuthors != null && bookAuthors.Any())
+                if (book.BookAuthors != null && book.BookAuthors.Any())
                 {
-                    foreach (var bookAuthor in bookAuthors)
+                    foreach (var bookAuthor in book.BookAuthors)
                     {
                         var author = await _unitOfWork.AuthorRepository.GetById(bookAuthor.AuthorId);
                         if (author != null)
@@ -344,10 +343,9 @@ namespace AIBookStreet.Services.Services.Service
                 }
                 
                 // Add category information - simplified
-                var bookCategories = await _unitOfWork.BookCategoryRepository.GetByElement(book.Id, null);
-                if (bookCategories != null && bookCategories.Any())
+                if (book.BookCategories != null && book.BookCategories.Any())
                 {
-                    foreach (var bookCategory in bookCategories)
+                    foreach (var bookCategory in book.BookCategories)
                     {
                         var category = await _unitOfWork.CategoryRepository.GetById(bookCategory.CategoryId);
                         if (category != null)
@@ -462,24 +460,42 @@ namespace AIBookStreet.Services.Services.Service
                 var bookAuthors = new List<BookAuthor>();
                 foreach (var bookAuthorModel in bookModel.BookAuthors)
                 {
-                    // Check if author exists by name
-                    var existingAuthors = await _unitOfWork.AuthorRepository.GetAll(bookAuthorModel.AuthorName, null);
-                    var author = existingAuthors?.FirstOrDefault();
-
-                    if (author == null)
+                    Author author;
+                    
+                    // If author ID is provided, try to find the author by ID
+                    if (bookAuthorModel.AuthorId != Guid.Empty)
                     {
-                        // Create new author if not exists
-                        var newAuthor = new Author
+                        author = await _unitOfWork.AuthorRepository.GetById(bookAuthorModel.AuthorId);
+                        if (author == null)
                         {
-                            AuthorName = bookAuthorModel.AuthorName,
-                            IsDeleted = false,
-                            CreatedBy = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "System",
-                            CreatedDate = DateTime.UtcNow
-                        };
-                        var authorAdded = await _unitOfWork.AuthorRepository.Add(newAuthor);
-                        if (!authorAdded)
-                            return (null, ConstantMessage.Common.AddFail);
-                        author = newAuthor;
+                            return (null, "Author not found");
+                        }
+                    }
+                    else if (!string.IsNullOrEmpty(bookAuthorModel.AuthorName))
+                    {
+                        // If author name is provided, try to find or create the author
+                        var existingAuthors = await _unitOfWork.AuthorRepository.GetAll(bookAuthorModel.AuthorName, null);
+                        author = existingAuthors?.FirstOrDefault();
+
+                        if (author == null)
+                        {
+                            // Create new author if not exists
+                            var newAuthor = new Author
+                            {
+                                AuthorName = bookAuthorModel.AuthorName,
+                                IsDeleted = false,
+                                CreatedBy = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "System",
+                                CreatedDate = DateTime.UtcNow
+                            };
+                            var authorAdded = await _unitOfWork.AuthorRepository.Add(newAuthor);
+                            if (!authorAdded)
+                                return (null, ConstantMessage.Common.AddFail);
+                            author = newAuthor;
+                        }
+                    }
+                    else
+                    {
+                        return (null, "Either AuthorId or AuthorName must be provided");
                     }
 
                     // Create book-author relationship

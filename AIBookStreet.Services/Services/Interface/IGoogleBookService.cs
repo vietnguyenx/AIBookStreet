@@ -5,6 +5,6 @@ namespace AIBookStreet.Services.Services.Interface
 {
     public interface IGoogleBookService
     {
-        Task<BookModel?> SearchBookByISBN(string isbn);
+        Task<GoogleBookResponseModel?> SearchBookByISBN(string isbn);
     }
 } 

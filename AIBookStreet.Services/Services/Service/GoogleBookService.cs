@@ -24,7 +24,7 @@ namespace AIBookStreet.Services.Services.Service
             _logger = logger;
         }
 
-        public async Task<BookModel?> SearchBookByISBN(string isbn)
+        public async Task<GoogleBookResponseModel?> SearchBookByISBN(string isbn)
         {
             try
             {
@@ -79,7 +79,7 @@ namespace AIBookStreet.Services.Services.Service
                     }
                 }
 
-                var bookModel = new BookModel
+                var bookModel = new GoogleBookResponseModel
                 {
                     ISBN = isbn,
                     Title = book.Title,
@@ -95,17 +95,20 @@ namespace AIBookStreet.Services.Services.Service
                     BookCategories = book.Categories?.Select(category => new BookCategoryModel { CategoryName = category }).ToList(),
                     Publisher = !string.IsNullOrEmpty(book.Publisher) 
                         ? new PublisherModel { PublisherName = book.Publisher } 
-                        : null
+                        : null,
+                    CreatedBy = "System",
+                    CreatedDate = DateTime.UtcNow,
+                    IsDeleted = false
                 };
                 
                 if (book.ImageLinks != null)
                 {
-                    bookModel.Images = new List<Image>();
+                    bookModel.Images = new List<AIBookStreet.Repositories.Data.Entities.Image>();
                     
                     // Add thumbnail as main image
                     if (!string.IsNullOrEmpty(book.ImageLinks.Thumbnail))
                     {
-                        bookModel.Images.Add(new Image
+                        bookModel.Images.Add(new AIBookStreet.Repositories.Data.Entities.Image
                         {
                             Url = book.ImageLinks.Thumbnail,
                             Type = "book_main",
@@ -121,7 +124,7 @@ namespace AIBookStreet.Services.Services.Service
                     // Add small thumbnail as additional image
                     if (!string.IsNullOrEmpty(book.ImageLinks.SmallThumbnail))
                     {
-                        bookModel.Images.Add(new Image
+                        bookModel.Images.Add(new AIBookStreet.Repositories.Data.Entities.Image
                         {
                             Url = book.ImageLinks.SmallThumbnail,
                             Type = "book_additional",
