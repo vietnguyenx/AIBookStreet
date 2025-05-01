@@ -281,7 +281,8 @@ namespace AIBookStreet.Services.Services.Service
                     if (additionalImages == null)
                         return (null, ConstantMessage.Image.SubImageUploadFailed);
                 }
-
+                if (!string.IsNullOrEmpty(userModel.Password))
+                    updatedUser.Password = BCrypt.Net.BCrypt.HashPassword(userModel.Password);
                 var result = await _repository.Update(updatedUser);
                 if (!result)
                     return (null, ConstantMessage.Common.UpdateFail);

@@ -4,7 +4,7 @@
     {
         public Guid Id { get; set; }
         public string RegistrantName { get; set; } = null!;
-        public string RegistrantEmail { get; set; } = null!;
+        public string? RegistrantEmail { get; set; }
         public string RegistrantPhoneNumber { get; set; } = null!;
         public string RegistrantAgeRange { get; set; } = null!;
         public string RegistrantGender { get; set; } = null!;

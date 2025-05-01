@@ -57,7 +57,7 @@ namespace AIBookStreet.Services.Services.Service
             }
             return (3, null, "Không thể đăng ký");
         }
-        public async Task<(long, EventRegistration?)> CheckAttend(CheckAttendModel model)
+        public async Task<(long, List<EventRegistration>?)> CheckAttend(List<CheckAttendModel> models)
         {
             var user = await GetUserInfo();
             var isStaff = false;
@@ -75,20 +75,37 @@ namespace AIBookStreet.Services.Services.Service
             {
                 return (0, null);
             }
-            var existed = await _repository.EventRegistrationRepository.GetByID(model.Id);
-            if (existed == null)
+            if (models == null)
             {
-                return (1, null); //khong ton tai
+                return (5, null);
             }
-            if (existed.IsDeleted)
+            var resp = new List<EventRegistration>();
+            foreach (var model in models)
             {
-                return (3, null);
+                var existed = await _repository.EventRegistrationRepository.GetByID(model.Id);
+                if (existed == null)
+                {
+                    return (1, null); //khong ton tai
+                }
+                if (existed.Event.EndDate.Value <= DateTime.Now)
+                {
+                    return (4, null);
+                }
+                if (existed.IsDeleted)
+                {
+                    return (3, null);
+                }
+
+                existed.IsAttended = model.IsAttended;
+                existed = await SetBaseEntityToUpdateFunc(existed);
+                var success = await _repository.EventRegistrationRepository.Update(existed);
+                if (!success)
+                {
+                    return (3, null);       //update fail
+                }
+                resp.Add(existed);
             }
-            
-            existed.IsAttended = model.IsAttended;
-            existed = await SetBaseEntityToUpdateFunc(existed);
-            return await _repository.EventRegistrationRepository.Update(existed) ? (2, existed) //update thanh cong
-                                                                          : (3, null);       //update fail
+            return (2, resp); //update thanh cong                                                       : 
         }
         //public async Task<(long, EventRegistration?)> DeleteAnEventRegistration(Guid id)
         //{

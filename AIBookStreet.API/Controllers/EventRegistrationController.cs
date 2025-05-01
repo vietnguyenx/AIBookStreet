@@ -35,7 +35,10 @@ namespace AIBookStreet.API.Controllers
                     {
                         return BadRequest(new BaseResponse(false, ticket.Item3));
                     }
-                    await _service.SendEmai(ticket.Item2);
+                    if (ticket.Item2?.EventRegistration?.RegistrantEmail != null)
+                    {
+                        await _service.SendEmai(ticket.Item2);
+                    }
                     return Ok(new ItemResponse<object>("Đã thêm!", new
                     {
                         id = ticket.Item2?.Id,
@@ -70,17 +73,20 @@ namespace AIBookStreet.API.Controllers
         }
         [Authorize]
         [HttpPut("check-attendend")]
-        public async Task<IActionResult> UpdateAnEventRegistration(CheckAttendModel model)
+        public async Task<IActionResult> UpdateAnEventRegistration(List<EventRegistrationRequest> list)
         {
             try
             {
-                var result = await _service.CheckAttend(model);
+                var models = _mapper.Map<List<CheckAttendModel>>(list);
+                var result = await _service.CheckAttend(models);
 
                 return result.Item1 switch
                 {
                     0 => BadRequest("Hãy đăng nhập với vai trò quản trị viên"),
                     1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new BaseResponse(true, "Đã cập nhật trạng thái!")),
+                    4 => BadRequest("Đã quá hạn điểm danh"),
+                    5 => BadRequest("Danh sách trống"),
                     _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
             }
