@@ -19,7 +19,7 @@ namespace AIBookStreet.Services.Services.Service
     {
         private readonly IUnitOfWork _repository = repository;
         private readonly IFirebaseStorageService _firebaseStorage = firebaseStorageService;
-        public async Task<Author?> AddAnAuthor(AuthorModel authorModel)
+        public async Task<(Author?, string?)> AddAnAuthor(AuthorModel authorModel)
         {
             authorModel.DOB = authorModel.DOB?.ToLocalTime();
             try
@@ -28,6 +28,11 @@ namespace AIBookStreet.Services.Services.Service
                 if (authorModel.ImgFile != null)
                 {
                     fileUrl = await _firebaseStorage.UploadFileAsync(authorModel.ImgFile);
+                }
+
+                if (DateTime.Now.Year - authorModel.DOB?.Year <= 15)
+                {
+                    return (null, "Tác giả khôn thể nhỏ hơn 15 tuổi");
                 }
 
                 var author = new Author
@@ -48,10 +53,10 @@ namespace AIBookStreet.Services.Services.Service
                     {
                         await _firebaseStorage.DeleteFileAsync(fileUrl);
                     }
-                    return null;
+                    return (null, "Không thể thêm tác giả này");
                 }
 
-                return setAuthor;
+                return (setAuthor, null);
             }
             catch (Exception)
             {

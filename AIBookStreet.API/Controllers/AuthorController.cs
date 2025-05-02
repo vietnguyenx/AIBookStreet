@@ -26,7 +26,7 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var result = await _service.AddAnAuthor(author);
-                return result == null ? BadRequest(new BaseResponse(false, "Đã xảy ra lỗi!!!")) : Ok(new ItemResponse<AuthorRequest>("Đã thêm tác giả", _mapper.Map<AuthorRequest>(result)));
+                return result.Item1 == null ? BadRequest(result.Item2) : Ok(new ItemResponse<AuthorRequest>("Đã thêm tác giả", _mapper.Map<AuthorRequest>(result)));
             }
             catch (Exception ex)
             {

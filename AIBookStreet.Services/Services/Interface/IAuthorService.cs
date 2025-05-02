@@ -10,7 +10,7 @@ namespace AIBookStreet.Services.Services.Interface
 {
     public interface IAuthorService
     {
-        Task<Author?> AddAnAuthor(AuthorModel authorModel);
+        Task<(Author?, string?)> AddAnAuthor(AuthorModel authorModel);
         Task<(long, Author?)> UpdateAnAuthor(Guid authorID, AuthorModel authorModel);
         Task<(long, Author?)> DeleteAnAuthor(Guid id);
         Task<Author?> GetAnAuthorById(Guid id);

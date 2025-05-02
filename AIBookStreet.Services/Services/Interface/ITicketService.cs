@@ -14,5 +14,6 @@ namespace AIBookStreet.Services.Services.Interface
         Task<Ticket?> GetTicket(string email, string passcode);
         Task<Ticket?> GetTicketById(Guid guid);
         Task<( long, List<Ticket>?)> GetAllTicketOnEvent(Guid eventId);
+        Task<Ticket?> GetTicketByRegistrationId(Guid registrationId);
     }
 }
