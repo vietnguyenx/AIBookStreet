@@ -96,5 +96,9 @@ namespace AIBookStreet.Services.Services.Service
             var result = await _repository.TicketRepository.GetAllTicketOnEvent(eventId);
             return result.Count > 0 ? (2, result): (1,null);
         }
+        public async Task<Ticket?> GetTicketByRegistrationId(Guid registrationId)
+        {
+            return await _unitOfWork.TicketRepository.GetByRegistrationId(registrationId);
+        }
     }
 }

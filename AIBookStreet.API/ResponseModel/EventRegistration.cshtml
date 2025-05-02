@@ -214,7 +214,7 @@
             <p>Cảm ơn bạn đã đăng ký tham dự sự kiện. Đây là vé tham dự của bạn.</p>
 
             <div class="ticket-box">
-                <h3>KIẾM TIỀN CÙNG CHATGPT</h3>
+                <h3>@Model.EventRegistration?.Event?.EventName</h3>
                 <div style="display: flex; width: 100%"> 
                     <div class="ticket-left">
                         <table>
@@ -262,8 +262,8 @@
                     </div>
                 </div>
                 <div class="barcode">
-                    <img src="cid:barImage" alt="Barcode" style="height: 150px"/><br />
-                    <p>@Model.Id | @Model.TicketCode | @Model.EventRegistration?.RegistrantName</p>
+                    <img src="cid:barImage" alt="Barcode" style="height: 150px; padding-bottom: 30px"/><br />
+                    @* <p>@Model.Id | @Model.TicketCode | @Model.EventRegistration?.RegistrantName</p> *@
                 </div>
             </div>
 

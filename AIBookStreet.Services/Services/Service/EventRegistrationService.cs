@@ -80,15 +80,48 @@ namespace AIBookStreet.Services.Services.Service
             {
                 return (1, null); //khong ton tai
             }
+            if (existed.Event.EndDate.Value <= DateTime.Now)
+            {
+                return (4, null);
+            }
             if (existed.IsDeleted)
             {
                 return (3, null);
             }
-            
-            existed.IsAttended = model.IsAttended;
-            existed = await SetBaseEntityToUpdateFunc(existed);
-            return await _repository.EventRegistrationRepository.Update(existed) ? (2, existed) //update thanh cong
-                                                                          : (3, null);       //update fail
+            if (!string.IsNullOrEmpty(model.TicketCode))
+            {
+                if (model.Id == existed.Id && model.TicketCode == existed.Ticket?.TicketCode)
+                {
+                    if (existed.IsAttended)
+                    {
+                        return (5, null);
+                    } else
+                    {
+                        existed.IsAttended = true;
+                        existed = await SetBaseEntityToUpdateFunc(existed);
+                        var success = await _repository.EventRegistrationRepository.Update(existed);
+                        if (!success)
+                        {
+                            return (3, null);       //update fail
+                        }
+                        return (2, existed);
+                    }
+                } else
+                {
+                    return (5, null) ;
+                }
+            }
+            else
+            {
+                existed.IsAttended = model.IsAttended;
+                existed = await SetBaseEntityToUpdateFunc(existed);
+                var success = await _repository.EventRegistrationRepository.Update(existed);
+                if (!success)
+                {
+                    return (3, null);       //update fail
+                }
+            }
+            return (2, existed); //update thanh cong                                                       : 
         }
         //public async Task<(long, EventRegistration?)> DeleteAnEventRegistration(Guid id)
         //{
@@ -206,6 +239,57 @@ namespace AIBookStreet.Services.Services.Service
 
             await _smtpClient.SendMailAsync(mail);
             return 1;
-        }        
+        }
+        public async Task<(long, List<EventRegistration>?)> CheckListAttend(List<CheckAttendModel>? list)
+        {
+            var user = await GetUserInfo();
+            var isStaff = false;
+            if (user != null)
+            {
+                foreach (var userRole in user.UserRoles)
+                {
+                    if (userRole.Role.RoleName == "Staff")
+                    {
+                        isStaff = true;
+                    }
+                }
+            }
+            if (!isStaff)
+            {
+                return (0, null);
+            }
+            if (list == null)
+            {
+                return (5, null);
+            }
+            var resp = new List<EventRegistration>();
+            foreach (var model in list)
+            {
+                var existed = await _repository.EventRegistrationRepository.GetByID(model.Id);
+                if (existed == null)
+                {
+                    return (1, null); //khong ton tai
+                }
+                if (existed.Event.EndDate.Value <= DateTime.Now)
+                {
+                    return (4, null);
+                }
+                if (existed.IsDeleted)
+                {
+                    return (3, null);
+                }
+
+                existed.IsAttended = model.IsAttended;
+                existed = await SetBaseEntityToUpdateFunc(existed);
+                var success = await _repository.EventRegistrationRepository.Update(existed);
+                if (!success)
+                {
+                    return (3, null);       //update fail
+                }
+                resp.Add(existed);
+            }           
+
+            return (2, resp);
+        }
     }
 }

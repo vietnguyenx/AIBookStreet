@@ -597,12 +597,12 @@ namespace AIBookStreet.Repositories.Data
             {
                 e.ToTable("EventRegistrations");
                 e.Property(x => x.RegistrantName).HasMaxLength(255).IsRequired();
-                e.Property(x => x.RegistrantEmail).HasMaxLength(255).IsRequired();
+                e.Property(x => x.RegistrantEmail).HasMaxLength(255).IsRequired(false);
                 e.Property(x => x.RegistrantPhoneNumber).HasMaxLength(255).IsRequired();
                 e.Property(x => x.RegistrantAgeRange).HasMaxLength(255).IsRequired();
                 e.Property(x => x.RegistrantGender).HasMaxLength(255).IsRequired();
                 e.Property(x => x.RegistrantAddress).HasMaxLength(255).IsRequired(false);
-                e.Property(x => x.ReferenceSource).HasMaxLength(1000).IsRequired();
+                e.Property(x => x.ReferenceSource).HasMaxLength(1000).IsRequired(false);
                 e.Property(x => x.HasAttendedBefore).IsRequired();
                 e.Property(x => x.IsAttended).IsRequired();
 

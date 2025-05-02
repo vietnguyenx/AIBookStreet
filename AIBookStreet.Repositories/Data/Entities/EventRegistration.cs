@@ -9,7 +9,7 @@ namespace AIBookStreet.Repositories.Data.Entities
     public class EventRegistration: BaseEntity
     {
         public string RegistrantName { get; set; }
-        public string RegistrantEmail { get; set; }
+        public string? RegistrantEmail { get; set; }
         public string RegistrantPhoneNumber { get; set; }
         public string RegistrantAgeRange { get; set; }
         public string RegistrantGender { get; set; }   

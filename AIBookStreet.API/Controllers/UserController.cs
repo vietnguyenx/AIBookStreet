@@ -196,6 +196,7 @@ namespace AIBookStreet.API.Controllers
                 userModel.Id = id;
                 userModel.MainImageFile = userRequest.MainImageFile;
                 userModel.AdditionalImageFiles = userRequest.AdditionalImageFiles;
+                userModel.Password = userRequest.Password;
 
                 var (result, message) = await _service.Update(userModel);
                 return result switch
