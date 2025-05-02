@@ -12,6 +12,8 @@
         public string? ReferenceSource { get; set; }
         public bool HasAttendedBefore { get; set; }
         public bool IsAttended { get; set; }
+        public string? LastUpdatedBy { get; set; }
+        public DateTime? LastUpdatedDate { get; set; }
         public EventRequest? Event { get; set; }
     }
 }

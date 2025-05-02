@@ -57,7 +57,7 @@ namespace AIBookStreet.Services.Services.Service
             }
             return (3, null, "Không thể đăng ký");
         }
-        public async Task<(long, List<EventRegistration>?)> CheckAttend(List<CheckAttendModel> models)
+        public async Task<(long, EventRegistration?)> CheckAttend(CheckAttendModel model)
         {
             var user = await GetUserInfo();
             var isStaff = false;
@@ -75,27 +75,44 @@ namespace AIBookStreet.Services.Services.Service
             {
                 return (0, null);
             }
-            if (models == null)
+            var existed = await _repository.EventRegistrationRepository.GetByID(model.Id);
+            if (existed == null)
             {
-                return (5, null);
+                return (1, null); //khong ton tai
             }
-            var resp = new List<EventRegistration>();
-            foreach (var model in models)
+            if (existed.Event.EndDate.Value <= DateTime.Now)
             {
-                var existed = await _repository.EventRegistrationRepository.GetByID(model.Id);
-                if (existed == null)
+                return (4, null);
+            }
+            if (existed.IsDeleted)
+            {
+                return (3, null);
+            }
+            if (!string.IsNullOrEmpty(model.TicketCode))
+            {
+                if (model.Id == existed.Id && model.TicketCode == existed.Ticket?.TicketCode)
                 {
-                    return (1, null); //khong ton tai
-                }
-                if (existed.Event.EndDate.Value <= DateTime.Now)
+                    if (existed.IsAttended)
+                    {
+                        return (5, null);
+                    } else
+                    {
+                        existed.IsAttended = true;
+                        existed = await SetBaseEntityToUpdateFunc(existed);
+                        var success = await _repository.EventRegistrationRepository.Update(existed);
+                        if (!success)
+                        {
+                            return (3, null);       //update fail
+                        }
+                        return (2, existed);
+                    }
+                } else
                 {
-                    return (4, null);
+                    return (5, null) ;
                 }
-                if (existed.IsDeleted)
-                {
-                    return (3, null);
-                }
-
+            }
+            else
+            {
                 existed.IsAttended = model.IsAttended;
                 existed = await SetBaseEntityToUpdateFunc(existed);
                 var success = await _repository.EventRegistrationRepository.Update(existed);
@@ -103,9 +120,8 @@ namespace AIBookStreet.Services.Services.Service
                 {
                     return (3, null);       //update fail
                 }
-                resp.Add(existed);
             }
-            return (2, resp); //update thanh cong                                                       : 
+            return (2, existed); //update thanh cong                                                       : 
         }
         //public async Task<(long, EventRegistration?)> DeleteAnEventRegistration(Guid id)
         //{
@@ -223,6 +239,57 @@ namespace AIBookStreet.Services.Services.Service
 
             await _smtpClient.SendMailAsync(mail);
             return 1;
-        }        
+        }
+        public async Task<(long, List<EventRegistration>?)> CheckListAttend(List<CheckAttendModel>? list)
+        {
+            var user = await GetUserInfo();
+            var isStaff = false;
+            if (user != null)
+            {
+                foreach (var userRole in user.UserRoles)
+                {
+                    if (userRole.Role.RoleName == "Staff")
+                    {
+                        isStaff = true;
+                    }
+                }
+            }
+            if (!isStaff)
+            {
+                return (0, null);
+            }
+            if (list == null)
+            {
+                return (5, null);
+            }
+            var resp = new List<EventRegistration>();
+            foreach (var model in list)
+            {
+                var existed = await _repository.EventRegistrationRepository.GetByID(model.Id);
+                if (existed == null)
+                {
+                    return (1, null); //khong ton tai
+                }
+                if (existed.Event.EndDate.Value <= DateTime.Now)
+                {
+                    return (4, null);
+                }
+                if (existed.IsDeleted)
+                {
+                    return (3, null);
+                }
+
+                existed.IsAttended = model.IsAttended;
+                existed = await SetBaseEntityToUpdateFunc(existed);
+                var success = await _repository.EventRegistrationRepository.Update(existed);
+                if (!success)
+                {
+                    return (3, null);       //update fail
+                }
+                resp.Add(existed);
+            }           
+
+            return (2, resp);
+        }
     }
 }
