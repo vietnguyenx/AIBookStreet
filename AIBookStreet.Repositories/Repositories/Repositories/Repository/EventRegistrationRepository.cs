@@ -29,7 +29,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         public async Task<EventRegistration?> GetByID(Guid? id)
         {
             var query = GetQueryable(z => z.Id == id);
-            var eventRegistration = await query.Include(z => z.Event)
+            var eventRegistration = await query.Include(z => z.Event).Include(er => er.Ticket)
                                   .SingleOrDefaultAsync();
 
             return eventRegistration;
