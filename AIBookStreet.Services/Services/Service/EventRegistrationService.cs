@@ -185,21 +185,22 @@ namespace AIBookStreet.Services.Services.Service
             //    zoneName = ticket?.EventRegistration?.Event?.Zone?.ZoneName,
             //    issuedAt = ticket?.CreatedDate
             //};
-            var qrData = new
-            {
-                id = ticket?.Id,
-                ticketCode = ticket?.TicketCode,
-                secretPassCode = ticket?.SecretPasscode,
-                registrationId = ticket?.RegistrationId,
-                issuedAt = ticket?.CreatedDate
-            };
+            var qrData = ticket?.RegistrationId + " | " + ticket?.TicketCode + " | " + ticket?.EventRegistration?.RegistrantName;
+            //    new
+            //{
+            //    id = ticket?.Id,
+            //    ticketCode = ticket?.TicketCode,
+            //    secretPassCode = ticket?.SecretPasscode,
+            //    registrationId = ticket?.RegistrationId,
+            //    issuedAt = ticket?.CreatedDate
+            //};
             string jsonData = JsonSerializer.Serialize(qrData);
             QRCodeGenerator qrGenerator = new();
             QRCodeData qrCodeData = qrGenerator.CreateQrCode(jsonData, QRCodeGenerator.ECCLevel.Q);
             QRCode qrCode = new(qrCodeData);
             Bitmap qrCodeImage = qrCode.GetGraphic(5);
 
-            var barCodeInfor = ticket?.Id.ToString();
+            var barCodeInfor = ticket?.RegistrationId.ToString();
             Barcode barcode = new();
             barcode.Encode(BarcodeStandard.Type.Code128, barCodeInfor, 1200, 400);
             //string tempBarFilePath = Path.Combine(Path.GetTempPath(), "test-bar.png");
