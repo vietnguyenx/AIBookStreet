@@ -12,7 +12,8 @@ namespace AIBookStreet.Services.Services.Interface
         Task<List<UserStoreModel>> GetAll();
         Task<List<UserStoreModel>?> GetByUserId(Guid userId);
         Task<List<UserStoreModel>?> GetByStoreId(Guid storeId);
-        Task<bool> Add(UserStoreModel userStoreModel);
+        Task<(bool isSuccess, string message)> Add(UserStoreModel userStoreModel);
         Task<bool> Delete(Guid idUser, Guid idStore);
+        Task<bool> UpdateExpiredContracts();
     }
 }

@@ -46,5 +46,40 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                 .SingleOrDefaultAsync();
             return userStore;
         }
+
+        public async Task<bool> IsStoreActiveForOtherUser(Guid storeId, Guid userId)
+        {
+            return await _context.UserStores.AnyAsync(x => x.StoreId == storeId && x.UserId != userId && x.Status == "Active");
+        }
+
+        public async Task<bool> UpdateExpiredContracts()
+        {
+            try
+            {
+                var now = DateTime.Now;
+                var expiredContracts = await _context.UserStores
+                    .Where(x => x.EndDate != null && 
+                               x.EndDate < now && 
+                               x.Status != "Expired")
+                    .ToListAsync();
+
+                foreach (var contract in expiredContracts)
+                {
+                    contract.Status = "Expired";
+                    contract.LastUpdatedDate = now;
+                }
+
+                if (expiredContracts.Any())
+                {
+                    await _context.SaveChangesAsync();
+                }
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
     }
 }

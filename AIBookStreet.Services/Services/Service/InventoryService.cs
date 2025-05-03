@@ -74,24 +74,24 @@ namespace AIBookStreet.Services.Services.Service
                 // Validate input parameters
                 if (inventoryModel.EntityId == null || inventoryModel.EntityId == Guid.Empty)
                 {
-                    return (false, "Entity ID cannot be empty");
+                    return (false, "Sản phẩm không được để trống");
                 }
 
                 if (inventoryModel.StoreId == Guid.Empty)
                 {
-                    return (false, "Store ID cannot be empty");
+                    return (false, "Vui lòng chọn cửa hàng");
                 }
 
                 if (inventoryModel.Quantity < 0)
                 {
-                    return (false, "Quantity cannot be negative");
+                    return (false, "Số lượng không được âm");
                 }
 
                 // Check if inventory already exists
                 var inventory = await _inventoryRepository.GetByEntityIdAndStoreId(inventoryModel.EntityId, inventoryModel.StoreId);
                 if (inventory != null)
                 {
-                    return (false, "Inventory already exists for this item in the store. Use Update instead.");
+                    return (false, "Đã có hàng tồn kho cho mặt hàng này trong cửa hàng");
                 }
 
                 // Set IsInStock based on quantity
@@ -104,14 +104,14 @@ namespace AIBookStreet.Services.Services.Service
                 var result = await _inventoryRepository.Add(newInventory);
                 if (!result)
                 {
-                    return (false, "Failed to add inventory");
+                    return (false, "Không thêm được hàng tồn kho");
                 }
 
-                return (true, $"Successfully added inventory with quantity: {inventoryModel.Quantity}");
+                return (true, $"Đã thêm hàng tồn kho thành công với số lượng: {inventoryModel.Quantity}");
             }
             catch (Exception ex)
             {
-                return (false, $"Error adding inventory: {ex.Message}");
+                return (false, $"Lỗi khi thêm hàng tồn kho: {ex.Message}");
             }
         }
 
@@ -121,24 +121,24 @@ namespace AIBookStreet.Services.Services.Service
             {
                 if (entityId == Guid.Empty)
                 {
-                    return (false, "Entity ID cannot be empty");
+                    return (false, "Sản phẩm không được để trống");
                 }
 
                 if (storeId == Guid.Empty)
                 {
-                    return (false, "Store ID cannot be empty");
+                    return (false, "Vui lòng chọn cửa hàng");
                 }
 
                 if (quantity < 0)
                 {
-                    return (false, "Quantity cannot be negative");
+                    return (false, "Số lượng không được âm");
                 }
 
                 // Find inventory for this book/entity and store
                 var inventory = await _inventoryRepository.GetByEntityIdAndStoreId(entityId, storeId);
                 if (inventory == null)
                 {
-                    return (false, "Inventory not found for this item in the store");
+                    return (false, "Không tìm thấy hàng tồn kho cho mặt hàng này trong cửa hàng");
                 }
 
                 // Update inventory quantity
@@ -153,14 +153,14 @@ namespace AIBookStreet.Services.Services.Service
                 var result = await _inventoryRepository.Update(inventory);
                 if (!result)
                 {
-                    return (false, "Failed to update inventory");
+                    return (false, "Không cập nhật được hàng tồn kho");
                 }
 
-                return (true, $"Successfully updated inventory. New quantity: {inventory.Quantity}");
+                return (true, $"Đã cập nhật hàng tồn kho thành công. Số lượng mới: {inventory.Quantity}");
             }
             catch (Exception ex)
             {
-                return (false, $"Error updating inventory: {ex.Message}");
+                return (false, $"Lỗi khi cập nhật hàng tồn kho: {ex.Message}");
             }
         }
 
@@ -182,24 +182,24 @@ namespace AIBookStreet.Services.Services.Service
             {
                 if (string.IsNullOrEmpty(ISBN))
                 {
-                    return (false, "Book code cannot be empty");
+                    return (false, "Mã ISBN không được để trống");
                 }
 
                 if (storeId == Guid.Empty)
                 {
-                    return (false, "Store ID cannot be empty");
+                    return (false, "Vui lòng chọn cửa hàng");
                 }
 
                 if (quantity <= 0)
                 {
-                    return (false, "Quantity must be greater than zero");
+                    return (false, "Số lượng phải lớn hơn 0");
                 }
 
                 // Find the book by code
                 var books = await _bookRepository.SearchWithoutPagination(new Book { ISBN = ISBN }, null, null, null, null);
                 if (books == null || !books.Any())
                 {
-                    return (false, $"Book with code {ISBN} not found");
+                    return (false, $"Không tìm thấy sách có mã {ISBN}");
                 }
 
                 var book = books.First();
@@ -208,13 +208,13 @@ namespace AIBookStreet.Services.Services.Service
                 var inventory = await _inventoryRepository.GetByEntityIdAndStoreId(book.Id, storeId);
                 if (inventory == null)
                 {
-                    return (false, $"Inventory not found for book ISBN {ISBN} in this store");
+                    return (false, $"Không tìm thấy hàng tồn kho cho sách ISBN {ISBN} trong cửa hàng này");
                 }
 
                 // Check if we have enough books in stock
                 if (inventory.Quantity < quantity)
                 {
-                    return (false, $"Not enough books in stock. Current quantity: {inventory.Quantity}");
+                    return (false, $"Không đủ sách trong kho. Số lượng hiện tại: {inventory.Quantity}");
                 }
 
                 // Update inventory quantity
@@ -229,14 +229,14 @@ namespace AIBookStreet.Services.Services.Service
                 var result = await _inventoryRepository.Update(inventory);
                 if (!result)
                 {
-                    return (false, "Failed to update inventory");
+                    return (false, "Không cập nhật được hàng tồn kho");
                 }
 
-                return (true, $"Successfully updated inventory. New quantity: {inventory.Quantity}");
+                return (true, $"Đã cập nhật hàng tồn kho thành công. Số lượng mới: {inventory.Quantity}");
             }
             catch (Exception ex)
             {
-                return (false, $"Error updating inventory: {ex.Message}");
+                return (false, $"Lỗi khi cập nhật hàng tồn kho: {ex.Message}");
             }
         }
     }
