@@ -24,8 +24,26 @@ namespace AIBookStreet.Services.Services.Service
             _userStoreRepository = unitOfWork.UserStoreRepository;
         }
 
+        private async Task CheckAndUpdateExpiredContracts()
+        {
+            var now = DateTime.Now;
+            var expiredContracts = await _userStoreRepository.GetAll();
+            expiredContracts = expiredContracts.Where(x => x.EndDate != null && 
+                                                         x.EndDate < now && 
+                                                         x.Status != "Expired" && 
+                                                         x.Status != "Terminated").ToList();
+
+            foreach (var contract in expiredContracts)
+            {
+                contract.Status = "Expired";
+                contract.LastUpdatedDate = now;
+                await _userStoreRepository.Update(contract);
+            }
+        }
+
         public async Task<List<UserStoreModel>> GetAll()
         {
+            await CheckAndUpdateExpiredContracts();
             var userStores = await _userStoreRepository.GetAll();
 
             if (!userStores.Any())
@@ -38,6 +56,7 @@ namespace AIBookStreet.Services.Services.Service
 
         public async Task<List<UserStoreModel>?> GetByUserId(Guid userId)
         {
+            await CheckAndUpdateExpiredContracts();
             var userStores = await _userStoreRepository.GetByUserId(userId);
             if (!userStores.Any()) return null;
             return _mapper.Map<List<UserStoreModel>>(userStores);
@@ -45,6 +64,7 @@ namespace AIBookStreet.Services.Services.Service
 
         public async Task<List<UserStoreModel>?> GetByStoreId(Guid storeId)
         {
+            await CheckAndUpdateExpiredContracts();
             var userStores = await _userStoreRepository.GetByStoreId(storeId);
             if (!userStores.Any()) return null;
             return _mapper.Map<List<UserStoreModel>>(userStores);
@@ -69,6 +89,12 @@ namespace AIBookStreet.Services.Services.Service
 
             var deleteUserStore = _mapper.Map<UserStore>(userStore);
             return await _userStoreRepository.Remove(deleteUserStore);
+        }
+
+        public async Task<bool> UpdateExpiredContracts()
+        {
+            await CheckAndUpdateExpiredContracts();
+            return true;
         }
     }
 }
