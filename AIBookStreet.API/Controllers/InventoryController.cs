@@ -219,17 +219,17 @@ namespace AIBookStreet.API.Controllers
             {
                 if (string.IsNullOrEmpty(request.ISBN))
                 {
-                    return BadRequest(new BaseResponse(false, "Book code is required"));
+                    return BadRequest(new BaseResponse(false, "Mã ISBN không được để trống"));
                 }
 
                 if (request.StoreId == Guid.Empty)
                 {
-                    return BadRequest(new BaseResponse(false, "Store ID is required"));
+                    return BadRequest(new BaseResponse(false, "Cửa hàng không được để trống"));
                 }
 
                 if (request.Quantity <= 0)
                 {
-                    return BadRequest(new BaseResponse(false, "Quantity must be greater than zero"));
+                    return BadRequest(new BaseResponse(false, "Số lượng phải lớn hơn 0"));
                 }
 
                 var (success, message) = await _inventoryService.UpdateQuantityByISBN(request.ISBN, request.StoreId, request.Quantity);

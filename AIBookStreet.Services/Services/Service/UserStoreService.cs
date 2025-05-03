@@ -70,13 +70,23 @@ namespace AIBookStreet.Services.Services.Service
             return _mapper.Map<List<UserStoreModel>>(userStores);
         }
 
-        public async Task<bool> Add(UserStoreModel userStoreModel)
+        public async Task<(bool isSuccess, string message)> Add(UserStoreModel userStoreModel)
         {
+            // Kiểm tra store đã có hợp đồng active với user khác chưa
+            bool isActiveForOtherUser = await _userStoreRepository.IsStoreActiveForOtherUser(userStoreModel.StoreId, userStoreModel.UserId);
+            if (isActiveForOtherUser)
+            {
+                return (false, "Cửa hàng đã chọn đã có hợp đồng đang hoạt động với người dùng khác.");
+            }
             var userStore = await _userStoreRepository.GetByUserIdAndStoreId(userStoreModel.UserId, userStoreModel.StoreId);
-            if (userStore != null) { return false; }
+            if (userStore != null) { return (false, "Đã tồn tại hợp đồng thuê giữa người dùng và cửa hàng đã chọn."); }
             var mappedUserStore = _mapper.Map<UserStore>(userStoreModel);
             var newUserStore = await SetBaseEntityToCreateFunc(mappedUserStore);
-            return await _userStoreRepository.Add(newUserStore);
+            bool result = await _userStoreRepository.Add(newUserStore);
+            if (result)
+                return (true, "Tạo hợp đồng thành công.");
+            else
+                return (false, "Tạo hợp đồng thất bại.");
         }
 
         public async Task<bool> Delete(Guid userId, Guid storeId)

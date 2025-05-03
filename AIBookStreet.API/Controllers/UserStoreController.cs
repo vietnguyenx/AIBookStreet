@@ -85,13 +85,8 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var isUserStore = await _userStoreService.Add(_mapper.Map<UserStoreModel>(userStoreRequest));
-
-                return isUserStore switch
-                {
-                    true => Ok(new BaseResponse(isUserStore, ConstantMessage.Success)),
-                    _ => Ok(new BaseResponse(isUserStore, ConstantMessage.Fail))
-                };
+                var (isSuccess, message) = await _userStoreService.Add(_mapper.Map<UserStoreModel>(userStoreRequest));
+                return Ok(new BaseResponse(isSuccess, message));
             }
             catch (Exception ex)
             {

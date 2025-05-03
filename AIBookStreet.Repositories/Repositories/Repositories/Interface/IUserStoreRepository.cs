@@ -13,5 +13,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
         Task<List<UserStore?>> GetByUserId(Guid userId);
         Task<List<UserStore?>> GetByStoreId(Guid storeId);
         Task<UserStore?> GetByUserIdAndStoreId(Guid userId, Guid storeId);
+        Task<bool> IsStoreActiveForOtherUser(Guid storeId, Guid userId);
     }
 }
