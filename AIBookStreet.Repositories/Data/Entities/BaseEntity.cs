@@ -9,6 +9,8 @@ namespace AIBookStreet.Repositories.Data.Entities
 {
     public abstract class BaseEntity
     {
+        private static readonly TimeSpan VietnamOffset = TimeSpan.FromHours(7);
+
         [Key]
         public Guid Id { get; set; }
 
@@ -18,7 +20,7 @@ namespace AIBookStreet.Repositories.Data.Entities
         public DateTime CreatedDate
         {
             get => _createdDate;
-            set => _createdDate = value.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(value, DateTimeKind.Local) : value;
+            set => _createdDate = value.Kind == DateTimeKind.Utc ? value.Add(VietnamOffset) : value;
         }
 
         public string? LastUpdatedBy { get; set; }
@@ -27,7 +29,7 @@ namespace AIBookStreet.Repositories.Data.Entities
         public DateTime? LastUpdatedDate
         {
             get => _lastUpdatedDate;
-            set => _lastUpdatedDate = value.HasValue ? (value.Value.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(value.Value, DateTimeKind.Local) : value.Value) : null;
+            set => _lastUpdatedDate = value.HasValue ? (value.Value.Kind == DateTimeKind.Utc ? value.Value.Add(VietnamOffset) : value.Value) : null;
         }
 
         public bool IsDeleted { get; set; }
