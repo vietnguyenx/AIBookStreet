@@ -14,5 +14,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
         Task<EventRegistration?> GetByID(Guid? id);
         Task<EventRegistration?> GetByEmail(Guid? eventId, string email);
         Task<(List<object>, List<object>, List<object>, List<object>, List<object>, int, int)> GetStatistic(Guid? eventId);
+        Task<EventRegistration?> GetByIDForCheckIn(Guid? id);
     }
 }

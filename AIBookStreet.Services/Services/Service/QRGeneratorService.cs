@@ -59,27 +59,28 @@ namespace AIBookStreet.Services.Services.Service
                     }
                 }
             };
-            var qrData = new
-            {
-                id = evtRegistration.Id,
-                ticketCode = evtRegistration.TicketCode,
-                eventId = evtRegistration.EventRegistration.Event.EventName,
-                registrationId = evtRegistration.RegistrationId,
-                attendeeName = evtRegistration.EventRegistration.RegistrantName,
-                attendeeEmail = evtRegistration.EventRegistration.RegistrantEmail,
-                attendeePhone = evtRegistration.EventRegistration.RegistrantPhoneNumber,
-                attendeeAddress = evtRegistration.EventRegistration.RegistrantAddress,
-                eventName = evtRegistration.EventRegistration.Event.EventName,
-                eventStartDate = evtRegistration.EventRegistration.Event.StartDate,
-                eventEndDate = evtRegistration.EventRegistration.Event.EndDate,
-                eventLocation = evtRegistration.EventRegistration.Event.Zone.Street.Address,
-                zoneId = evtRegistration.EventRegistration.Event.ZoneId,
-                zoneName = evtRegistration.EventRegistration.Event.Zone.ZoneName,
-                issuedAt = evtRegistration.CreatedDate
-            };
-        string jsonData = JsonSerializer.Serialize(qrData);
+            //    var qrData = new
+            //    {
+            //        id = evtRegistration.Id,
+            //        ticketCode = evtRegistration.TicketCode,
+            //        eventId = evtRegistration.EventRegistration.Event.EventName,
+            //        registrationId = evtRegistration.RegistrationId,
+            //        attendeeName = evtRegistration.EventRegistration.RegistrantName,
+            //        attendeeEmail = evtRegistration.EventRegistration.RegistrantEmail,
+            //        attendeePhone = evtRegistration.EventRegistration.RegistrantPhoneNumber,
+            //        attendeeAddress = evtRegistration.EventRegistration.RegistrantAddress,
+            //        eventName = evtRegistration.EventRegistration.Event.EventName,
+            //        eventStartDate = evtRegistration.EventRegistration.Event.StartDate,
+            //        eventEndDate = evtRegistration.EventRegistration.Event.EndDate,
+            //        eventLocation = evtRegistration.EventRegistration.Event.Zone.Street.Address,
+            //        zoneId = evtRegistration.EventRegistration.Event.ZoneId,
+            //        zoneName = evtRegistration.EventRegistration.Event.Zone.ZoneName,
+            //        issuedAt = evtRegistration.CreatedDate
+            //    };
+            //string jsonData = JsonSerializer.Serialize(qrData);
+            var qrData = "Đỗ Văn Hiệp";
             QRCodeGenerator qrGenerator = new QRCodeGenerator();
-            QRCodeData qrCodeData = qrGenerator.CreateQrCode(jsonData, QRCodeGenerator.ECCLevel.Q);
+            QRCodeData qrCodeData = qrGenerator.CreateQrCode(qrData, QRCodeGenerator.ECCLevel.Q);
             QRCode qrCode = new QRCode(qrCodeData);
             Bitmap qrCodeImage = qrCode.GetGraphic(5);
             //using (MemoryStream ms = new())

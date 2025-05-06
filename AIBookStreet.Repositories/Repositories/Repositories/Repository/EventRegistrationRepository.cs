@@ -125,5 +125,13 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var attend = await queryable.CountAsync(er => er.IsAttended);
             return (ageStatistic, genderStatistic, referenceStatistic, addressStatistic, hasAttendedBeforeStatic, totalRegistrations, attend);
         }
+        public async Task<EventRegistration?> GetByIDForCheckIn(Guid? id)
+        {
+            var query = GetQueryable(z => z.Id == id);
+            var eventRegistration = await query.Include(er => er.Ticket)
+                                  .SingleOrDefaultAsync();
+
+            return eventRegistration;
+        }
     }
 }
