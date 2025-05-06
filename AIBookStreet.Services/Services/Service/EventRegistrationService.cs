@@ -88,7 +88,7 @@ namespace AIBookStreet.Services.Services.Service
             {
                 return (4, null);
             }
-            if (evt.EndDate.Value.Date < DateTime.Now.Date)
+            if (evt.EndDate.Value < DateTime.Now)
             {
                 return (4, null);
             }
@@ -141,7 +141,14 @@ namespace AIBookStreet.Services.Services.Service
                 else
                 {
                     existed.IsAttended = model.IsAttended;
-                    existed = await SetBaseEntityToUpdateFunc(existed);
+                    var name = user.FullName.Split(" ");
+                    var updateBy = name[0][..1].ToUpper();
+                    for (int i = 1; i < name.Length; i++)
+                    {
+                        updateBy += " " + name[i];
+                    }
+                    existed.LastUpdatedBy = updateBy;
+                    existed.LastUpdatedDate = DateTime.Now;
                     var success = await _repository.EventRegistrationRepository.Update(existed);
                     if (!success)
                     {

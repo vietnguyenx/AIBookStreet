@@ -101,7 +101,7 @@ namespace AIBookStreet.Services.Services.Service
                         }
                     }
                     setOrder.TotalAmount = totalAmount;
-                    setOrder.Status = model.PaymentMethod == PaymentMethodConstant.CASH ? OrderConstant.ORDER_PROGRESS : OrderConstant.ORDER_COMPLETED;
+                    setOrder.Status = OrderConstant.ORDER_PROGRESS;
                     var isSuccess = await _repository.OrderRepository.Add(setOrder);
                     var orderId = setOrder.Id;
                     if (isSuccess)
