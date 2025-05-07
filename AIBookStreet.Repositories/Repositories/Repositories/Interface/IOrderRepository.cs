@@ -18,5 +18,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
         Task<(List<object>?, List<object>?, int, decimal?)> GetStoreStaticsByYear(int? year, Guid storeId);
         Task<List<Order>> GetAllSortByCreateDate();
         Task<int> GetNumberOrders();
+        Task<Order?> GetByIdForUpdateStatus(Guid id);
     }
 }

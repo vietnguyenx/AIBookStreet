@@ -270,5 +270,12 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var orderResult = await queryable.ToListAsync();
             return orderResult.Count;
         }
+        public async Task<Order?> GetByIdForUpdateStatus(Guid id)
+        {
+            var query = GetQueryable(o => o.Id == id);
+            var order = await query.SingleOrDefaultAsync();
+
+            return order;
+        }
     }
 }

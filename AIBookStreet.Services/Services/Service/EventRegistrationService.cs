@@ -33,20 +33,21 @@ namespace AIBookStreet.Services.Services.Service
         private readonly ITicketService _ticketService = ticketService;
         public async Task<(long, EventRegistration?, string?)> AddAnEventRegistration(EventRegistrationModel model)
         {
-            var existed = await _repository.EventRegistrationRepository.GetByEmail(model.EventId, model.RegistrantEmail);
-            if (existed != null)
-            {
-                return (3, null, "Đã tồn tại người đăng ký email này cho sự kiện này"); //da ton tai
-            }
             var evt = await _repository.EventRepository.GetByID(model.EventId);
             if (evt == null)
             {
                 return (3, null, "Không tìm thấy sự kiện"); //khong tim thay
             }
-            if (evt.StartDate.Value.Date <= DateTime.Now.Date)
+            if (evt.StartDate.Value <= DateTime.Now)
             {
                 return (3, null, "Sự kiện đã/đang diễn ra, không thể đăng ký");
             }
+            var existed = await _repository.EventRegistrationRepository.GetByEmail(model.EventId, model.RegistrantEmail);
+            if (existed != null)
+            {
+                return (3, null, "Đã tồn tại người đăng ký email này cho sự kiện này"); //da ton tai
+            }
+            
             var eventRegistrationModel = _mapper.Map<EventRegistration>(model);
             eventRegistrationModel.IsAttended = false;
             var setEventRegistrationModel = await SetBaseEntityToCreateFunc(eventRegistrationModel);

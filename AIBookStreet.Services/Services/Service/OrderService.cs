@@ -114,7 +114,7 @@ namespace AIBookStreet.Services.Services.Service
                                 return (1, null, "Không tìm thấy thông tin đơn hàng");
                             }
                             item.OrderId = orderId;
-                            item.LastUpdatedDate = DateTime.Now;
+                            item.LastUpdatedDate = DateTime.UtcNow;
                             var result = await _repository.OrderDetailRepository.Update(item);
                             if (!result)
                             {
@@ -155,7 +155,7 @@ namespace AIBookStreet.Services.Services.Service
                                 description: "Thanh toan hoa don #"+orderCode,
                                 items: items,
                                 cancelUrl: "fail",
-                                returnUrl: "https://smart-book-street-next-aso3.vercel.app",
+                                returnUrl: "https://smart-book-street-next-aso3.vercel.app/orders",
                                 expiredAt: expiredAt
                             );
 
@@ -175,7 +175,7 @@ namespace AIBookStreet.Services.Services.Service
         {
             try
             {
-                var existed = await _repository.OrderRepository.GetByID(id);
+                var existed = await _repository.OrderRepository.GetByIdForUpdateStatus(id);
                 if (existed == null)
                 {
                     return (1, null, "Đơn hàng không tồn tại"); //khong ton tai
@@ -203,7 +203,7 @@ namespace AIBookStreet.Services.Services.Service
         {
             try
             {
-                var existed = await _repository.OrderRepository.GetByID(id);
+                var existed = await _repository.OrderRepository.GetByIdForUpdateStatus(id);
                 if (existed == null)
                 {
                     return (1, null, "Đơn hàng không tồn tại"); //khong ton tai
