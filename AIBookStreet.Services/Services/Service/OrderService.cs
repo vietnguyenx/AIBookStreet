@@ -154,7 +154,7 @@ namespace AIBookStreet.Services.Services.Service
                                 amount: (int)totalAmount,
                                 description: "Thanh toan hoa don #"+orderCode,
                                 items: items,
-                                cancelUrl: "fail",
+                                cancelUrl: "https://smart-book-street-next-aso3.vercel.app/orders",
                                 returnUrl: "https://smart-book-street-next-aso3.vercel.app/orders",
                                 expiredAt: expiredAt
                             );
@@ -231,7 +231,7 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.OrderRepository.GetByID(orderId);
         }
-        public async Task<(List<Order>?, long)> GetPaginationOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate, Guid? storeId, int? pageNumber, int? pageSize, string? sortField, int? sortOrder)
+        public async Task<(List<Order>?, long, string?)> GetPaginationOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate, Guid? storeId, int? pageNumber, int? pageSize, string? sortField, int? sortOrder)
         {
             try
             {
@@ -266,16 +266,51 @@ namespace AIBookStreet.Services.Services.Service
                 //}
                 if (storeId == null)
                 {
-                    return (null, -1);
+                    return (null, -1, null);
                 }
                 var orders = await _repository.OrderRepository.GetAllPagination(null, minAmount, maxAmount, paymentMethod, status, startDate, endDate, storeId, pageNumber, pageSize, sortField, sortOrder);
-                return orders.Item1?.Count > 0 ? (orders.Item1, orders.Item2) : (null, 0);
+                var clientId = _configuration["payOS:ClientId"];
+                if (clientId == null)
+                {
+                    return (null, 0, "ClientId not found");
+                }
+                var apiKey = _configuration["payOS:ApiKey"];
+                if (apiKey == null)
+                {
+                    return (null, 0, "ApiKey not found"); //ApiKey not found
+                }
+                var checksumKey = _configuration["payOS:ChecksumKey"];
+                if (checksumKey == null)
+                {
+                    return (null, 0, "ChecksumKey not found"); //ChecksumKey not found
+                }
+                PayOS _payOS = new(clientId, apiKey, checksumKey);
+                if (orders.Item1 != null && orders.Item1.Count > 0)
+                {
+                    var index = await _repository.OrderRepository.GetAll();
+                        var item = orders.Item1.FirstOrDefault();
+                        if (item != null && item.PaymentMethod == "Transfer")
+                        {
+                            PaymentLinkInformation paymentLinkInformation = await _payOS.getPaymentLinkInformation(index.Count);
+                            if (paymentLinkInformation.status == "CANCELLED" && item.Status == "InProgress")
+                            {
+                                item.Status = OrderConstant.ORDER_CANCELLED;
+                                var updateSuccess = await _unitOfWork.OrderRepository.Update(item);
+                                if (!updateSuccess)
+                                {
+                                    return (null, 0, "Lỗi trạng thái đơn hàng"); //update fail
+                                }
+                            }
+                        }
+                                    
+                }
+                return orders.Item1?.Count > 0 ? (orders.Item1, orders.Item2, null) : (null, 1, null);
             } catch (Exception)
             {
                 throw;
             }
         }
-        public async Task<List<Order>?> GetAllOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate, Guid? storeId)
+        public async Task<(List<Order>?, string?)> GetAllOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate, Guid? storeId)
         {
             try
             {
@@ -310,10 +345,45 @@ namespace AIBookStreet.Services.Services.Service
                 //}
                 if (storeId == null)
                 {
-                    return null;
+                    return (null, "Không tìm thấy thông tin cửa hàng");
                 }
                 var orders = await _repository.OrderRepository.GetAllNotPagination(null, minAmount, maxAmount, paymentMethod, status, startDate, endDate, storeId);
-                return orders?.Count > 0 ? orders : null;
+                var clientId = _configuration["payOS:ClientId"];
+                if (clientId == null)
+                {
+                    return (null, "ClientId not found");
+                }
+                var apiKey = _configuration["payOS:ApiKey"];
+                if (apiKey == null)
+                {
+                    return (null, "ApiKey not found"); //ApiKey not found
+                }
+                var checksumKey = _configuration["payOS:ChecksumKey"];
+                if (checksumKey == null)
+                {
+                    return (null, "ChecksumKey not found"); //ChecksumKey not found
+                }
+                PayOS _payOS = new(clientId, apiKey, checksumKey);
+                if (orders != null && orders.Count > 0)
+                {
+                    var index = await _repository.OrderRepository.GetAll();
+                    var item = orders.LastOrDefault();
+                    if (item != null && item.PaymentMethod == "Transfer")
+                    {
+                        PaymentLinkInformation paymentLinkInformation = await _payOS.getPaymentLinkInformation(index.Count);
+                        if (paymentLinkInformation.status == "CANCELLED" && item.Status == "InProgress")
+                        {
+                            item.Status = OrderConstant.ORDER_CANCELLED;
+                            var updateSuccess = await _unitOfWork.OrderRepository.Update(item);
+                            if (!updateSuccess)
+                            {
+                                return (null, "Lỗi trạng thái đơn hàng"); //update fail
+                            }
+                        }
+                    }
+
+                }
+                return orders?.Count > 0 ? (orders, null) : (null, "Vui lòng đăng nhập vào cửa hàng");
             }
             catch (Exception)
             {

@@ -14,8 +14,8 @@ namespace AIBookStreet.Services.Services.Interface
         Task<(long, Order?, string?)> ConfirmOrder(Guid id);
         Task<(long, Order?, string?)> CancelAnOrder(Guid id);
         Task<Order?> GetAnOrderById(Guid orderId);
-        Task<(List<Order>?, long)> GetPaginationOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate, Guid? storeId, int? pageNumber, int? pageSize, string? sortField, int? sortOrder);
-        Task<List<Order>?> GetAllOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate, Guid? storeId);
+        Task<(List<Order>?, long, string?)> GetPaginationOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate, Guid? storeId, int? pageNumber, int? pageSize, string? sortField, int? sortOrder);
+        Task<(List<Order>?, string?)> GetAllOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate, Guid? storeId);
         Task<(List<object>?, List<object>?, int, decimal?)> GetAllStoreStaticsByDate(DateTime? date);
         Task<(List<object>?, List<object>?, int, decimal?)> GetAllStoreStaticsByMonth(int? month, int? year);
         Task<(List<object>?, List<object>?, int, decimal?)> GetAllStoreStaticsByYear(int? year);

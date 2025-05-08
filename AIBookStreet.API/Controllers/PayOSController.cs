@@ -28,7 +28,7 @@ namespace AIBookStreet.API.Controllers
             };
         }
         [HttpGet("{orderCode}")]
-        public async Task<ActionResult<IActionResult>> GetPaymentLinkInfomation([FromRoute] long orderCode)
+        public async Task<IActionResult> GetPaymentLinkInfomation([FromRoute] long orderCode)
         {
             var result = await _payOSService.GetPaymentLinkInformation(orderCode);
             return result.Item1 switch

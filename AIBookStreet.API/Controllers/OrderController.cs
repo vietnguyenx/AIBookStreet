@@ -139,7 +139,8 @@ namespace AIBookStreet.API.Controllers
 
                 return orders.Item2 switch
                 {
-                    0 => Ok(new PaginatedListResponse<OrderRequest>(ConstantMessage.Success, null)),
+                    0 => BadRequest(new BaseResponse(false, orders.Item3)),
+                    1 => Ok(new PaginatedListResponse<OrderRequest>(ConstantMessage.Success, null)),
                     -1 => BadRequest(new BaseResponse(false, "Vui lòng đăng nhập vào cửa hàng!!!")),
                     _ => Ok(new PaginatedListResponse<OrderRequest>(ConstantMessage.Success, _mapper.Map<List<OrderRequest>>(orders.Item1), orders.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? -1 : 1))
                 };
@@ -159,9 +160,9 @@ namespace AIBookStreet.API.Controllers
                 var orders = request != null ? await _service.GetAllOrders(request?.MinAmount, request?.MaxAmount, request?.PaymentMethod, request?.Status, request?.StartDate, request?.EndDate, request?.StoreId)
                                              : await _service.GetAllOrders(null, null, null, null, null, null, null);
 
-                return orders switch
+                return orders.Item1 switch
                 {
-                    null => BadRequest(new BaseResponse(false, "Vui lòng đăng nhập vào cửa hàng")),
+                    null => BadRequest(new BaseResponse(false, orders.Item2)),
                     not null => Ok(new ItemListResponse<OrderRequest>(ConstantMessage.Success, _mapper.Map<List<OrderRequest>>(orders)))
                 };
             }

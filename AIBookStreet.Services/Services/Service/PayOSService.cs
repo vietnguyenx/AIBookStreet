@@ -181,20 +181,34 @@ namespace AIBookStreet.Services.Services.Service
 
                 string responseCode = data.code;
                 var orderCode =(int)data.orderCode;
+                var success = body.success;
+                var orders = await _unitOfWork.OrderRepository.GetAllSortByCreateDate();
+                var order = orders[orderCode - 1];
+                var getPaymentLinkInformation = await _payOS.getPaymentLinkInformation(orderCode);
 
+                //if (getPaymentLinkInformation.status == "PAID")
                 if (responseCode == "00")
-                {
-                    var orders = await _unitOfWork.OrderRepository.GetAllSortByCreateDate();
-                    var order = orders[orderCode - 1];
+                {                    
                     order.Status = OrderConstant.ORDER_COMPLETED;
                     var updateSuccess = await _unitOfWork.OrderRepository.Update(order);
                     if (!updateSuccess)
                     {
-                        return (3, null); //update fail
+                        return (4, null); //update fail
                     }
                     return (3, 0); // "Payment success"
+                } 
+                //else if (getPaymentLinkInformation.status == "CANCELLED")
+                else
+                {
+                    order.Status = OrderConstant.ORDER_CANCELLED;
+                    var updateSuccess = await _unitOfWork.OrderRepository.Update(order);
+                    if (!updateSuccess)
+                    {
+                        return (4, null); //update fail
+                    }
+                    return (3, 0);
                 }
-                return (4, 1); // "Payment failed"
+                //return(4, 1);
             }
             catch (Exception ex)
             {
