@@ -1,4 +1,4 @@
-namespace AIBookStreet.Services.Common
+﻿namespace AIBookStreet.Services.Common
 {
     public static class ConstantMessage
     {
@@ -13,67 +13,73 @@ namespace AIBookStreet.Services.Common
 
         public static class Common
         {
-            public const string EmptyInfo = "Information cannot be empty";
-            public const string AddSuccess = "Added successfully";
-            public const string AddFail = "Failed to add";
-            public const string UpdateSuccess = "Updated successfully";
-            public const string UpdateFail = "Failed to update";
-            public const string DeleteSuccess = "Deleted successfully";
-            public const string DeleteFail = "Failed to delete";
-            public const string NotFoundForUpdate = "Not found for update";
-            public const string NotFoundForDelete = "Not found for deletion";
+            public const string EmptyInfo = "Thông tin không được để trống";
+            public const string AddSuccess = "Thêm thành công";
+            public const string AddFail = "Thêm thất bại";
+            public const string UpdateSuccess = "Cập nhật thành công";
+            public const string UpdateFail = "Cập nhật thất bại";
+            public const string DeleteSuccess = "Xoá thành công";
+            public const string DeleteFail = "Xoá thất bại";
+            public const string NotFoundForUpdate = "Không tìm thấy để cập nhật";
+            public const string NotFoundForDelete = "Không tìm thấy để xoá";
         }
 
         public static class Validation
         {
-            public const string InvalidEmailFormat = "Invalid email format";
-            public const string InvalidPhoneFormat = "Invalid phone number format";
-            public const string InvalidDOB = "Date of birth cannot be in the future";
-            public const string PasswordTooShort = "Password must be at least 6 characters long";
-            public const string PasswordTooWeak = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character";
-            public const string InvalidGender = "Gender must be either 'Male' or 'Female'";
+            public const string InvalidEmailFormat = "Định dạng email không hợp lệ";
+            public const string InvalidPhoneFormat = "Định dạng số điện thoại không hợp lệ";
+            public const string InvalidDOB = "Ngày sinh không được ở tương lai";
+            public const string PasswordTooShort = "Mật khẩu phải có ít nhất 6 ký tự";
+            public const string PasswordTooWeak = "Mật khẩu phải chứa ít nhất một chữ cái viết hoa, một chữ cái viết thường, một chữ số và một ký tự đặc biệt";
+            public const string InvalidGender = "Giới tính phải là 'Nam' hoặc 'Nữ'";
+
         }
 
         public static class Image
         {
-            public const string MainImageSizeExceeded = "Main image size must not exceed 10MB";
-            public const string InvalidMainImageFormat = "Invalid main image format";
-            public const string MainImageUploadFailed = "Failed to upload main image";
-            public const string SubImageSizeExceeded = "Sub image size must not exceed 10MB";
-            public const string InvalidSubImageFormat = "Invalid sub image format";
-            public const string SubImageUploadFailed = "Failed to upload sub image";
-            public const string TooManyImages = "Maximum number of additional images allowed is 5";
-            public const string ImageProcessingError = "Error processing image";
+            public const string MainImageSizeExceeded = "Kích thước ảnh chính không được vượt quá 10MB";
+            public const string InvalidMainImageFormat = "Định dạng ảnh chính không hợp lệ";
+            public const string MainImageUploadFailed = "Tải ảnh chính lên thất bại";
+            public const string SubImageSizeExceeded = "Kích thước ảnh phụ không được vượt quá 10MB";
+            public const string InvalidSubImageFormat = "Định dạng ảnh phụ không hợp lệ";
+            public const string SubImageUploadFailed = "Tải ảnh phụ lên thất bại";
+            public const string TooManyImages = "Số lượng ảnh phụ tối đa cho phép là 5";
+            public const string ImageProcessingError = "Lỗi xử lý ảnh";
+
         }
 
         public static class Book
         {
-            public const string EmptyCode = "Book code cannot be empty";
-            public const string EmptyTitle = "Book title cannot be empty";
-            public const string CodeExists = "Book code already exists";
-            public const string InvalidAuthorId = "Invalid author ID";
-            public const string InvalidCategoryId = "Invalid category ID";
+            public const string EmptyCode = "Mã sách không được để trống";
+            public const string EmptyTitle = "Tiêu đề sách không được để trống";
+            public const string CodeExists = "Mã sách đã tồn tại";
+            public const string InvalidAuthorId = "ID tác giả không hợp lệ";
+            public const string InvalidCategoryId = "ID thể loại không hợp lệ";
+
         }
 
         public static class User
         {
-            public const string EmptyUsername = "Username cannot be empty";
-            public const string EmptyPassword = "Password cannot be empty";
-            public const string UsernameOrEmailExists = "Username or email already exists";
-            public const string UsernameExists = "Username already exists";
-            public const string EmailExists = "Email already exists";
+            public const string EmptyUsername = "Tên đăng nhập không được để trống";
+            public const string EmptyPassword = "Mật khẩu không được để trống";
+            public const string UsernameOrEmailExists = "Tên đăng nhập hoặc email đã tồn tại";
+            public const string UsernameExists = "Tên đăng nhập đã tồn tại";
+            public const string EmailExists = "Email đã tồn tại";
+
         }
 
         public static class Publisher
         {
-            public const string EmptyPublisherName = "Publisher name cannot be empty";
-            public const string PublisherNameExists = "Publisher name already exists";
+            public const string EmptyPublisherName = "Tên nhà xuất bản không được để trống";
+            public const string PublisherNameExists = "Tên nhà xuất bản đã tồn tại";
+
         }
 
         public static class Store
         {
-            public const string EmptyStoreName = "Store name cannot be empty";
-            public const string StoreNameExists = "Store name already exists";
+            public const string EmptyStoreName = "Tên cửa hàng không được để trống";
+            public const string StoreNameExists = "Tên cửa hàng đã tồn tại";
+
         }
     }
 }
