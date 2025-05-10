@@ -341,7 +341,7 @@ namespace AIBookStreet.Services.Services.Service
             }
         }
 
-        public async Task<UserModel> Login(AuthModel authModel)
+        public async Task<(UserModel, bool, string)> Login(AuthModel authModel)
         {
             User userHasUsernameOrEmail = new User
             {
@@ -354,21 +354,34 @@ namespace AIBookStreet.Services.Services.Service
 
             if (user == null)
             {
-                return null;
+                return (null, false, null);
+            }
+
+            // Check if password is hashed
+            bool passwordNeedsChange = false;
+            try
+            {
+                BCrypt.Net.BCrypt.Verify("dummy", user.Password);
+            }
+            catch
+            {
+                // Password is not hashed, user needs to change password
+                passwordNeedsChange = true;
+                return (null, true, "Bạn đang đăng nhập lần đầu bằng tài khoản do Admin cung cấp. Vui lòng đổi mật khẩu trước khi tiếp tục.");
             }
 
             // check password
             bool isPasswordValid = BCrypt.Net.BCrypt.Verify(authModel.Password, user.Password);
             if (!isPasswordValid)
             {
-                return null;
+                throw new Exception("Mật khẩu không chính xác. Vui lòng thử lại.");
             }
 
             // Load user with roles
             user = await _repository.GetById(user.Id);
             UserModel userModel = _mapper.Map<UserModel>(user);
 
-            return userModel;
+            return (userModel, false, null);
         }
 
         public async Task<UserModel?> Register(UserModel userModel)
@@ -740,6 +753,86 @@ namespace AIBookStreet.Services.Services.Service
                     Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
                 }
                 return null;
+            }
+        }
+
+        public async Task<bool> IsPasswordHashed(string usernameOrEmail)
+        {
+            try
+            {
+                var user = await _repository.FindUsernameOrEmail(new User 
+                { 
+                    UserName = usernameOrEmail,
+                    Email = usernameOrEmail 
+                });
+
+                if (user == null)
+                    return false;
+
+                try
+                {
+                    BCrypt.Net.BCrypt.Verify("dummy", user.Password);
+                    return true;
+                }
+                catch
+                {
+                    return false; 
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<(UserModel?, string)> ChangePasswordFirstTime(AuthModel authModel, string newPassword)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(authModel.UsernameOrEmail) || string.IsNullOrEmpty(authModel.Password))
+                    return (null, "Vui lòng nhập đầy đủ thông tin đăng nhập");
+
+                if (string.IsNullOrEmpty(newPassword))
+                    return (null, "Vui lòng nhập mật khẩu mới");
+
+                // Find user
+                var user = await _repository.FindUsernameOrEmail(new User 
+                { 
+                    UserName = authModel.UsernameOrEmail,
+                    Email = authModel.UsernameOrEmail 
+                });
+
+                if (user == null)
+                    return (null, "Không tìm thấy tài khoản");
+
+                // Verify current password (not hashed)
+                if (user.Password != authModel.Password)
+                    return (null, "Mật khẩu hiện tại không chính xác");
+
+                // Check if password is already hashed
+                try
+                {
+                    BCrypt.Net.BCrypt.Verify("dummy", user.Password);
+                    return (null, "Mật khẩu đã được thay đổi trước đó");
+                }
+                catch
+                {
+                    // Password is not hashed, proceed with change
+                }
+
+                // Hash and update new password
+                user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+                user.LastUpdatedDate = DateTime.Now;
+
+                var result = await _repository.Update(user);
+                if (!result)
+                    return (null, "Không thể cập nhật mật khẩu");
+
+                return (_mapper.Map<UserModel>(user), "Đổi mật khẩu thành công. Vui lòng đăng nhập lại.");
+            }
+            catch (Exception ex)
+            {
+                return (null, $"Lỗi khi đổi mật khẩu: {ex.Message}");
             }
         }
     }
