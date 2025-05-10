@@ -240,13 +240,21 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var userModel = await _service.Login(authModel);
+                var (userModel, needsPasswordChange, message) = await _service.Login(authModel);
 
+                // User needs to change password
+                if (needsPasswordChange)
+                {
+                    return Ok(new LoginResponse<UserModel>(null, null, null, message, true));
+                }
+
+                // Login failed
                 if (userModel == null)
                 {
                     return Ok(new LoginResponse<UserModel>(null, null, null, ConstantMessage.Fail));
                 }
 
+                // Login successful
                 JwtSecurityToken token = _service.CreateToken(userModel);
 
                 return Ok(new LoginResponse<UserModel>(ConstantMessage.Success, userModel, new JwtSecurityTokenHandler().WriteToken(token)
@@ -381,6 +389,36 @@ namespace AIBookStreet.API.Controllers
                 claims = jwtToken.Claims.Select(c => new { c.Type, c.Value }),
                 roles = roles
             });
+        }
+
+        [HttpPost("change-password-first-time")]
+        public async Task<IActionResult> ChangePasswordFirstTime([FromBody] ChangePasswordFirstTimeRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.UsernameOrEmail) || string.IsNullOrEmpty(request.CurrentPassword) || string.IsNullOrEmpty(request.NewPassword))
+                {
+                    return BadRequest(new BaseResponse(false, "Vui lòng nhập đầy đủ thông tin"));
+                }
+
+                var authModel = new AuthModel
+                {
+                    UsernameOrEmail = request.UsernameOrEmail,
+                    Password = request.CurrentPassword
+                };
+
+                var (result, message) = await _service.ChangePasswordFirstTime(authModel, request.NewPassword);
+                
+                return result switch
+                {
+                    null => BadRequest(new BaseResponse(false, message)),
+                    not null => Ok(new ItemResponse<UserModel>(message, result))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BaseResponse(false, ex.Message));
+            }
         }
     }
 }

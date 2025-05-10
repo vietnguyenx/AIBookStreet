@@ -22,7 +22,7 @@ namespace AIBookStreet.Services.Services.Interface
         Task<(UserModel?, string)> Delete(Guid userId);
         Task<long> GetTotalCount();
 
-        Task<UserModel> Login(AuthModel authModel);
+        Task<(UserModel, bool, string)> Login(AuthModel authModel);
         Task<UserModel> Register(UserModel userModel);
         Task<UserModel> RegisterSimple(UserModel userModel);
         JwtSecurityToken CreateToken(UserModel userModel);
@@ -30,5 +30,7 @@ namespace AIBookStreet.Services.Services.Interface
         Task<UserModel?> GetUserByEmail(UserModel userModel);
         Task<User?> GetUserInfo();
         Task<UserModel?> ProcessGoogleLoginAsync(ClaimsPrincipal claimsPrincipal);
+        Task<bool> IsPasswordHashed(string usernameOrEmail);
+        Task<(UserModel?, string)> ChangePasswordFirstTime(AuthModel authModel, string newPassword);
     }
 }

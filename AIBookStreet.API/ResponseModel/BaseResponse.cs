@@ -17,12 +17,14 @@
         public TResult Result { get; }
         public string Token { get; }
         public string Expiration { get; }
+        public bool PasswordChangeRequired { get; }
 
-        public LoginResponse(string message, TResult result, string token, string expiration) : base(result != null, message)
+        public LoginResponse(string message, TResult result, string token, string expiration, bool passwordChangeRequired = false) : base(true, message)
         {
             Result = result;
             Token = token;
             Expiration = expiration;
+            PasswordChangeRequired = passwordChangeRequired;
         }
     }
 
