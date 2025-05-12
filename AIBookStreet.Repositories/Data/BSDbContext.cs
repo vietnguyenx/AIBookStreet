@@ -251,6 +251,7 @@ namespace AIBookStreet.Repositories.Data
             {
                 e.ToTable("Events");
                 e.Property(x => x.EventName).HasMaxLength(255).IsRequired();
+                e.Property(x => x.OrganizerEmail).HasMaxLength(255).IsRequired();
                 e.Property(x => x.Description).HasMaxLength(1000).IsRequired(false);
                 e.Property(x => x.StartDate).IsRequired(false);
                 e.Property(x => x.EndDate).IsRequired(false);
