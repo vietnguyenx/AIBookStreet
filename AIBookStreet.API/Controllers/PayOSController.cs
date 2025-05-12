@@ -17,28 +17,42 @@ namespace AIBookStreet.API.Controllers
         [HttpPost("")]
         public async Task<IActionResult> CreatePaymentLink(Guid orderId)
         {
-            var result = await _payOSService.CreatePaymentLink(orderId);
-            return result.Item1 switch
+            try
             {
-                0 => Ok(new BaseResponse(false, "ClientId not found")),
-                1 => Ok(new BaseResponse(false, "ApiKey not found")),
-                2 => Ok(new BaseResponse(false, "ChecksumKey not found")),
-                3 => Ok(new BaseResponse(false, "Order not found!!")),
-                _ => Ok(new ItemResponse<CreatePaymentResult>("Đã tạo link thanh toán", result.Item2)),
-            };
+                var result = await _payOSService.CreatePaymentLink(orderId);
+                return result.Item1 switch
+                {
+                    0 => Ok(new BaseResponse(false, "ClientId not found")),
+                    1 => Ok(new BaseResponse(false, "ApiKey not found")),
+                    2 => Ok(new BaseResponse(false, "ChecksumKey not found")),
+                    3 => Ok(new BaseResponse(false, "Order not found!!")),
+                    _ => Ok(new ItemResponse<CreatePaymentResult>("Đã tạo link thanh toán", result.Item2)),
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
         [HttpGet("{orderCode}")]
         public async Task<IActionResult> GetPaymentLinkInfomation([FromRoute] long orderCode)
         {
-            var result = await _payOSService.GetPaymentLinkInformation(orderCode);
-            return result.Item1 switch
+            try
             {
-                0 => Ok(new BaseResponse(false, "ClientId not found")),
-                1 => Ok(new BaseResponse(false, "ApiKey not found")),
-                2 => Ok(new BaseResponse(false, "ChecksumKey not found")),
-                3 => Ok(new BaseResponse(false, "Payment link not found!!")),
-                _ => Ok(new ItemResponse<PaymentLinkInformation>("Đã thấy thông tin", result.Item2)),
-            };
+                var result = await _payOSService.GetPaymentLinkInformation(orderCode);
+                return result.Item1 switch
+                {
+                    0 => Ok(new BaseResponse(false, "ClientId not found")),
+                    1 => Ok(new BaseResponse(false, "ApiKey not found")),
+                    2 => Ok(new BaseResponse(false, "ChecksumKey not found")),
+                    3 => Ok(new BaseResponse(false, "Payment link not found!!")),
+                    _ => Ok(new ItemResponse<PaymentLinkInformation>("Đã thấy thông tin", result.Item2)),
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
         //[HttpPut("{orderCode}")]
         //public async Task<ActionResult<ResultModel>> CancelOrder([FromRoute] int orderCode)
@@ -49,15 +63,22 @@ namespace AIBookStreet.API.Controllers
         [HttpPost("payos_transfer_handler")]
         public async Task<IActionResult> PayOSTransferHandler(WebhookType body)
         {
-            var result = await _payOSService.VerifyPaymentWebhookData(body);
-            return result.Item1 switch
+            try
             {
-                0 => Ok(new BaseResponse(false, "ClientId not found")),
-                1 => Ok(new BaseResponse(false, "ApiKey not found")),
-                2 => Ok(new BaseResponse(false, "ChecksumKey not found")),
-                3 => Ok(new BaseResponse(true, "Payment success")),
-                _ => Ok(new BaseResponse(false, "Payment fail"))
-            };
+                var result = await _payOSService.VerifyPaymentWebhookData(body);
+                return result.Item1 switch
+                {
+                    0 => Ok(new BaseResponse(false, "ClientId not found")),
+                    1 => Ok(new BaseResponse(false, "ApiKey not found")),
+                    2 => Ok(new BaseResponse(false, "ChecksumKey not found")),
+                    3 => Ok(new BaseResponse(true, "Payment success")),
+                    _ => Ok(new BaseResponse(false, "Payment fail"))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
