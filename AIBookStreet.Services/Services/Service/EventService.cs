@@ -49,6 +49,7 @@ namespace AIBookStreet.Services.Services.Service
                     VideoLink = !string.IsNullOrEmpty(videoUrl) ? videoUrl : null,
                     IsOpen = model.IsOpen,
                     ZoneId = model.ZoneId ?? null,
+                    OrganizerEmail = model.OrganizerEmail
                 };
 
                 var setEvent = await SetBaseEntityToCreateFunc(evt);
@@ -114,7 +115,8 @@ namespace AIBookStreet.Services.Services.Service
                 var oldVideoFile = existed.VideoLink;
                 // Update entity
                 existed.EventName = model.EventName;
-                existed.Description = model.Description != null ? model.Description : existed.Description;
+                existed.OrganizerEmail = model.OrganizerEmail;
+                existed.Description = model.Description ?? existed.Description;
                 existed.StartDate = model.StartDate != null ? model.StartDate.Value.ToLocalTime() : existed.StartDate;
                 existed.EndDate = model.EndDate != null ? model.EndDate.Value.ToLocalTime() : existed.EndDate;
                 existed.BaseImgUrl = newFileUrl == "" ? existed.BaseImgUrl : newFileUrl;
@@ -199,7 +201,7 @@ namespace AIBookStreet.Services.Services.Service
         public async Task<(Event?, List<object>, List<object>, List<object>, List<object>, List<object>, int)> GetAnEventById(Guid id)
         {
             var evt = await _repository.EventRepository.GetByID(id);
-            var statistic = await _repository.EventRegistrationRepository.GetStatistic(id);
+            var statistic = await _repository.EventRegistrationRepository.GetStatistic(id, null);
             return (evt, statistic.Item1, statistic.Item2, statistic.Item3, statistic.Item4, statistic.Item5, statistic.Item6);
         }
         public async Task<(List<Event>?, long)> GetAllEventsPagination(string? key, bool? allowAds, DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc)

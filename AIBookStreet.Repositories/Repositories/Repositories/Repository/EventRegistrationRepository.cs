@@ -41,10 +41,14 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return eventRegistration;
         }
-        public async Task<(List<object>, List<object>, List<object>, List<object>, List<object>, int, int)> GetStatistic(Guid? eventId)
+        public async Task<(List<object>, List<object>, List<object>, List<object>, List<object>, int, int)> GetStatistic(Guid? eventId, bool? isAttend)
         {
             var queryable = GetQueryable();
             queryable = queryable.Where(z => !z.IsDeleted && z.EventId == eventId);
+            if (isAttend != null)
+            {
+                queryable = queryable.Where(er => er.IsAttended == isAttend);
+            }
             var ageStatistic = new List<object>();
             var genderStatistic = new List<object>();
             var referenceStatistic = new List<object>();

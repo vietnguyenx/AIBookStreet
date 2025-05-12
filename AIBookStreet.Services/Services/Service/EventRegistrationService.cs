@@ -56,7 +56,7 @@ namespace AIBookStreet.Services.Services.Service
             {
                     return (2, setEventRegistrationModel, null);
             }
-            return (3, null, "Không thể đăng ký");
+            return (3, null, "Đăng ký thất bại");
         }
         public async Task<(long, List<EventRegistration>?)> CheckAttend(List<CheckAttendModel> models, Event? evt)
         {
@@ -199,9 +199,9 @@ namespace AIBookStreet.Services.Services.Service
 
             return eventRegistrations.Count == 0 ? (1, null) : (2, eventRegistrations);
         }
-        public async Task<(List<object>, List<object>, List<object>, List<object>, List<object>, int, int)> Test (Guid eventId)
+        public async Task<(List<object>, List<object>, List<object>, List<object>, List<object>, int, int)> Test (Guid eventId, bool? isAttend)
         {
-            return await _repository.EventRegistrationRepository.GetStatistic(eventId);
+            return await _repository.EventRegistrationRepository.GetStatistic(eventId, isAttend);
         }
         public async Task<int> SendEmai(Ticket? ticket)
         {

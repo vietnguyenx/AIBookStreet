@@ -13,7 +13,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
         Task<List<EventRegistration>> GetAll(Guid eventId, string? searchKey);
         Task<EventRegistration?> GetByID(Guid? id);
         Task<EventRegistration?> GetByEmail(Guid? eventId, string email);
-        Task<(List<object>, List<object>, List<object>, List<object>, List<object>, int, int)> GetStatistic(Guid? eventId);
+        Task<(List<object>, List<object>, List<object>, List<object>, List<object>, int, int)> GetStatistic(Guid? eventId, bool? isAttend);
         Task<EventRegistration?> GetByIDForCheckIn(Guid? id);
     }
 }
