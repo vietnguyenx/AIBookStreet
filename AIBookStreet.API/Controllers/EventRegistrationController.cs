@@ -158,17 +158,17 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpGet("statistic")]
-        public async Task<IActionResult> Test(EventRegistrationStatisticRequest request)
+        [HttpGet("statistic/{eventId}")]
+        public async Task<IActionResult> Test([FromRoute] Guid eventId, bool? isAttended)
         {
             try
             {
-                var result = await _service.Test(request.EventId, request.IsAttended);
+                var result = await _service.Test(eventId, isAttended);
                 if (result.Item6 == 0)
                 {
                     return BadRequest("Chưa có thông tin đăng ký của sự kiện này");
                 }
-                return request.IsAttended switch
+                return isAttended switch
                 {
                     null => Ok(new
                     {
