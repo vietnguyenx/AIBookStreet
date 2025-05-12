@@ -158,26 +158,44 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [AllowAnonymous]
-        [HttpGet("statistic/{eventId}")]
-        public async Task<IActionResult> Test([FromRoute] Guid eventId)
+        [HttpGet("statistic")]
+        public async Task<IActionResult> Test(EventRegistrationStatisticRequest request)
         {
-            var result = await _service.Test(eventId);
-            if (result.Item6 == 0)
+            try
             {
-                return BadRequest("Chưa có thông tin đăng ký của sự kiện này");
+                var result = await _service.Test(request.EventId, request.IsAttended);
+                if (result.Item6 == 0)
+                {
+                    return BadRequest("Chưa có thông tin đăng ký của sự kiện này");
+                }
+                return request.IsAttended switch
+                {
+                    null => Ok(new
+                    {
+                        success = true,
+                        ageChart = result.Item1,
+                        genderChart = result.Item2,
+                        referenceChart = result.Item3,
+                        addressChart = result.Item4,
+                        attendedBeforeChart = result.Item5,
+                        totalRegistrations = result.Item6,
+                        participation = result.Item7,
+                        participationRate = (result.Item7 * 100) / result.Item6 + "%"
+                    }),
+                    _ => Ok(new
+                    {
+                        success = true,
+                        ageChart = result.Item1,
+                        genderChart = result.Item2,
+                        referenceChart = result.Item3,
+                        addressChart = result.Item4,
+                        attendedBeforeChart = result.Item5
+                    })
+                };
+            } catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
-            return Ok(new
-            {
-                success = true,
-                ageChart = result.Item1,
-                genderChart = result.Item2,
-                referenceChart = result.Item3,
-                addressChart = result.Item4,
-                attendedChart = result.Item5,
-                totalRegistrations = result.Item6,
-                participation = result.Item7,
-                participationRate = (result.Item7 * 100) / result.Item6 + "%"
-            });
         }
         [AllowAnonymous]
         [HttpPost("resend-mail")]
