@@ -46,29 +46,44 @@ namespace AIBookStreet.Services.Services.Service
             //}
             //if (orderDetailIds.Contains(id))
             //{
-                var orderDetail = await _repository.OrderDetailRepository.GetByID(id);
-                return (2, orderDetail);
+                //var orderDetail = await _repository.OrderDetailRepository.GetByID(id);
+                //return (2, orderDetail);
             //}
             //return (0, null);
+
+            try
+            {
+                var orderDetail = await _repository.OrderDetailRepository.GetByID(id);
+                return (2, orderDetail);
+            } catch
+            {
+                throw;
+            }
         }
         public async Task<(long, List<OrderDetail>?)> GetCart(Guid storeId)
         {
-            var user = await GetUserInfo();
-            var userStores = await _repository.UserStoreRepository.GetByUserId(user.Id);
-            var storeIds = new List<Guid>();
-            if (userStores != null)
-            {                
-                foreach (var us in userStores)
-                {
-                    storeIds.Add(us.StoreId);
-                }
-            }
-            if (storeIds != null && storeIds.Contains(storeId))
+            try
             {
-                var cart = await _repository.OrderDetailRepository.GetCart(storeId);
-                return (2, cart);
+                var user = await GetUserInfo();
+                var userStores = await _repository.UserStoreRepository.GetByUserId(user.Id);
+                var storeIds = new List<Guid>();
+                if (userStores != null)
+                {
+                    foreach (var us in userStores)
+                    {
+                        storeIds.Add(us.StoreId);
+                    }
+                }
+                if (storeIds != null && storeIds.Contains(storeId))
+                {
+                    var cart = await _repository.OrderDetailRepository.GetCart(storeId);
+                    return (2, cart);
+                }
+                return (0, null);
+            } catch
+            {
+                throw;
             }
-            return (0, null);
         }
         public async Task<List<OrderDetail>?> GetAllOrderDetail(Guid? orderId, Guid? storeId, Guid? entityId)
         {
@@ -82,7 +97,13 @@ namespace AIBookStreet.Services.Services.Service
             //        storeIds.Add(us.StoreId);
             //    }
             //}
-            return await _repository.OrderDetailRepository.GetAllOrderDetail(null, orderId, storeId, entityId);
+            try
+            {
+                return await _repository.OrderDetailRepository.GetAllOrderDetail(null, orderId, storeId, entityId);
+            } catch
+            {
+                throw;
+            }
         }
         public async Task<OrderDetail?> AddToCart(OrderDetailModel model)
         {

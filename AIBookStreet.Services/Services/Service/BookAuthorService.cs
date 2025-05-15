@@ -18,80 +18,121 @@ namespace AIBookStreet.Services.Services.Service
         private readonly IUnitOfWork _repository = repository;
         public async Task<(BookAuthor?, long)> AddABookAuthor(BookAuthorModel model)
         {
-            var existed = await _repository.BookAuthorRepository.GetByElement(model.BookId, model.AuthorId);
-            if (existed != null && existed.Count > 0)
+            try
             {
-                return (null, 1); //da ton tai
-            }
+                var existed = await _repository.BookAuthorRepository.GetByElement(model.BookId, model.AuthorId);
+                if (existed != null && existed.Count > 0)
+                {
+                    return (null, 1); //da ton tai
+                }
 
-            var bookAuthor = _mapper.Map<BookAuthor>(model);
-            var setBookAuthor = await SetBaseEntityToCreateFunc(bookAuthor);
-            var isSuccess = await _repository.BookAuthorRepository.Add(setBookAuthor);
-            if (isSuccess)
+                var bookAuthor = _mapper.Map<BookAuthor>(model);
+                var setBookAuthor = await SetBaseEntityToCreateFunc(bookAuthor);
+                var isSuccess = await _repository.BookAuthorRepository.Add(setBookAuthor);
+                if (isSuccess)
+                {
+                    return (setBookAuthor, 2); //thanh cong
+                }
+                return (null, 3);//fail
+            } catch
             {
-                return (setBookAuthor, 2); //thanh cong
+                throw;
             }
-            return (null, 3);//fail
         }
         public async Task<(long, BookAuthor?)> UpdateABookAuthor(BookAuthorModel model)
         {
-            var existed = await _repository.BookAuthorRepository.GetByElement(model.BookId, model.AuthorId);
-            if (existed == null)
+            try
             {
-                return (1, null); //khong ton tai
-            }
-            if (existed[0].IsDeleted)
+                var existed = await _repository.BookAuthorRepository.GetByElement(model.BookId, model.AuthorId);
+                if (existed == null)
+                {
+                    return (1, null); //khong ton tai
+                }
+                if (existed[0].IsDeleted)
+                {
+                    return (3, null);
+                }
+                existed[0].BookId = model.BookId;
+                existed[0].AuthorId = model.AuthorId;
+                existed[0] = await SetBaseEntityToUpdateFunc(existed[0]);
+                return await _repository.BookAuthorRepository.Update(existed[0]) ? (2, existed[0]) //update thanh cong
+                                                                              : (3, null);       //update fail
+            } catch
             {
-                return (3, null);
+                throw;
             }
-            existed[0].BookId = model.BookId;
-            existed[0].AuthorId = model.AuthorId;
-            existed[0] = await SetBaseEntityToUpdateFunc(existed[0]);
-            return await _repository.BookAuthorRepository.Update(existed[0]) ? (2, existed[0]) //update thanh cong
-                                                                          : (3, null);       //update fail
         }
         public async Task<(long, BookAuthor?)> DeleteABookAuthor(BookAuthorModel model)
         {
-            var existed = await _repository.BookAuthorRepository.GetByElement(model.BookId, model.AuthorId);
-            if (existed == null)
+            try
             {
-                return (1, null); //khong ton tai
+                var existed = await _repository.BookAuthorRepository.GetByElement(model.BookId, model.AuthorId);
+                if (existed == null)
+                {
+                    return (1, null); //khong ton tai
+                }
+                existed[0] = await SetBaseEntityToUpdateFunc(existed[0]);
+                return await _repository.BookAuthorRepository.Delete(existed[0]) ? (2, existed[0]) //delete thanh cong
+                                                                              : (3, null);       //delete fail
+            } catch
+            {
+                throw;
             }
-            existed[0] = await SetBaseEntityToUpdateFunc(existed[0]);
-            return await _repository.BookAuthorRepository.Delete(existed[0]) ? (2, existed[0]) //delete thanh cong
-                                                                          : (3, null);       //delete fail
         }
         public async Task<BookAuthor?> GetABookAuthorById(Guid id)
         {
-            return await _repository.BookAuthorRepository.GetByID(id);
+            try
+            {
+                return await _repository.BookAuthorRepository.GetByID(id);
+            } catch
+            {
+                throw;
+            }
         }
         public async Task<List<BookAuthor>?> GetAllActiveBookAuthors()
         {
-            var bookAuthors = await _repository.BookAuthorRepository.GetAll();
-
-            return bookAuthors.Count == 0 ? null : bookAuthors;
+            try
+            {
+                var bookAuthors = await _repository.BookAuthorRepository.GetAll();
+                return bookAuthors.Count == 0 ? null : bookAuthors;
+            } catch
+            {
+                throw;
+            }
         }
         public async Task<(List<BookAuthor>?, long)> GetAllBookAuthorsPagination(string? key, Guid? bookID, Guid? authorID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
-            var user = await GetUserInfo();
-            var isAdmin = false;
-            if (user != null)
+            try
             {
-                foreach (var userRole in user.UserRoles)
+                var user = await GetUserInfo();
+                var isAdmin = false;
+                if (user != null)
                 {
-                    if (userRole.Role.RoleName == "Admin")
+                    foreach (var userRole in user.UserRoles)
                     {
-                        isAdmin = true;
+                        if (userRole.Role.RoleName == "Admin")
+                        {
+                            isAdmin = true;
+                        }
                     }
                 }
+                var bookAuthors = isAdmin ? await _repository.BookAuthorRepository.GetAllPaginationForAdmin(key, bookID, authorID, pageNumber, pageSize, sortField, desc) :
+                                                                await _repository.BookAuthorRepository.GetAllPagination(key, bookID, authorID, pageNumber, pageSize, sortField, desc);
+                return bookAuthors.Item1.Count > 0 ? (bookAuthors.Item1, bookAuthors.Item2) : (null, 0);
+            } catch
+            {
+                throw;
             }
-            var bookAuthors = isAdmin ? await _repository.BookAuthorRepository.GetAllPaginationForAdmin(key, bookID, authorID, pageNumber, pageSize, sortField, desc) : 
-                                                            await _repository.BookAuthorRepository.GetAllPagination(key, bookID, authorID, pageNumber, pageSize, sortField, desc);
-            return bookAuthors.Item1.Count > 0 ? (bookAuthors.Item1, bookAuthors.Item2) : (null, 0);
         }
         public async Task<List<BookAuthor>?> GetBookAuthorByElement(Guid? bookID, Guid? authorID)
         {
-            return await _repository.BookAuthorRepository.GetByElement(bookID, authorID);
+            try
+            {
+                return await _repository.BookAuthorRepository.GetByElement(bookID, authorID);
+            } catch
+            {
+                throw;
+            }
         }
     }
 }

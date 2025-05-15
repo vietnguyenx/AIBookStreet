@@ -44,7 +44,7 @@ namespace AIBookStreet.Services.Services.Service
                     {
                         Id = Guid.NewGuid(),
                         EventName = "Sự kiện mẫu",
-                        StartDate = DateTime.Parse("2025-04-22 10:00:00"),
+                        
                         IsOpen = true,
                         AllowAds = true,
                         CreatedDate = DateTime.Now,

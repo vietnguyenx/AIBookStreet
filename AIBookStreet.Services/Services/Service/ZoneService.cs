@@ -18,74 +18,110 @@ namespace AIBookStreet.Services.Services.Service
         private readonly IUnitOfWork _repository = repository;
         public async Task<Zone?> AddAZone(ZoneModel model)
         {
-            var zone = _mapper.Map<Zone>(model);
-            var setZone = await SetBaseEntityToCreateFunc(zone);
-            var isSuccess = await _repository.ZoneRepository.Add(setZone);
-            if (isSuccess)
+            try
             {
-                return setZone;
+                var zone = _mapper.Map<Zone>(model);
+                var setZone = await SetBaseEntityToCreateFunc(zone);
+                var isSuccess = await _repository.ZoneRepository.Add(setZone);
+                if (isSuccess)
+                {
+                    return setZone;
+                }
+                return null;
+            } catch
+            {
+                throw;
             }
-            return null;
         }
         public async Task<(long, Zone?)> UpdateAZone(Guid? id, ZoneModel model)
         {
-            var existed = await _repository.ZoneRepository.GetByID(id);
-            if (existed == null)
+            try
             {
-                return (1, null); //khong ton tai
-            }
-            if (existed.IsDeleted)
+                var existed = await _repository.ZoneRepository.GetByID(id);
+                if (existed == null)
+                {
+                    return (1, null); //khong ton tai
+                }
+                if (existed.IsDeleted)
+                {
+                    return (3, null);
+                }
+                existed.ZoneName = model.ZoneName;
+                existed.Description = model.Description ?? existed.Description;
+                existed.StreetId = model.StreetId ?? existed.StreetId;
+                existed.Latitude = model.Latitude ?? existed.Latitude;
+                existed.Longitude = model.Longitude ?? existed.Longitude;
+                existed = await SetBaseEntityToUpdateFunc(existed);
+                return await _repository.ZoneRepository.Update(existed) ? (2, existed) //update thanh cong
+                                                                              : (3, null);       //update fail
+            } catch
             {
-                return (3, null);
+                throw;
             }
-            existed.ZoneName = model.ZoneName;
-            existed.Description = model.Description ?? existed.Description;
-            existed.StreetId = model.StreetId ?? existed.StreetId;
-            existed.Latitude = model.Latitude ?? existed.Latitude;
-            existed.Longitude = model.Longitude ?? existed.Longitude;
-            existed = await SetBaseEntityToUpdateFunc(existed);
-            return await _repository.ZoneRepository.Update(existed) ? (2, existed) //update thanh cong
-                                                                          : (3, null);       //update fail
         }
         public async Task<(long, Zone?)> DeleteAZone(Guid id)
         {
-            var existed = await _repository.ZoneRepository.GetByID(id);
-            if (existed == null)
+            try
             {
-                return (1, null); //khong ton tai
-            }
-            existed = await SetBaseEntityToUpdateFunc(existed);
+                var existed = await _repository.ZoneRepository.GetByID(id);
+                if (existed == null)
+                {
+                    return (1, null); //khong ton tai
+                }
+                existed = await SetBaseEntityToUpdateFunc(existed);
 
-            return await _repository.ZoneRepository.Delete(existed) ? (2, existed) //delete thanh cong
-                                                                          : (3, null);       //delete fail
+                return await _repository.ZoneRepository.Delete(existed) ? (2, existed) //delete thanh cong
+                                                                              : (3, null);       //delete fail
+            } catch
+            {
+                throw;
+            }
         }
         public async Task<Zone?> GetAZoneById(Guid id)
         {
-            return await _repository.ZoneRepository.GetByID(id);
+            try
+            {
+                return await _repository.ZoneRepository.GetByID(id);
+            } catch
+            {
+                throw;
+            }
         }
         public async Task<List<Zone>?> GetAllActiveZones()
         {
-            var zones = await _repository.ZoneRepository.GetAll();
+            try
+            {
+                var zones = await _repository.ZoneRepository.GetAll();
 
-            return zones.Count == 0 ? null : zones;
+                return zones.Count == 0 ? null : zones;
+            } catch
+            {
+                throw;
+            }
         }
         public async Task<(List<Zone>?, long)> GetAllZonesPagination(string? key, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
-            var user = await GetUserInfo();
-            var isAdmin = false;
-            if (user != null)
+            try
             {
-                foreach (var userRole in user.UserRoles)
+                var user = await GetUserInfo();
+                var isAdmin = false;
+                if (user != null)
                 {
-                    if (userRole.Role.RoleName == "Admin")
+                    foreach (var userRole in user.UserRoles)
                     {
-                        isAdmin = true;
+                        if (userRole.Role.RoleName == "Admin")
+                        {
+                            isAdmin = true;
+                        }
                     }
                 }
+                var zones = isAdmin ? await _repository.ZoneRepository.GetAllPaginationForAdmin(key, streetID, pageNumber, pageSize, sortField, desc)
+                                                      : await _repository.ZoneRepository.GetAllPagination(key, streetID, pageNumber, pageSize, sortField, desc);
+                return zones.Item1.Count > 0 ? (zones.Item1, zones.Item2) : (null, 0);
+            } catch
+            {
+                throw;
             }
-            var zones = isAdmin ? await _repository.ZoneRepository.GetAllPaginationForAdmin(key, streetID, pageNumber, pageSize, sortField, desc)
-                                                  : await _repository.ZoneRepository.GetAllPagination(key, streetID, pageNumber, pageSize, sortField, desc);
-            return zones.Item1.Count > 0 ? (zones.Item1, zones.Item2) : (null, 0);
         }
     }
 }
