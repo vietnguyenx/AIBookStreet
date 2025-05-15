@@ -20,6 +20,10 @@ namespace AIBookStreet.Services.Model
         public bool IsOpen { get; set; }
         public bool AllowAds { get; set; }
         [Required(ErrorMessage = "Vui lòng chọn khu vực tổ chức sự kiện")]
-        public Guid ZoneId { get; set; }        
+        public Guid ZoneId { get; set; }
+        [Required(ErrorMessage = "Sự kiện phải diễn ra ít nhất 1 ngày.")]
+        public required List<string> EventDates { get; set; }
+        public required List<string> StartTimes { get; set; }
+        public required List<string> EndTimes { get; set; }
     }
 }

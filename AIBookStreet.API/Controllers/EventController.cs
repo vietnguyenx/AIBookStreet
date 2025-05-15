@@ -26,7 +26,7 @@ namespace AIBookStreet.API.Controllers
 
         [Authorize]
         [HttpPost("")]
-        public async Task<IActionResult> AddAnEvent([FromForm]CreateEventRequest model)
+        public async Task<IActionResult> AddAnEvent([FromForm]EventModel model)
         {
             try
             {
@@ -45,7 +45,7 @@ namespace AIBookStreet.API.Controllers
                             EndTime = model.EndTimes[i]
                         });
                     }
-                    var result = await _service.AddAnEvent(model.EventModel, schedules);
+                    var result = await _service.AddAnEvent(model, schedules);
                     return result.Item1 == 1 ? BadRequest(new BaseResponse(false, result.Item3))
                          : result.Item1 == 2 ? Ok(new ItemResponse<EventRequest>("Đã thêm", _mapper.Map<EventRequest>(result.Item2)))
                          : result.Item1 == 4 ? BadRequest(result.Item3)
