@@ -95,7 +95,7 @@ namespace AIBookStreet.API.Controllers
         }
         [AllowAnonymous]
         [HttpGet("non-deleted")]
-        public async Task<IActionResult> GetAllActiveCategories()
+        public async Task<IActionResult> GetAllActiveZones()
         {
             try
             {
@@ -131,6 +131,25 @@ namespace AIBookStreet.API.Controllers
 
                 return BadRequest(ex.Message);
             };
+        }
+        [AllowAnonymous]
+        [HttpGet("street/{streetID}")]
+        public async Task<IActionResult> GetAllByStreetID([FromRoute]Guid streetID)
+        {
+            try
+            {
+                var zones = await _service.GetAllByStreetId(streetID);
+
+                return zones switch
+                {
+                    null => Ok(new ItemListResponse<ZoneRequest>(ConstantMessage.Success, null)),
+                    not null => Ok(new ItemListResponse<ZoneRequest>(ConstantMessage.Success, _mapper.Map<List<ZoneRequest>>(zones)))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
