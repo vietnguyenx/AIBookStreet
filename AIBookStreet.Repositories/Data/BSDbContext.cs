@@ -253,12 +253,14 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.EventName).HasMaxLength(255).IsRequired();
                 e.Property(x => x.OrganizerEmail).HasMaxLength(255).IsRequired();
                 e.Property(x => x.Description).HasMaxLength(1000).IsRequired(false);
-                e.Property(x => x.StartDate).IsRequired(false);
-                e.Property(x => x.EndDate).IsRequired(false);
                 e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
                 e.Property(x => x.VideoLink).HasMaxLength(2000).IsRequired(false);
                 e.Property(x => x.IsOpen).IsRequired(true);
                 e.Property(x => x.AllowAds).IsRequired(true);
+                e.Property(x => x.Version).IsRequired(true);
+                e.Property(x => x.IsApprove).IsRequired(false);
+                e.Property(x => x.Message).HasMaxLength(2000).IsRequired(false);
+                e.Property(x => x.UpdateForEventId).IsRequired(false);
 
 
                 // n-1 voi zone
@@ -276,7 +278,12 @@ namespace AIBookStreet.Repositories.Data
                 e.HasMany(x => x.EventRegistrations)
                  .WithOne(z => z.Event)
                  .HasForeignKey(z => z.EventId)
-                 .OnDelete(DeleteBehavior.SetNull);
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasMany(x => x.EventSchedules)
+                .WithOne(e => e.Event)
+                .HasForeignKey(e => e.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Inventory>(e =>
@@ -626,6 +633,18 @@ namespace AIBookStreet.Repositories.Data
                 e.HasOne(x => x.EventRegistration)
                 .WithOne(er => er.Ticket)
                 .HasForeignKey<Ticket>(t => t.RegistrationId)
+                .OnDelete(DeleteBehavior.SetNull);
+            });
+            modelBuilder.Entity<EventSchedule>(e =>
+            {
+                e.ToTable("EventSchedule");
+                e.Property(x => x.EventDate).HasMaxLength(20).IsRequired();
+                e.Property(x => x.StartTime).HasMaxLength(10).IsRequired();
+                e.Property(x => x.EndTime).HasMaxLength(10).IsRequired();
+
+                e.HasOne(x => x.Event)
+                .WithMany(e => e.EventSchedules)
+                .HasForeignKey(es => es.EventId)
                 .OnDelete(DeleteBehavior.SetNull);
             });
         }

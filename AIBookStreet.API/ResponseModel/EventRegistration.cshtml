@@ -223,13 +223,13 @@
                                     <td style="width: 120px">
                                         <strong>Thời gian:</strong>
                                     </td>
-                                    <td>@Model.EventRegistration?.Event?.StartDate?.ToString("dd/MM/yyyy")</td>
+                                    <td>@Model.EventRegistration?.Event?.EventSchedules.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate.ToString("dd/MM/yyyy")</td>
                                 </tr>
                                 <tr>
                                     <td>
                                         <strong>Giờ mở cửa:</strong>
                                     </td>
-                                    <td>@Model.EventRegistration?.Event?.StartDate?.ToString("HH:mm")</td>
+                                    <td>@Model.EventRegistration?.Event?.EventSchedules.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate.ToString("HH:mm")</td>
                                 </tr>
                                 <tr>
                                     <td style="display: flex">

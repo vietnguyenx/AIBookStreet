@@ -9,8 +9,10 @@ using AutoMapper;
 using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using NuGet.Protocol.Core.Types;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AIBookStreet.API.Controllers
@@ -24,14 +26,32 @@ namespace AIBookStreet.API.Controllers
 
         [Authorize]
         [HttpPost("")]
-        public async Task<IActionResult> AddAnEvent([FromForm]EventModel model)
+        public async Task<IActionResult> AddAnEvent([FromForm]CreateEventRequest model)
         {
             try
             {
-                var result = await _service.AddAnEvent(model);
-                return result.Item1 == 1 ? BadRequest(new BaseResponse(false, "Đã có sự kiện trong thời gian trên khu vực này")) 
-                     : result.Item1 == 2 ? Ok(new ItemResponse<EventRequest>("Đã thêm", _mapper.Map<EventRequest>(result.Item2)))
-                     :                     BadRequest(new BaseResponse(false, "Đã xảy ra lỗi"));
+                if (model.EventDates != null && model.StartTimes != null && model.EndTimes != null 
+                    && model.EventDates.Count == model.StartTimes.Count 
+                    && model.EventDates.Count == model.EndTimes.Count 
+                    && model.StartTimes.Count == model.EndTimes.Count)
+                {
+                    var schedules = new List<EventScheduleModel>();
+                    for(int i = 0;i< model.StartTimes.Count; i++)
+                    {
+                        schedules.Add(new EventScheduleModel
+                        {
+                            EventDate = model.EventDates[i],
+                            StartTime = model.StartTimes[i],
+                            EndTime = model.EndTimes[i]
+                        });
+                    }
+                    var result = await _service.AddAnEvent(model.EventModel, schedules);
+                    return result.Item1 == 1 ? BadRequest(new BaseResponse(false, result.Item3))
+                         : result.Item1 == 2 ? Ok(new ItemResponse<EventRequest>("Đã thêm", _mapper.Map<EventRequest>(result.Item2)))
+                         : result.Item1 == 4 ? BadRequest(result.Item3)
+                         : BadRequest(new BaseResponse(false, result.Item3));
+                }
+                return BadRequest(new BaseResponse(false, "Vui lòng điền giờ bắt đầu và giờ kết thúc tương ứng cho từng ngày diễn ra sự kiện"));
             }
             catch (Exception ex)
             {
@@ -39,18 +59,19 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAnEvent([FromRoute] Guid id, [FromForm]EventModel model)
+        [HttpPut("process-request/{id}")]
+        public async Task<IActionResult> UpdateAnEvent([FromRoute] Guid id, [FromForm]ProcesingEventModel model)
         {
             try
             {
-                var result = await _service.UpdateAnEvent(id, model);
+                var result = await _service.ProcessEvent(id, model);
 
                 return result.Item1 switch
                 {
-                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
+                    1 => NotFound(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new ItemResponse<EventRequest>("Đã cập nhật thông tin!", _mapper.Map<EventRequest>(result.Item2))),
-                    _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    4 => BadRequest(result.Item3),
+                    _ => BadRequest(new BaseResponse(false, result.Item3))
                 };
             }
             catch (Exception ex)
@@ -68,9 +89,10 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
+                    1 => NotFound(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new ItemResponse<EventRequest>("Đã xóa thành công!", _mapper.Map<EventRequest>(result.Item2))),
-                    _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại!!!"))
+                    4 => BadRequest(result.Item3),
+                    _ => BadRequest(new BaseResponse(false, result.Item3))
                 };
             }
             catch (Exception ex)
@@ -125,11 +147,20 @@ namespace AIBookStreet.API.Controllers
             {
                 var events = await _service.GetEventComing(number, allowAds);
 
-                return events switch
+                if (events != null)
                 {
-                    null => Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, null)),
-                    not null => Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<List<EventRequest>>(events)))
-                };
+                    var resp = new List<EventRequest>();
+                    foreach (var evt in events)
+                    {
+                        var evtCovert = _mapper.Map<EventRequest>(evt);
+                        evtCovert.StartDate = evt.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                        evtCovert.EndDate = evt.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                        resp.Add(evtCovert);
+                    }
+                    
+                    return Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, resp));
+                }
+                return Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, null));
             }
             catch (Exception ex)
             {
@@ -144,11 +175,20 @@ namespace AIBookStreet.API.Controllers
             {
                 var events = await _service.GetAllEventsPagination(request != null && request.Result != null ? request.Result.Key : null, request != null && request.Result != null ? request.Result.AllowAds : null, request != null && request.Result != null ? request.Result.StartDate : null, request != null && request.Result != null ? request.Result.EndDate : null, request != null && request.Result != null ? request.Result.ZoneId : null, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder == -1);
 
-                return events.Item2 switch
+                if (events.Item2 == 0)
                 {
-                    0 => Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<List<EventRequest>>(events.Item1), events.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? 1 : -1))
-                };
+                    return Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, null));
+                }
+                var resp = new List<EventRequest>();
+                foreach (var evt in events.Item1)
+                {
+                    var evtCovert = _mapper.Map<EventRequest>(evt);
+                    evtCovert.StartDate = evt.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                    evtCovert.EndDate = evt.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                    resp.Add(evtCovert);
+                }
+
+                return Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, resp, events.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? 1 : -1));
             }
             catch (Exception ex)
             {
@@ -186,11 +226,20 @@ namespace AIBookStreet.API.Controllers
             {
                 var events = await _service.GetEventByDate(date);
 
-                return events switch
+                if (events != null)
                 {
-                    null => Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, null)),
-                    not null => Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<List<EventRequest>>(events)))
-                };
+                    var resp = new List<EventRequest>();
+                    foreach (var evt in events)
+                    {
+                        var evtCovert = _mapper.Map<EventRequest>(evt);
+                        evtCovert.StartDate = evt.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                        evtCovert.EndDate = evt.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                        resp.Add(evtCovert);
+                    }
+
+                    return Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, resp));
+                }
+                return Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, null));
             }
             catch (Exception ex)
             {
@@ -205,11 +254,20 @@ namespace AIBookStreet.API.Controllers
             {
                 var events = await _service.GetRandom(number);
 
-                return events switch
+                if (events != null)
                 {
-                    null => Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, null)),
-                    not null => Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<List<EventRequest>>(events)))
-                };
+                    var resp = new List<EventRequest>();
+                    foreach (var evt in events)
+                    {
+                        var evtCovert = _mapper.Map<EventRequest>(evt);
+                        evtCovert.StartDate = evt.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                        evtCovert.EndDate = evt.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                        resp.Add(evtCovert);
+                    }
+
+                    return Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, resp));
+                }
+                return Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, null));
             }
             catch (Exception ex)
             {
@@ -245,6 +303,93 @@ namespace AIBookStreet.API.Controllers
                     0 => Ok("Không có sự kiện trong HÔM NAY"),
                     _ => Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<List<EventRequest>>(events.Item1), events.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "StartDate", request != null && request.SortOrder != -1 ? 1 : -1))
                 };
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            };
+        }
+        [Authorize]
+        [HttpPost("request-create-event")]
+        public async Task<IActionResult> GetRequest(PaginatedRequest request)
+        {
+            try
+            {
+                var events = await _service.GetEventRequests(request.PageNumber, request.PageSize, request.SortField, request.SortOrder == -1);
+
+                if (events.Item2 == 0)
+                {
+                    return Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, new List<EventRequest>(), events.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? 1 : -1));
+                }
+                if (events.Item2 == 99)
+                {
+                    return BadRequest("Vui lòng đăng nhập với vai trò Quản trị viên");
+                }
+                var resp = new List<EventRequest>();
+                foreach (var evt in events.Item1)
+                {
+                    var evtCovert = _mapper.Map<EventRequest>(evt);
+                    evtCovert.StartDate = evt.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                    evtCovert.EndDate = evt.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                    resp.Add(evtCovert);
+                }
+
+                return Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, resp, events.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? 1 : -1));
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            };
+        }
+        [Authorize]
+        [HttpPut("event-open-state/{id}")]
+        public async Task<IActionResult> UpdateOpenStateForAnEvent([FromRoute] Guid id)
+        {
+            try
+            {
+                var result = await _service.OpenState(id);
+
+                return result.Item1 switch
+                {
+                    1 => NotFound(new BaseResponse(false, "Không tồn tại!!!")),
+                    2 => Ok(new ItemResponse<EventRequest>("Đã cập nhật thông tin!", _mapper.Map<EventRequest>(result.Item2))),
+                    4 => BadRequest(result.Item3),
+                    _ => BadRequest(new BaseResponse(false, result.Item3))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [AllowAnonymous]
+        [HttpGet("request-history/{id}")]
+        public async Task<IActionResult> GetEventRequestHistoryById([FromRoute] Guid id)
+        {
+            try
+            {
+                var result = await _service.GetHistory(id);
+                if (result.Item1 == 1)
+                {
+                    return NotFound(new ItemListResponse<List<EventRequest>>(ConstantMessage.NotFound));
+                }
+                var eventInfor = _mapper.Map<List<EventRequest>?>(result.Item2?.OrderBy(e => e.Version));
+                return Ok(new ItemListResponse<EventRequest>(ConstantMessage.Success, eventInfor));
+
+                //return result.Item1 switch
+                //{
+                //    null => Ok(new ItemResponse<EventRequest>(ConstantMessage.NotFound)),
+                //    not null => Ok(new ItemResponse<object>(ConstantMessage.Success, new
+                //    {
+                //        eventInfor = _mapper.Map<EventRequest>(result.Item1),
+                //        ageChart = result.Item2,
+                //        genderChart = result.Item3,
+                //        referenceChart = result.Item4,
+                //        addressChart = result.Item5
+                //    }))
+                //};
             }
             catch (Exception ex)
             {

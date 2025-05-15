@@ -11,16 +11,15 @@ namespace AIBookStreet.Services.Model
 {
     public class EventModel
     {
-        public string EventName { get; set; } = null!;
-        public string OrganizerEmail { get; set; } = null!;
+        [Required(ErrorMessage = "Vui lòng nhập tên sự kiện")]
+        public required string EventName { get; set; }
         public string? Description { get; set; }
-        public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
         public IFormFile? BaseImgFile { get; set; }
         public IFormFile? VideoFile { get; set; }
         public List<IFormFile>? OtherImgFile { get; set; }
         public bool IsOpen { get; set; }
         public bool AllowAds { get; set; }
-        public Guid? ZoneId { get; set; }
+        [Required(ErrorMessage = "Vui lòng chọn khu vực tổ chức sự kiện")]
+        public Guid ZoneId { get; set; }        
     }
 }
