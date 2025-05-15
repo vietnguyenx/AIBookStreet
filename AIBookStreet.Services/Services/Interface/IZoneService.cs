@@ -16,5 +16,6 @@ namespace AIBookStreet.Services.Services.Interface
         Task<Zone?> GetAZoneById(Guid id);
         Task<List<Zone>?> GetAllActiveZones();
         Task<(List<Zone>?, long)> GetAllZonesPagination(string? key, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc);
+        Task<List<Zone>?> GetAllByStreetId(Guid streetID);
     }
 }

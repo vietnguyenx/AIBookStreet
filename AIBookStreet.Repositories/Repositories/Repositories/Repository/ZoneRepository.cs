@@ -89,5 +89,12 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return zone;
         }
+        public async Task<List<Zone>?> GetAllByStreetId(Guid streetID)
+        {
+            var queryable = GetQueryable();
+            queryable = queryable.Where(z => !z.IsDeleted && z.StreetId == streetID);
+            var zones = await queryable.ToListAsync();
+            return zones;
+        }
     }
 }

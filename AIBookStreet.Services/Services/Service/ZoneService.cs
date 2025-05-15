@@ -123,5 +123,18 @@ namespace AIBookStreet.Services.Services.Service
                 throw;
             }
         }
+        public async Task<List<Zone>?> GetAllByStreetId(Guid streetID)
+        {
+            try
+            {
+                var zones = await _repository.ZoneRepository.GetAllByStreetId(streetID);
+
+                return zones.Count == 0 ? null : zones;
+            }
+            catch
+            {
+                throw;
+            }
+        }
     }
 }
