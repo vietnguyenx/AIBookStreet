@@ -43,7 +43,7 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
+                    1 => NotFound(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new BaseResponse(true, "Đã cập nhật thông tin!")),
                     _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
@@ -63,7 +63,7 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
+                    1 => NotFound(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new BaseResponse(true, "Đã xóa thông tin!")),
                     _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
@@ -83,7 +83,7 @@ namespace AIBookStreet.API.Controllers
 
                 return category switch
                 {
-                    null => BadRequest(new ItemResponse<Category>(ConstantMessage.NotFound)),
+                    null => NotFound(new ItemResponse<Category>(ConstantMessage.NotFound)),
                     not null => Ok(new ItemResponse<Category>(ConstantMessage.Success, category))
                 };
             }

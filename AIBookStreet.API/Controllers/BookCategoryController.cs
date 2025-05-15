@@ -75,7 +75,7 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
+                    1 => NotFound(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new BaseResponse(true, "Đã xóa thông tin!")),
                     _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
                 };
@@ -115,7 +115,7 @@ namespace AIBookStreet.API.Controllers
 
                 return bookCategories switch
                 {
-                    null => BadRequest(new ItemListResponse<BookCategoryRequest>(ConstantMessage.Success, null)),
+                    null => NotFound(new ItemListResponse<BookCategoryRequest>(ConstantMessage.Success, null)),
                     not null => Ok(new ItemListResponse<BookCategoryRequest>(ConstantMessage.Success, _mapper.Map<List<BookCategoryRequest>>(bookCategories)))
                 };
             }
@@ -135,7 +135,7 @@ namespace AIBookStreet.API.Controllers
 
                 return bookCategories.Item2 switch
                 {
-                    0 => BadRequest(new PaginatedListResponse<BookCategoryRequest>(ConstantMessage.Success, null)),
+                    0 => NotFound(new PaginatedListResponse<BookCategoryRequest>(ConstantMessage.Success, null)),
                     _ => request != null ? Ok(new PaginatedListResponse<BookCategoryRequest>(ConstantMessage.Success, _mapper.Map<List<BookCategoryRequest>>(bookCategories.Item1), bookCategories.Item2, request.PageNumber, request.PageSize, request.SortField, request.SortOrder))
                                          : Ok(new PaginatedListResponse<BookCategoryRequest>(ConstantMessage.Success, _mapper.Map<List<BookCategoryRequest>>(bookCategories.Item1), bookCategories.Item2, 1, 10, "CreatedDate", 1))
                 };
@@ -155,7 +155,7 @@ namespace AIBookStreet.API.Controllers
 
                 return bookCategories switch
                 {
-                    null => BadRequest(new ItemListResponse<BookCategoryRequest>(ConstantMessage.Success, null)),
+                    null => NotFound(new ItemListResponse<BookCategoryRequest>(ConstantMessage.Success, null)),
                     _ => Ok(new ItemListResponse<BookCategoryRequest>(ConstantMessage.Success, _mapper.Map<List<BookCategoryRequest>>(bookCategories)))
                 };
             }

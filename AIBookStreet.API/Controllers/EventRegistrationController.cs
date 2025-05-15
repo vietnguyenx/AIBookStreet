@@ -33,6 +33,7 @@ namespace AIBookStreet.API.Controllers
                     var ticket = await _ticketService.AddATicket(result.Item2.Id);
                     if (ticket.Item1 == 1)
                     {
+                        var nsc = await _service.Remove(result.Item2);
                         return BadRequest(new BaseResponse(false, ticket.Item3));
                     }
                     if (ticket.Item2?.EventRegistration?.RegistrantEmail != null)
@@ -50,8 +51,8 @@ namespace AIBookStreet.API.Controllers
                         attendeePhone = ticket.Item2?.EventRegistration?.RegistrantPhoneNumber,
                         attendeeAddress = ticket.Item2?.EventRegistration?.RegistrantAddress,
                         eventName = ticket.Item2?.EventRegistration?.Event?.EventName,
-                        eventStartDate = ticket.Item2?.EventRegistration?.Event?.StartDate,
-                        eventEndDate = ticket.Item2?.EventRegistration?.Event?.EndDate,
+                        eventStartDate = ticket.Item2?.EventRegistration?.Event?.EventSchedules.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate,
+                        eventEndDate = ticket.Item2?.EventRegistration?.Event?.EventSchedules.OrderByDescending(e => e.EventDate).FirstOrDefault()?.EventDate,
                         zoneId = ticket.Item2?.EventRegistration?.Event?.ZoneId,
                         zoneName = ticket.Item2?.EventRegistration?.Event?.Zone?.ZoneName,
                         latitude = ticket.Item2?.EventRegistration?.Event?.Zone?.Latitude,
@@ -221,8 +222,8 @@ namespace AIBookStreet.API.Controllers
                         attendeePhone = ticket?.EventRegistration?.RegistrantPhoneNumber,
                         attendeeAddress = ticket?.EventRegistration?.RegistrantAddress,
                         eventName = ticket?.EventRegistration?.Event?.EventName,
-                        eventStartDate = ticket?.EventRegistration?.Event?.StartDate,
-                        eventEndDate = ticket?.EventRegistration?.Event?.EndDate,
+                        eventStartDate = ticket?.EventRegistration?.Event?.EventSchedules.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate,
+                        eventEndDate = ticket?.EventRegistration?.Event?.EventSchedules.OrderByDescending(e => e.EventDate).FirstOrDefault()?.EventDate,
                         zoneId = ticket?.EventRegistration?.Event?.ZoneId,
                         zoneName = ticket?.EventRegistration?.Event?.Zone?.ZoneName,
                         latitude = ticket?.EventRegistration?.Event?.Zone?.Latitude,
