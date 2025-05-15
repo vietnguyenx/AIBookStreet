@@ -29,6 +29,7 @@ namespace AIBookStreet.API.Tool.Mapping
             StoreScheduleMapping();
             EventRegistrationMapping();
             TicketMapping();
+            EventScheduleMapping();
         }
     }
 }

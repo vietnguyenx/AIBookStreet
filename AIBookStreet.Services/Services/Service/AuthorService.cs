@@ -20,10 +20,10 @@ namespace AIBookStreet.Services.Services.Service
         private readonly IUnitOfWork _repository = repository;
         private readonly IFirebaseStorageService _firebaseStorage = firebaseStorageService;
         public async Task<(Author?, string?)> AddAnAuthor(AuthorModel authorModel)
-        {
-            authorModel.DOB = authorModel.DOB?.ToLocalTime();
+        {            
             try
             {
+                authorModel.DOB = authorModel.DOB?.ToLocalTime();
                 var fileUrl = "";
                 if (authorModel.ImgFile != null)
                 {
@@ -64,18 +64,18 @@ namespace AIBookStreet.Services.Services.Service
             }
         }
         public async Task<(long, Author?)> UpdateAnAuthor(Guid authorID, AuthorModel authorModel)
-        {
-            var existAuthor = await _repository.AuthorRepository.GetByID(authorID);
-            if (existAuthor == null)
-            {
-                return (1, null); //author khong ton tai
-            }
-            if (existAuthor.IsDeleted)
-            {
-                return (3, null);
-            }
+        {            
             try
             {
+                var existAuthor = await _repository.AuthorRepository.GetByID(authorID);
+                if (existAuthor == null)
+                {
+                    return (1, null); //author khong ton tai
+                }
+                if (existAuthor.IsDeleted)
+                {
+                    return (3, null);
+                }
                 var newFileUrl = authorModel.ImgFile != null ? await _firebaseStorage.UploadFileAsync(authorModel.ImgFile) : "";
 
                 var oldFileUrl = existAuthor.BaseImgUrl;
@@ -111,122 +111,143 @@ namespace AIBookStreet.Services.Services.Service
         }
         public async Task<(long, Author?)> DeleteAnAuthor(Guid id)
         {
-            var existAuthor = await _repository.AuthorRepository.GetByID(id);
-            if (existAuthor == null)
+            try
             {
-                return (1, null); //author khong ton tai
-            }    
-            if (existAuthor.IsDeleted)
-            {
-                return (3, null);
-            }
-            existAuthor = await SetBaseEntityToUpdateFunc(existAuthor);
-
-            var isSuccess = await _repository.AuthorRepository.Delete(existAuthor);
-            if (isSuccess)
-            {
-                if (!string.IsNullOrEmpty(existAuthor.BaseImgUrl))
+                var existAuthor = await _repository.AuthorRepository.GetByID(id);
+                if (existAuthor == null)
                 {
-                    try
+                    return (1, null); //author khong ton tai
+                }
+                if (existAuthor.IsDeleted)
+                {
+                    return (3, null);
+                }
+                existAuthor = await SetBaseEntityToUpdateFunc(existAuthor);
+
+                var isSuccess = await _repository.AuthorRepository.Delete(existAuthor);
+                if (isSuccess)
+                {
+                    if (!string.IsNullOrEmpty(existAuthor.BaseImgUrl))
                     {
                         await _firebaseStorage.DeleteFileAsync(existAuthor.BaseImgUrl);
                     }
-                    catch
-                    {
-                        throw;
-                    }
+                    return (2, existAuthor);//delete thanh cong
                 }
-                return (2, existAuthor);//delete thanh cong
-            }            
-            return (3, null);       //delete fail
+                return (3, null);       //delete fail
+            }
+            catch
+            {
+                throw;
+            }
         }
         public async Task<Author?> GetAnAuthorById(Guid id)
         {
-            return await _repository.AuthorRepository.GetByID(id);
+            try
+            {
+                return await _repository.AuthorRepository.GetByID(id);
+            }
+            catch
+            {
+                throw;
+            }
         }
         public async Task<List<Author>?> GetAllActiveAuthors(string? authorName, Guid? categoryId)
         {
-            var bookAuthors = new List<BookAuthor>();
-            var authorIds = new List<Guid>();
-            if (categoryId != null)
+            try
             {
-                var bookCategories = await _repository.BookCategoryRepository.GetByElement(null, categoryId);
-
-
-                if (bookCategories != null)
+                var bookAuthors = new List<BookAuthor>();
+                var authorIds = new List<Guid>();
+                if (categoryId != null)
                 {
-                    foreach (var bookCategory in bookCategories)
+                    var bookCategories = await _repository.BookCategoryRepository.GetByElement(null, categoryId);
+
+
+                    if (bookCategories != null)
                     {
-                        var bas = await _repository.BookAuthorRepository.GetByElement(bookCategory.BookId, null);
-                        if (bas != null)
+                        foreach (var bookCategory in bookCategories)
                         {
-                            foreach (var ba in bas)
+                            var bas = await _repository.BookAuthorRepository.GetByElement(bookCategory.BookId, null);
+                            if (bas != null)
                             {
-                                bookAuthors.Add(ba);
+                                foreach (var ba in bas)
+                                {
+                                    bookAuthors.Add(ba);
+                                }
                             }
                         }
                     }
-                }
 
-                if (bookAuthors != null)
-                {
-                    foreach (var bookAuthor in bookAuthors)
+                    if (bookAuthors != null)
                     {
-                        authorIds.Add(bookAuthor.AuthorId);
+                        foreach (var bookAuthor in bookAuthors)
+                        {
+                            authorIds.Add(bookAuthor.AuthorId);
+                        }
                     }
                 }
-            }
-            var authors = await _repository.AuthorRepository.GetAll(authorName, authorIds);
+                var authors = await _repository.AuthorRepository.GetAll(authorName, authorIds);
 
-            return authors.Count == 0 ? null : authors;
+                return authors.Count == 0 ? null : authors;
+            }
+            catch
+            {
+                throw;
+            }
         }
         public async Task<(List<Author>?, long)> GetAllAuthorsPagination(string? key, Guid? categoryId, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
-            var user = await GetUserInfo();
-            var isAdmin = false;
-            if (user != null) {
-                foreach (var userRole in user.UserRoles)
+            try
+            {
+                var user = await GetUserInfo();
+                var isAdmin = false;
+                if (user != null)
                 {
-                    if (userRole.Role.RoleName == "Admin")
+                    foreach (var userRole in user.UserRoles)
                     {
-                        isAdmin = true;
+                        if (userRole.Role.RoleName == "Admin")
+                        {
+                            isAdmin = true;
+                        }
                     }
                 }
-            }
-            var bookAuthors = new List<BookAuthor>();
-            var authorIds = new List<Guid>();
-            if (categoryId != null)
-            {
-                var bookCategories = await _repository.BookCategoryRepository.GetByElement(null, categoryId);
-                
-
-                if (bookCategories != null)
+                var bookAuthors = new List<BookAuthor>();
+                var authorIds = new List<Guid>();
+                if (categoryId != null)
                 {
-                    foreach (var bookCategory in bookCategories)
+                    var bookCategories = await _repository.BookCategoryRepository.GetByElement(null, categoryId);
+
+
+                    if (bookCategories != null)
                     {
-                        var bas = await _repository.BookAuthorRepository.GetByElement(bookCategory.BookId, null);
-                        if (bas != null)
+                        foreach (var bookCategory in bookCategories)
                         {
-                            foreach (var ba in bas)
+                            var bas = await _repository.BookAuthorRepository.GetByElement(bookCategory.BookId, null);
+                            if (bas != null)
                             {
-                                bookAuthors.Add(ba);
+                                foreach (var ba in bas)
+                                {
+                                    bookAuthors.Add(ba);
+                                }
                             }
+                        }
+                    }
+
+                    if (bookAuthors != null)
+                    {
+                        foreach (var bookAuthor in bookAuthors)
+                        {
+                            authorIds.Add(bookAuthor.AuthorId);
                         }
                     }
                 }
 
-                if (bookAuthors != null)
-                {
-                    foreach (var bookAuthor in bookAuthors)
-                    {
-                        authorIds.Add(bookAuthor.AuthorId);
-                    }
-                }
+                var authors = isAdmin ? await _repository.AuthorRepository.GetAllPaginationForAdmin(key, authorIds, pageNumber, pageSize, sortField, desc)
+                                            : await _repository.AuthorRepository.GetAllPagination(key, authorIds, pageNumber, pageSize, sortField, desc);
+                return authors.Item1.Count > 0 ? (authors.Item1, authors.Item2) : (null, 0);
+            } catch
+            {
+                throw;
             }
-
-            var authors = isAdmin ? await _repository.AuthorRepository.GetAllPaginationForAdmin(key, authorIds, pageNumber, pageSize, sortField, desc) 
-                                        : await _repository.AuthorRepository.GetAllPagination(key, authorIds, pageNumber, pageSize, sortField, desc);
-            return authors.Item1.Count > 0 ? (authors.Item1, authors.Item2) : (null, 0);
         }
     }
 }

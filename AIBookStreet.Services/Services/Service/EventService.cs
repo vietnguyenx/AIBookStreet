@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AIBookStreet.Services.Services.Service
 {
@@ -18,16 +19,32 @@ namespace AIBookStreet.Services.Services.Service
         private readonly IUnitOfWork _repository = repository;
         private readonly IFirebaseStorageService _firebaseStorageService = firebaseStorageService;
         private readonly IImageService _imageService = imageService;
-        public async Task<(long, Event?)> AddAnEvent(EventModel model)
-        {
-            var existed = await _repository.EventRepository.GetAllPagination(null, null, model.StartDate, model.EndDate, model.ZoneId, 1, 1, null, true);
-            if (existed.Item2 > 0 && existed.Item1 != null)
-            {
-                return (1, null); //da co su kien tren duong sach vao thoi gian nay
-            }
-
+        public async Task<(long, Event?, string?)> AddAnEvent(EventModel model, List<EventScheduleModel> schedules)
+        {         
             try
             {
+                var user = await GetUserInfo();
+                var isStaff = false;
+                if (user != null)
+                {
+                    foreach (var userRole in user.UserRoles)
+                    {
+                        if (userRole.Role.RoleName == "Staff")
+                        {
+                            isStaff = true;
+                        }
+                    }
+                }
+                if (!isStaff)
+                {
+                    return (4, null, "Vui lòng đăng nhập với vai trò Người tổ chức sự kiện");
+                }
+                var existed = await _repository.EventRepository.CheckEventInZone(schedules.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate, schedules.OrderBy(e => e.EventDate).LastOrDefault()?.EventDate, model.ZoneId);
+                //var existed = await _repository.EventRepository.CheckEventInZone(model.EventScheduleModel.EventDate, model.EventScheduleModel.EventDate, model.ZoneId);
+                if (existed != null)
+                {
+                    return (1, null, existed); //da co su kien tren duong sach vao thoi gian nay
+                }
                 var baseFileUrl = "";
                 if (model.BaseImgFile != null)
                 {
@@ -39,17 +56,32 @@ namespace AIBookStreet.Services.Services.Service
                     videoUrl = await _firebaseStorageService.UploadFileAsync(model.VideoFile);
                 }
 
+                var lastEventByOrganizerEmail = await _repository.EventRepository.GetLastEventByOrganizerEmail(user.Email);
+                if (lastEventByOrganizerEmail != null && !lastEventByOrganizerEmail.IsApprove.HasValue)
+                {
+                    return (3, null, "Sự kiện đang chờ duyệt, không thể tạo thêm");
+                }
+
+                var version = 1;
+                if (lastEventByOrganizerEmail != null && lastEventByOrganizerEmail.IsApprove.HasValue && lastEventByOrganizerEmail.IsApprove == false)
+                {
+                    version = lastEventByOrganizerEmail.Version + 1;
+                }
+
                 var evt = new Event
                 {
                     BaseImgUrl = !string.IsNullOrEmpty(baseFileUrl) ? baseFileUrl : null,
                     EventName = model.EventName,
                     Description = model.Description ?? null,
-                    StartDate = model.StartDate ?? null,
-                    EndDate = model.EndDate ?? null,
                     VideoLink = !string.IsNullOrEmpty(videoUrl) ? videoUrl : null,
                     IsOpen = model.IsOpen,
-                    ZoneId = model.ZoneId ?? null,
-                    OrganizerEmail = model.OrganizerEmail
+                    AllowAds = model.AllowAds,
+                    ZoneId = model.ZoneId,
+                    OrganizerEmail = user.Email,
+                    IsApprove = null,
+                    Message = null,
+                    Version = version,
+                    UpdateForEventId = version == 1 ? null : version == 2 ? lastEventByOrganizerEmail?.Id : lastEventByOrganizerEmail?.UpdateForEventId
                 };
 
                 var setEvent = await SetBaseEntityToCreateFunc(evt);
@@ -65,7 +97,7 @@ namespace AIBookStreet.Services.Services.Service
                     {
                         await _firebaseStorageService.DeleteFileAsync(videoUrl);
                     }
-                    return (3, null);
+                    return (3, null, "Thêm thất bại, vui lòng kiểm tra lại");
                 }
 
                 if (model.OtherImgFile != null)
@@ -85,93 +117,150 @@ namespace AIBookStreet.Services.Services.Service
                     var result = _imageService.AddImages(images);
                     if (result == null)
                     {
-                        return (3, null);
+                        await _repository.EventRepository.Remove(setEvent);
+                        return (3, null, "Thêm ảnh thất bại, vui lòng kiểm tra lại");
                     }
                 }
-                return (2, setEvent);
+                if (version != 1 && lastEventByOrganizerEmail != null && lastEventByOrganizerEmail.EventSchedules != null)
+                {
+                    foreach(var schedule in lastEventByOrganizerEmail.EventSchedules)
+                    {
+                        await _repository.EventScheduleRepository.Remove(schedule);
+                    }
+                }
+                foreach (var schedule in schedules)
+                {
+                    var evtSchedule = new EventSchedule
+                    {
+                        Id = Guid.NewGuid(),
+                        CreatedBy = user.Email,
+                        CreatedDate = DateTime.Now,
+                        LastUpdatedBy = user.Email,
+                        LastUpdatedDate = DateTime.Now,
+                        IsDeleted = false,
+                        EventDate = DateOnly.Parse(schedule.EventDate),
+                        StartTime = TimeOnly.Parse(schedule.StartTime),
+                        EndTime = TimeOnly.Parse(schedule.EndTime),
+                        EventId = setEvent.Id
+                    };
+                    var res = await _repository.EventScheduleRepository.Add(evtSchedule);
+                    if (!res)
+                    {
+                        await _repository.EventRepository.Remove(setEvent);
+                        return (3, null, "Thêm lịch sự kiện thất bại, vui lòng kiểm tra lại");
+                    }
+                }
+                //var evtSchedule = new EventSchedule
+                //{
+                //    Id = Guid.NewGuid(),
+                //    CreatedBy = user.Email,
+                //    CreatedDate = DateTime.Now,
+                //    LastUpdatedBy = user.Email,
+                //    LastUpdatedDate = DateTime.Now,
+                //    IsDeleted = false,
+                //    EventDate = DateOnly.Parse(model.EventScheduleModel.EventDate),
+                //    StartTime = TimeOnly.Parse(model.EventScheduleModel.StartTime),
+                //    EndTime = TimeOnly.Parse(model.EventScheduleModel.EndTime),
+                //    EventId = setEvent.Id
+                //};
+                //var res = await _repository.EventScheduleRepository.Add(evtSchedule);
+                //if (!res)
+                //{
+                //    await _repository.EventRepository.Remove(setEvent);
+                //    return (3, null, "Thêm lịch sự kiện thất bại, vui lòng kiểm tra lại");
+                //}
+
+                return (2, setEvent, "Đã thêm thông tin sự kiện");
             }
             catch (Exception)
             {
                 throw;
             }
         }
-        public async Task<(long, Event?)> UpdateAnEvent(Guid id, EventModel model)
-        {
-            var existed = await _repository.EventRepository.GetByID(id);
-            if (existed == null)
-            {
-                return (1, null); //khong ton tai
-            }
-            if (existed.IsDeleted)
-            {
-                return (3, null);
-            }
+        public async Task<(long, Event?, string)> ProcessEvent(Guid id, ProcesingEventModel model)
+        {           
             try
             {
-                var newFileUrl = model.BaseImgFile != null ? await _firebaseStorageService.UploadFileAsync(model.BaseImgFile) : "";
-                var newVideoUrl = model.VideoFile != null ? await _firebaseStorageService.UploadFileAsync(model.VideoFile) : "";
+                var user = await GetUserInfo();
+                var isAdmin = false;
+                if (user != null)
+                {
+                    foreach (var userRole in user.UserRoles)
+                    {
+                        if (userRole.Role.RoleName == "Admin")
+                        {
+                            isAdmin = true;
+                        }
+                    }
+                }
+                if (!isAdmin)
+                {
+                    return (4, null, "Vui lòng đăng nhập với vai trò Quản trị viên");
+                }
+                var existed = await _repository.EventRepository.GetByID(id);
+                if (existed == null)
+                {
+                    return (1, null, "Không tìm thấy sự kiện"); //khong ton tai
+                }
+                if (existed.IsDeleted)
+                {
+                    return (3, null, "Sự kiện đã bị xóa");
+                }
+                
+                if (!model.IsApprove && string.IsNullOrEmpty(model.Message))
+                {
+                    return (3, null, "Vui lòng nhập lý do từ chối sự kiện");
+                }
+                existed.IsApprove = model.IsApprove;
+                existed.Message = !model.IsApprove ? model.Message : null;
 
-                var oldFileUrl = existed.BaseImgUrl;
-                var oldVideoFile = existed.VideoLink;
-                // Update entity
-                existed.EventName = model.EventName;
-                existed.OrganizerEmail = model.OrganizerEmail;
-                existed.Description = model.Description ?? existed.Description;
-                existed.StartDate = model.StartDate != null ? model.StartDate.Value.ToLocalTime() : existed.StartDate;
-                existed.EndDate = model.EndDate != null ? model.EndDate.Value.ToLocalTime() : existed.EndDate;
-                existed.BaseImgUrl = newFileUrl == "" ? existed.BaseImgUrl : newFileUrl;
-                existed.VideoLink = newVideoUrl == "" ? existed.VideoLink : newVideoUrl;
-                existed.IsOpen = model.IsOpen;
-                existed.ZoneId = model.ZoneId != null ? model.ZoneId : existed.ZoneId;
                 existed = await SetBaseEntityToUpdateFunc(existed);
 
                 var updateSuccess = await _repository.EventRepository.Update(existed);
                 if (updateSuccess)
                 {
-                    if (model.BaseImgFile != null && !string.IsNullOrEmpty(oldFileUrl))
-                    {
-                        await _firebaseStorageService.DeleteFileAsync(oldFileUrl);
-                    }
-                    if (model.VideoFile != null && !string.IsNullOrEmpty(oldVideoFile))
-                    {
-                        await _firebaseStorageService.DeleteFileAsync(oldVideoFile);
-                    }
-                    return (2, existed); //update thành công
+                    return (2, existed, "Đã xử lý sự kiện"); //update thành công
                 }
-
-                // Cleanup new file if update fails
-                if (model.BaseImgFile != null)
-                {
-                    await _firebaseStorageService.DeleteFileAsync(newFileUrl);
-                }
-                if (model.VideoFile != null)
-                {
-                    await _firebaseStorageService.DeleteFileAsync(newVideoUrl);
-                }
-                return (3, null); //update fail
+                return (3, null, "Đã xảy ra lỗi, vui lòng thử lại sau"); //update fail
             }
-            catch
+            catch (Exception)
             {
                 throw;
             }
         }
-        public async Task<(long, Event?)> DeleteAnEvent(Guid id)
+        public async Task<(long, Event?, string?)> DeleteAnEvent(Guid id)
         {
-            var existed = await _repository.EventRepository.GetByID(id);
-            if (existed == null)
+            try
             {
-                return (1, null); //khong ton tai
-            }
-            if (existed.IsDeleted)
-            {
-                return (3, null);
-            }
-            existed = await SetBaseEntityToUpdateFunc(existed);
+                var user = await GetUserInfo();
+                var isStaff = false;
+                if (user != null)
+                {
+                    foreach (var userRole in user.UserRoles)
+                    {
+                        if (userRole.Role.RoleName == "Staff")
+                        {
+                            isStaff = true;
+                        }
+                    }
+                }
+                if (!isStaff)
+                {
+                    return (4, null, "Vui lòng đăng nhập với vai trò Người tổ chức sự kiện");
+                }
+                var existed = await _repository.EventRepository.GetByID(id);
+                if (existed == null)
+                {
+                    return (1, null, "Không tìm thấy sự kiện"); //khong ton tai
+                }
+                if (existed.IsDeleted)
+                {
+                    return (3, null, "Sự kiện đã bị xóa trước đây");
+                }
+                existed = await SetBaseEntityToUpdateFunc(existed);
 
-            var isSuccess = await _repository.EventRepository.Delete(existed);
-            if (isSuccess)
-            {
-                try
+                var isSuccess = await _repository.EventRepository.Delete(existed);
+                if (isSuccess)
                 {
                     if (!string.IsNullOrEmpty(existed.BaseImgUrl))
                     {
@@ -189,14 +278,29 @@ namespace AIBookStreet.Services.Services.Service
                             await _firebaseStorageService.DeleteFileAsync(image.Url);
                         }
                     }
+                    var schedules = existed.EventSchedules;
+                    if (schedules != null)
+                    {
+                        foreach (var schedule in schedules)
+                        {
+                            await _repository.EventScheduleRepository.Remove(schedule);
+                        }
+                    }
+                    var eventRegistrations = await _repository.EventRegistrationRepository.GetAll(id, null);
+                    if (eventRegistrations != null)
+                    {
+                        foreach (var er in eventRegistrations)
+                        {
+                            await _repository.EventRegistrationRepository.Remove(er);
+                        }
+                    }
+                    return (2, existed, "Đã xóa sự kiện");//delete thanh cong
                 }
-                catch
-                {
-                    throw;
-                }
-                return (2, existed);//delete thanh cong
+                return (3, null, "Không thể xóa sự kiện, vui lòng thử lại sau");       //delete fail
+            } catch
+            {
+                throw;
             }
-            return (3, null);       //delete fail
         }
         public async Task<(Event?, List<object>, List<object>, List<object>, List<object>, List<object>, int)> GetAnEventById(Guid id)
         {
@@ -218,9 +322,10 @@ namespace AIBookStreet.Services.Services.Service
                     }
                 }
             }
+
             var events = isAdmin ? await _repository.EventRepository.GetAllPaginationForAdmin(key, allowAds, start, end, streetID, pageNumber, pageSize, sortField, desc)
-                                                   : await _repository.EventRepository.GetAllPagination(key, allowAds, start, end, streetID, pageNumber, pageSize, sortField, desc);
-            return events.Item1.Count > 0 ? (events.Item1, events.Item2) : (null, 0);
+                                                   : await _repository.EventRepository.GetAllPagination(key, allowAds, streetID, pageNumber, pageSize, sortField, desc);
+            return events.Item1?.Count > 0 ? (events.Item1, events.Item2) : (null, 0);
         }
         public async Task<List<Event>?> GetEventComing(int number, bool? allowAds)
         {
@@ -244,7 +349,7 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.EventRepository.GetByDate(date);
         }
-        public async Task<List<Event>> GetRandom(int number)
+        public async Task<List<Event>?> GetRandom(int number)
         {
             return await _repository.EventRepository.GetRandom(number);
         }
@@ -272,6 +377,107 @@ namespace AIBookStreet.Services.Services.Service
             }
             var events = await _repository.EventRepository.GetEventsForStaff(date, pageNumber, pageSize, sortField, desc);
             return (events.Item1, events.Item2);
+        }
+        public async Task<(List<Event>?, long)> GetEventRequests(int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        {
+            try
+            {
+                var user = await GetUserInfo();
+                var isAdmin = false;
+                if (user != null)
+                {
+                    foreach (var userRole in user.UserRoles)
+                    {
+                        if (userRole.Role.RoleName == "Admin")
+                        {
+                            isAdmin = true;
+                        }
+                    }
+                }
+                if (!isAdmin)
+                {
+                    return (null, 99);
+                }
+                var events = await _repository.EventRepository.GetEventRequests(pageNumber, pageSize, sortField, desc);
+                return (events.Item1, events.Item2);
+            } catch
+            {
+                throw;
+            }
+        }
+        public async Task<(long, Event?, string)> OpenState(Guid id)
+        {
+            try
+            {
+                var user = await GetUserInfo();
+                var isAdmin = false;
+                if (user != null)
+                {
+                    foreach (var userRole in user.UserRoles)
+                    {
+                        if (userRole.Role.RoleName == "Admin")
+                        {
+                            isAdmin = true;
+                        }
+                    }
+                }
+                if (!isAdmin)
+                {
+                    return (4, null, "Vui lòng đăng nhập với vai trò Quản trị viên");
+                }
+                var existed = await _repository.EventRepository.GetByID(id);
+                if (existed == null)
+                {
+                    return (1, null, "Không tìm thấy sự kiện"); //khong ton tai
+                }
+                if (existed.IsDeleted)
+                {
+                    return (3, null, "Sự kiện đã bị xóa");
+                }
+
+                existed.IsOpen = !existed.IsOpen;
+
+                existed = await SetBaseEntityToUpdateFunc(existed);
+
+                var updateSuccess = await _repository.EventRepository.Update(existed);
+                if (updateSuccess)
+                {
+                    return (2, existed, "Đã xử lý sự kiện"); //update thành công
+                }
+                return (3, null, "Đã xảy ra lỗi, vui lòng thử lại sau"); //update fail
+            } catch
+            {
+                throw;
+            }
+        }
+        public async Task<(long, List<Event>?)> GetHistory(Guid eventId)
+        {
+            try
+            {
+                var existed = await _repository.EventRepository.GetByID(eventId);
+                if (existed == null)
+                {
+                    return (1, null); //khong ton tai
+                }
+                var history = new List<Event>
+                {
+                    existed
+                };
+                var otherVersions = await _repository.EventRepository.GetHistory(existed.UpdateForEventId);
+                if (otherVersions != null && otherVersions.Count > 0)
+                {
+                    otherVersions.Remove(otherVersions.Last());
+                    foreach (var version in otherVersions)
+                    {
+                        history.Add(version);
+                    }
+                }
+                return (2, history);
+            }
+            catch
+            {
+                throw;
+            }
         }
     }
 }

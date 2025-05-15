@@ -18,5 +18,6 @@ namespace AIBookStreet.Services.Services.Interface
         Task<(long, List<EventRegistration>?)> GetAllActiveEventRegistrations(Guid eventId, string? searchKey);
         Task<(List<object>, List<object>, List<object>, List<object>, List<object>, int, int)> Test (Guid eventId, bool? isAttend);
         //Task<(long, List<EventRegistration>?)> CheckListAttend(List<CheckAttendModel>? list);
+        Task<EventRegistration?> Remove(EventRegistration model);
     }
 }

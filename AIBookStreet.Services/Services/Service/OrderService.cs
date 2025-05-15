@@ -118,6 +118,7 @@ namespace AIBookStreet.Services.Services.Service
                             var result = await _repository.OrderDetailRepository.Update(item);
                             if (!result)
                             {
+                                await _repository.OrderRepository.Remove(setOrder);
                                 return (3, null, "Không thể cập nhật chi tiết đơn hàng");
                             }
                         }
@@ -129,16 +130,19 @@ namespace AIBookStreet.Services.Services.Service
                             var clientId = _configuration["payOS:ClientId"];
                             if (clientId == null)
                             {
+                                await _repository.OrderRepository.Remove(setOrder);
                                 return (0, null, "ClientId not found"); //ClientId not found
                             }
                             var apiKey = _configuration["payOS:ApiKey"];
                             if (apiKey == null)
                             {
+                                await _repository.OrderRepository.Remove(setOrder);
                                 return (0, null, "ApiKey not found"); //ApiKey not found
                             }
                             var checksumKey = _configuration["payOS:ChecksumKey"];
                             if (checksumKey == null)
                             {
+                                await _repository.OrderRepository.Remove(setOrder);
                                 return (0, null, "ChecksumKey not found"); //ChecksumKey not found
                             }
                             PayOS _payOS = new(
@@ -229,7 +233,13 @@ namespace AIBookStreet.Services.Services.Service
         }
         public async Task<Order?> GetAnOrderById(Guid orderId)
         {
-            return await _repository.OrderRepository.GetByID(orderId);
+            try
+            {
+                return await _repository.OrderRepository.GetByID(orderId);
+            } catch
+            {
+                throw;
+            }
         }
         public async Task<(List<Order>?, long, string?)> GetPaginationOrders(decimal? minAmount, decimal? maxAmount, string? paymentMethod, string? status, DateTime? startDate, DateTime? endDate, Guid? storeId, int? pageNumber, int? pageSize, string? sortField, int? sortOrder)
         {
@@ -392,117 +402,153 @@ namespace AIBookStreet.Services.Services.Service
         }
         public async Task<(List<object>?, List<object>?, int, decimal?)> GetAllStoreStaticsByDate(DateTime? date)
         {
-            var stores = await _repository.StoreRepository.GetAll();
-            var orderResult = new List<object>();
-            var amountResult = new List<object>();
-            decimal? totalProfit = 0;
-            var totalOrder = 0;
-            foreach (var store in stores)
-            {                
-                var result = await _repository.OrderRepository.GetStoreStaticsByDate(date, store.Id);
-                orderResult.Add(new
+            try
+            {
+                var stores = await _repository.StoreRepository.GetAll();
+                var orderResult = new List<object>();
+                var amountResult = new List<object>();
+                decimal? totalProfit = 0;
+                var totalOrder = 0;
+                foreach (var store in stores)
                 {
-                    Label = store.StoreName,
-                    Value = result.Item3
-                });
-                amountResult.Add(new
-                {
-                    Label = store.StoreName,
-                    Value = result.Item4
-                });
-                totalProfit += result.Item4;
-                totalOrder += result.Item3;
+                    var result = await _repository.OrderRepository.GetStoreStaticsByDate(date, store.Id);
+                    orderResult.Add(new
+                    {
+                        Label = store.StoreName,
+                        Value = result.Item3
+                    });
+                    amountResult.Add(new
+                    {
+                        Label = store.StoreName,
+                        Value = result.Item4
+                    });
+                    totalProfit += result.Item4;
+                    totalOrder += result.Item3;
+                }
+                return (orderResult, amountResult, totalOrder, totalProfit);
+            } catch
+            {
+                throw;
             }
-            return (orderResult, amountResult, totalOrder, totalProfit);
         }
         public async Task<(List<object>?, List<object>?, int, decimal?)> GetAllStoreStaticsByMonth(int? month, int? year)
         {
-            var stores = await _repository.StoreRepository.GetAll();
-            var orderResult = new List<object>();
-            var amountResult = new List<object>();
-            decimal? totalProfit = 0;
-            var totalOrder = 0;
-            foreach (var store in stores)
-            {                
-                var result = await _repository.OrderRepository.GetStoreStaticsByMonth(month, year, store.Id);
-                orderResult.Add(new
+            try
+            {
+                var stores = await _repository.StoreRepository.GetAll();
+                var orderResult = new List<object>();
+                var amountResult = new List<object>();
+                decimal? totalProfit = 0;
+                var totalOrder = 0;
+                foreach (var store in stores)
                 {
-                    Label = store.StoreName,
-                    Value = result.Item3
-                });
-                amountResult.Add(new
-                {
-                    Label = store.StoreName,
-                    Value = result.Item4
-                });
-                totalProfit += result.Item4;
-                totalOrder += result.Item3;
+                    var result = await _repository.OrderRepository.GetStoreStaticsByMonth(month, year, store.Id);
+                    orderResult.Add(new
+                    {
+                        Label = store.StoreName,
+                        Value = result.Item3
+                    });
+                    amountResult.Add(new
+                    {
+                        Label = store.StoreName,
+                        Value = result.Item4
+                    });
+                    totalProfit += result.Item4;
+                    totalOrder += result.Item3;
+                }
+                return (orderResult, amountResult, totalOrder, totalProfit);
+            } catch
+            {
+                throw;
             }
-            return (orderResult, amountResult, totalOrder, totalProfit);
         }
         public async Task<(List<object>?, List<object>?, int, decimal?)> GetAllStoreStaticsByYear(int? year)
         {
-            var stores = await _repository.StoreRepository.GetAll();
-            var orderResult = new List<object>();
-            var amountResult = new List<object>();
-            decimal? totalProfit = 0;
-            var totalOrder = 0;
-            foreach (var store in stores)
-            {               
-                var result = await _repository.OrderRepository.GetStoreStaticsByYear(year, store.Id);
-                orderResult.Add(new
+            try
+            {
+                var stores = await _repository.StoreRepository.GetAll();
+                var orderResult = new List<object>();
+                var amountResult = new List<object>();
+                decimal? totalProfit = 0;
+                var totalOrder = 0;
+                foreach (var store in stores)
                 {
-                    Label = store.StoreName,
-                    Value = result.Item3
-                });
-                amountResult.Add(new
-                {
-                    Label = store.StoreName,
-                    Value = result.Item4
-                });
-                totalProfit += result.Item4;
-                totalOrder += result.Item3;
+                    var result = await _repository.OrderRepository.GetStoreStaticsByYear(year, store.Id);
+                    orderResult.Add(new
+                    {
+                        Label = store.StoreName,
+                        Value = result.Item3
+                    });
+                    amountResult.Add(new
+                    {
+                        Label = store.StoreName,
+                        Value = result.Item4
+                    });
+                    totalProfit += result.Item4;
+                    totalOrder += result.Item3;
+                }
+                return (orderResult, amountResult, totalOrder, totalProfit);
+            } catch
+            {
+                throw;
             }
-            return (orderResult, amountResult, totalOrder, totalProfit);
         }
         public async Task<(List<object>?, List<object>?, int, decimal?)> GetStoreStaticsByDate(DateTime? date, Guid storeId)
         {
-            var result = await _repository.OrderRepository.GetStoreStaticsByDate(date, storeId);
-            return result;
+            try
+            {
+                var result = await _repository.OrderRepository.GetStoreStaticsByDate(date, storeId);
+                return result;
+            } catch
+            {
+                throw;
+            }
         }
         public async Task<(List<object>?, List<object>?, int, decimal?)> GetStoreStaticsByMonth(int? month, int? year, Guid storeId)
         {
-            var orderDetails = await _repository.OrderDetailRepository.GetAllOrderDetail(null, null, storeId, null);
-            var orderIds = new List<Guid?>();
-            if (orderDetails != null)
+            try
             {
-                foreach (var orderDetail in orderDetails)
+                var orderDetails = await _repository.OrderDetailRepository.GetAllOrderDetail(null, null, storeId, null);
+                var orderIds = new List<Guid?>();
+                if (orderDetails != null)
                 {
-                    if (orderDetail.OrderId != null)
+                    foreach (var orderDetail in orderDetails)
                     {
-                        orderIds.Add(orderDetail.OrderId);
+                        if (orderDetail.OrderId != null)
+                        {
+                            orderIds.Add(orderDetail.OrderId);
+                        }
                     }
                 }
+                var result = await _repository.OrderRepository.GetStoreStaticsByMonth(month, year, storeId);
+                return result;
+            } catch
+            {
+                throw;
             }
-            var result = await _repository.OrderRepository.GetStoreStaticsByMonth(month, year, storeId);
-            return result;
         }
         public async Task<(List<object>?, List<object>?, int, decimal?)> GetStoreStaticsByYear(int? year, Guid storeId)
         {
-            var orderDetails = await _repository.OrderDetailRepository.GetAllOrderDetail(null, null, storeId, null);
-            var orderIds = new List<Guid?>();
-            if (orderDetails != null)
+            try
             {
-                foreach (var orderDetail in orderDetails)
+                var orderDetails = await _repository.OrderDetailRepository.GetAllOrderDetail(null, null, storeId, null);
+                var orderIds = new List<Guid?>();
+                if (orderDetails != null)
                 {
-                    if (orderDetail.OrderId != null)
+                    foreach (var orderDetail in orderDetails)
                     {
-                        orderIds.Add(orderDetail.OrderId);
+                        if (orderDetail.OrderId != null)
+                        {
+                            orderIds.Add(orderDetail.OrderId);
+                        }
                     }
                 }
+                var result = await _repository.OrderRepository.GetStoreStaticsByYear(year, storeId);
+                return result;
+            } catch
+            {
+                throw;
             }
-            var result = await _repository.OrderRepository.GetStoreStaticsByYear(year, storeId);
-            return result;
         }
     }
 }

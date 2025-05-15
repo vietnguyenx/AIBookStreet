@@ -78,18 +78,18 @@ namespace AIBookStreet.Services.Services.Service
             }
         }
         public async Task<(long, Street?)> UpdateAStreet(Guid id, StreetModel model)
-        {
-            var existed = await _repository.StreetRepository.GetByID(id);
-            if (existed == null)
-            {
-                return (1, null); //khong ton tai
-            }
-            if (existed.IsDeleted)
-            {
-                return (3, null);
-            }
+        {            
             try
             {
+                var existed = await _repository.StreetRepository.GetByID(id);
+                if (existed == null)
+                {
+                    return (1, null); //khong ton tai
+                }
+                if (existed.IsDeleted)
+                {
+                    return (3, null);
+                }
                 var newFileUrl = model.BaseImgFile != null ? await _firebaseStorageService.UploadFileAsync(model.BaseImgFile) : "";
 
                 var oldFileUrl = existed.BaseImgUrl;
@@ -126,70 +126,87 @@ namespace AIBookStreet.Services.Services.Service
         }
         public async Task<(long, Street?)> DeleteAStreet(Guid id)
         {
-            var existed = await _repository.StreetRepository.GetByID(id);
-            if (existed == null)
+            try
             {
-                return (1, null); //khong ton tai
-            }
-            if (existed.IsDeleted)
-            {
-                return (3, null);
-            }
-            existed = await SetBaseEntityToUpdateFunc(existed);
+                var existed = await _repository.StreetRepository.GetByID(id);
+                if (existed == null)
+                {
+                    return (1, null); //khong ton tai
+                }
+                if (existed.IsDeleted)
+                {
+                    return (3, null);
+                }
+                existed = await SetBaseEntityToUpdateFunc(existed);
 
-            var isSuccess = await _repository.StreetRepository.Delete(existed);
-            if (isSuccess)
-            {
-                try
+                var isSuccess = await _repository.StreetRepository.Delete(existed);
+                if (isSuccess)
                 {
-                    if (!string.IsNullOrEmpty(existed.BaseImgUrl))
-                    {
-                        await _firebaseStorageService.DeleteFileAsync(existed.BaseImgUrl);
-                    }
-                    var otherImages = existed.Images;
-                    if (otherImages != null)
-                    {
-                        foreach (var image in otherImages)
+                        if (!string.IsNullOrEmpty(existed.BaseImgUrl))
                         {
-                            await _firebaseStorageService.DeleteFileAsync(image.Url);
+                            await _firebaseStorageService.DeleteFileAsync(existed.BaseImgUrl);
                         }
-                    }
+                        var otherImages = existed.Images;
+                        if (otherImages != null)
+                        {
+                            foreach (var image in otherImages)
+                            {
+                                await _firebaseStorageService.DeleteFileAsync(image.Url);
+                            }
+                        }
+                    return (2, existed);//delete thanh cong
                 }
-                catch
-                {
-                    throw;
-                }
-                return (2, existed);//delete thanh cong
+                return (3, null);       //delete fail
+            } catch
+            {
+                throw;
             }
-            return (3, null);       //delete fail
         }
         public async Task<Street?> GetAStreetById(Guid id)
         {
-            return await _repository.StreetRepository.GetByID(id);
+            try
+            {
+                return await _repository.StreetRepository.GetByID(id);
+            } catch
+            {
+                throw;
+            }
         }
         public async Task<(List<Street>?, long)> GetAllStreetsPagination(string? key, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
-            var user = await GetUserInfo();
-            var isAdmin = false;
-            if (user != null)
+            try
             {
-                foreach (var userRole in user.UserRoles)
+                var user = await GetUserInfo();
+                var isAdmin = false;
+                if (user != null)
                 {
-                    if (userRole.Role.RoleName == "Admin")
+                    foreach (var userRole in user.UserRoles)
                     {
-                        isAdmin = true;
+                        if (userRole.Role.RoleName == "Admin")
+                        {
+                            isAdmin = true;
+                        }
                     }
                 }
+                var streets = isAdmin ? await _repository.StreetRepository.GetAllPaginationForAdmin(key, pageNumber, pageSize, sortField, desc)
+                                                        : await _repository.StreetRepository.GetAllPagination(key, pageNumber, pageSize, sortField, desc);
+                return streets.Item1.Count > 0 ? (streets.Item1, streets.Item2) : (null, 0);
+            } catch
+            {
+                throw;
             }
-            var streets = isAdmin ? await _repository.StreetRepository.GetAllPaginationForAdmin(key, pageNumber, pageSize, sortField, desc)
-                                                    : await _repository.StreetRepository.GetAllPagination(key, pageNumber, pageSize, sortField, desc);
-            return streets.Item1.Count > 0 ? (streets.Item1, streets.Item2) : (null, 0);
         }
         public async Task<List<Street>?> GetAllActiveStreets()
         {
-            var streets = await _repository.StreetRepository.GetAll();
+            try
+            {
+                var streets = await _repository.StreetRepository.GetAll();
 
-            return streets.Count == 0 ? null : streets;
+                return streets.Count == 0 ? null : streets;
+            } catch
+            {
+                throw;
+            }
         }
     }
 }

@@ -32,5 +32,6 @@ namespace AIBookStreet.Repositories.Repositories.UnitOfWork.Interface
         IPersonRepository PersonRepository { get; }
         IEventRegistrationRepository EventRegistrationRepository { get; }
         ITicketRepository TicketRepository { get; }
+        IEventScheduleRepository EventScheduleRepository { get; }
     }
 }
