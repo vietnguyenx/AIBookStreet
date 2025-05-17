@@ -245,7 +245,7 @@ namespace AIBookStreet.API.Controllers
                 // User needs to change password
                 if (needsPasswordChange)
                 {
-                    return Ok(new LoginResponse<UserModel>(null, null, null, message, true));
+                    return StatusCode(403, new BaseResponse(false, message));
                 }
 
                 // Login failed
