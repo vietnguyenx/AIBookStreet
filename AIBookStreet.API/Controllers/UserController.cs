@@ -251,7 +251,7 @@ namespace AIBookStreet.API.Controllers
                 // Login failed
                 if (userModel == null)
                 {
-                    return Ok(new LoginResponse<UserModel>(null, null, null, ConstantMessage.Fail));
+                    return Unauthorized(new BaseResponse(false, ConstantMessage.Fail));
                 }
 
                 // Login successful
