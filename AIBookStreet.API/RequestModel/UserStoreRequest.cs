@@ -1,4 +1,6 @@
-﻿namespace AIBookStreet.API.RequestModel
+﻿using Microsoft.AspNetCore.Http;
+
+namespace AIBookStreet.API.RequestModel
 {
     public class UserStoreRequest
     {
@@ -8,6 +10,7 @@
         public DateTime? EndDate { get; set; }
         public string? Status { get; set; }     //Active, Terminated, Expired
         public string? ContractNumber { get; set; } // hop dong thue (neu co)
+        public IFormFile? ContractFile { get; set; } // File hợp đồng
         public string? Notes { get; set; }
     }
 }
