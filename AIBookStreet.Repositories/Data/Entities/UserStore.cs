@@ -19,6 +19,7 @@ namespace AIBookStreet.Repositories.Data.Entities
         public DateTime? EndDate { get; set; }   
         public string? Status { get; set; }     //Active, Terminated, Expired
         public string? ContractNumber { get; set; } // hop dong thue (neu co)
+        public string? ContractFileUrl { get; set; } // URL của file hợp đồng
         public string? Notes { get; set; }
     }
 }

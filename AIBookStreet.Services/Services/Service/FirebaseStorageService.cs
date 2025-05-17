@@ -1,4 +1,4 @@
-using AIBookStreet.Services.Model;
+﻿using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
@@ -52,7 +52,7 @@ namespace AIBookStreet.Services.Services.Service
             }
             catch (Exception ex)
             {
-                throw new Exception($"Failed to upload file: {ex.Message}");
+                throw new Exception($"Không tải được tệp lên: {ex.Message}");
             }
         }
 
@@ -65,7 +65,7 @@ namespace AIBookStreet.Services.Services.Service
                     return;
                 }
 
-                _logger.LogInformation($"Attempting to delete file: {fileUrl}");
+                _logger.LogInformation($"Đang cố gắng xóa tập tin: {fileUrl}");
 
                 // Handle different URL formats
                 string fileName;
@@ -136,11 +136,12 @@ namespace AIBookStreet.Services.Services.Service
                 "image/gif",
                 "video/mp4",
                 "video/mpeg",
-                "video/quicktime"
+                "video/quicktime",
+                "application/pdf"
             };
 
             if (!allowedTypes.Contains(file.ContentType.ToLower()))
-                throw new ArgumentException("File type not supported");
+                throw new ArgumentException($"Loại tệp không được hỗ trợ. Các loại được phép: {string.Join(", ", allowedTypes)}");
 
             // Additional validation can be added here
         }

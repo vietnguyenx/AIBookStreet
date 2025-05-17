@@ -81,16 +81,23 @@ namespace AIBookStreet.API.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> Add(UserStoreRequest userStoreRequest)
+        public async Task<IActionResult> Add([FromForm] UserStoreRequest userStoreRequest)
         {
             try
             {
-                var (isSuccess, message) = await _userStoreService.Add(_mapper.Map<UserStoreModel>(userStoreRequest));
-                return Ok(new BaseResponse(isSuccess, message));
+                var userStoreModel = _mapper.Map<UserStoreModel>(userStoreRequest);
+                userStoreModel.ContractFile = userStoreRequest.ContractFile;
+
+                var (isSuccess, message) = await _userStoreService.Add(userStoreModel);
+                return isSuccess switch
+                {
+                    true => Ok(new BaseResponse(isSuccess, message)),
+                    false => BadRequest(new BaseResponse(isSuccess, message))
+                };
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new BaseResponse(false, ex.Message));
             }
         }
 
@@ -107,17 +114,17 @@ namespace AIBookStreet.API.Controllers
                     return isUserStore switch
                     {
                         true => Ok(new BaseResponse(isUserStore, ConstantMessage.Success)),
-                        _ => Ok(new BaseResponse(isUserStore, ConstantMessage.Fail))
+                        _ => BadRequest(new BaseResponse(isUserStore, ConstantMessage.Fail))
                     };
                 }
                 else
                 {
-                    return BadRequest("IDs must not be empty");
+                    return BadRequest(new BaseResponse(false, "IDs must not be empty"));
                 }
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new BaseResponse(false, ex.Message));
             }
         }
     }
