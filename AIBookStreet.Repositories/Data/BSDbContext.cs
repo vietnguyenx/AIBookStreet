@@ -196,8 +196,6 @@ namespace AIBookStreet.Repositories.Data
                 e.ToTable("Stores");
                 e.Property(x => x.StoreName).HasMaxLength(255).IsRequired();
                 e.Property(x => x.Address).HasMaxLength(500).IsRequired(false);
-                e.Property(x => x.Phone).HasMaxLength(15).IsRequired(false);
-                e.Property(x => x.Email).HasMaxLength(100).IsRequired(false);
                 e.Property(x => x.Description).HasMaxLength(2000).IsRequired(false);
                 e.Property(x => x.StoreTheme).HasMaxLength(2000).IsRequired(false);
                 e.Property(x => x.BaseImgUrl).HasMaxLength(2000).IsRequired(false);
