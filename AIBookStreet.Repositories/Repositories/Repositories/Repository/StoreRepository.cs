@@ -65,18 +65,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                         EF.Functions.Collate(bs.Address, "Latin1_General_CI_AI").Contains(store.Address));
                 }
 
-                if (!string.IsNullOrEmpty(store.Phone))
-                {
-                    queryable = queryable.Where(bs =>
-                        EF.Functions.Collate(bs.Phone, "Latin1_General_CI_AI").Contains(store.Phone));
-                }
-
-                if (!string.IsNullOrEmpty(store.Email))
-                {
-                    queryable = queryable.Where(bs =>
-                        EF.Functions.Collate(bs.Email, "Latin1_General_CI_AI").Contains(store.Email));
-                }
-
                 if (!string.IsNullOrEmpty(store.StoreTheme))
                 {
                     queryable = queryable.Where(bs =>
@@ -120,18 +108,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 queryable = queryable.Where(bs =>
                     EF.Functions.Collate(bs.Address, "Latin1_General_CI_AI").Contains(store.Address));
-            }
-
-            if (!string.IsNullOrEmpty(store.Phone))
-            {
-                queryable = queryable.Where(bs =>
-                    EF.Functions.Collate(bs.Phone, "Latin1_General_CI_AI").Contains(store.Phone));
-            }
-
-            if (!string.IsNullOrEmpty(store.Email))
-            {
-                queryable = queryable.Where(bs =>
-                    EF.Functions.Collate(bs.Email, "Latin1_General_CI_AI").Contains(store.Email));
             }
 
             if (!string.IsNullOrEmpty(store.StoreTheme))

@@ -6,8 +6,6 @@ namespace AIBookStreet.API.RequestModel
     {
         public string StoreName { get; set; }
         public string? Address { get; set; }
-        public string? Phone { get; set; }
-        public string? Email { get; set; }
         public string? StoreTheme { get; set; }
         public string? BaseImgUrl { get; set; }
         public IFormFile? MainImageFile { get; set; }
