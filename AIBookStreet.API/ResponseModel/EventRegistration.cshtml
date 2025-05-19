@@ -219,18 +219,21 @@
                     <div class="ticket-left">
                         <table>
                             <tbody style="text-align: left">
-                                <tr>
-                                    <td style="width: 120px">
-                                        <strong>Thời gian:</strong>
-                                    </td>
-                                    <td>@Model.EventRegistration?.Event?.EventSchedules.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate.ToString("dd/MM/yyyy")</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <strong>Giờ mở cửa:</strong>
-                                    </td>
-                                    <td>@Model.EventRegistration?.Event?.EventSchedules.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate.ToString("HH:mm")</td>
-                                </tr>
+                                @if (@Model.EventRegistration?.Event?.EventSchedules != null)
+                                {
+                                    <tr>
+                                        <td style="width: 120px">
+                                            <strong>Thời gian:</strong>
+                                        </td>
+                                        <td>@Model.EventRegistration?.Event?.EventSchedules?.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate.ToString("dd/MM/yyyy")</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>Giờ mở cửa:</strong>
+                                        </td>
+                                        <td>@Model.EventRegistration?.Event?.EventSchedules?.OrderBy(e => e.EventDate).FirstOrDefault()?.StartTime.ToString("HH:mm")</td>
+                                    </tr>
+                                }
                                 <tr>
                                     <td style="display: flex">
                                         <strong>Địa điểm:</strong>

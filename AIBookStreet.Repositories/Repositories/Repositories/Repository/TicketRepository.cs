@@ -40,7 +40,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var ticket = await query.Include(t => t.EventRegistration)
                                         .ThenInclude(er => er.Event)
                                             .ThenInclude(e => e.Zone)
-                                                .ThenInclude(z => z.Street).SingleOrDefaultAsync();
+                                                .ThenInclude(z => z.Street)
+                                    .Include(t => t.EventRegistration)
+                                        .ThenInclude(er => er.Event)
+                                            .ThenInclude(e => e.EventSchedules).SingleOrDefaultAsync();
             return ticket;
         }
         public async Task<Ticket?> GetTicket(string email, string passcode)

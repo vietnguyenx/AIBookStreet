@@ -25,7 +25,11 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var order = desc != null && (desc != false);
             queryable = order ? base.ApplySort(queryable, field, 0) : base.ApplySort(queryable, field, 1);
             queryable = queryable.Include(e => e.EventSchedules);
-            queryable = queryable.Where(ev => !ev.IsDeleted && ev.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate >= DateOnly.FromDateTime(DateTime.Now) && ev.IsApprove.HasValue && ev.IsApprove == true);
+            queryable = queryable.Where(ev => !ev.IsDeleted 
+                                              && ev.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate >= DateOnly.FromDateTime(DateTime.Now) 
+                                              && ev.IsApprove.HasValue 
+                                              && ev.IsApprove == true 
+                                              && ev.IsOpen == true);
             if (allowAds != null)
             {
                 queryable = queryable.Where(e => e.AllowAds == allowAds);
@@ -62,7 +66,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             string field = string.IsNullOrEmpty(sortField) ? "CreatedDate" : sortField;
             var order = desc != null && (desc != false);
             queryable = order ? base.ApplySort(queryable, field, 0) : base.ApplySort(queryable, field, 1);
-            queryable = queryable.Where(ev => ev.IsApprove.HasValue && ev.IsApprove == true);
+            queryable = queryable.Where(ev => ev.IsApprove.HasValue && ev.IsApprove == true );
             queryable = queryable.Include(e => e.EventSchedules);
 
             if (allowAds != null)
@@ -127,7 +131,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             if (queryable.Any())
             {
-                queryable = queryable.Where(ev => !ev.IsDeleted && ev.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate >= DateOnly.FromDateTime(DateTime.Now) && ev.IsApprove.HasValue && ev.IsApprove == true);
+                queryable = queryable.Where(ev => !ev.IsDeleted && ev.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate >= DateOnly.FromDateTime(DateTime.Now) 
+                                                  && ev.IsApprove.HasValue 
+                                                  && ev.IsApprove == true 
+                                                  && ev.IsOpen == true);
             }
             queryable = GetQueryablePagination(queryable, 1, number);
 
@@ -147,7 +154,13 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             if (queryable.Any())
             {
-                queryable = queryable.Where(ev => ((ev.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault().EventDate.Month == month && ev.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault().EventDate.Year == DateTime.Now.Year) || (ev.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate.Month == month && ev.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate.Year == DateTime.Now.Year)) && ev.IsApprove.HasValue && ev.IsApprove == true);
+                queryable = queryable.Where(ev => ((ev.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault().EventDate.Month == month 
+                                                    && ev.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault().EventDate.Year == DateTime.Now.Year) 
+                                                    || (ev.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate.Month == month 
+                                                    && ev.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate.Year == DateTime.Now.Year)) 
+                                                    && ev.IsApprove.HasValue 
+                                                    && ev.IsApprove == true 
+                                                    && ev.IsOpen == true);
             }
 
             var events = await queryable.ToListAsync();
@@ -187,7 +200,11 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 if(date != null)
                 {
-                    queryable = queryable.Where(ev => ev.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault().EventDate <= DateOnly.FromDateTime(date.Value.Date) && ev.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate >= DateOnly.FromDateTime(date.Value.Date) && ev.IsApprove.HasValue && ev.IsApprove == true);
+                    queryable = queryable.Where(ev => ev.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault().EventDate <= DateOnly.FromDateTime(date.Value.Date) 
+                                                      && ev.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate >= DateOnly.FromDateTime(date.Value.Date) 
+                                                      && ev.IsApprove.HasValue 
+                                                      && ev.IsApprove == true 
+                                                      && ev.IsOpen == true);
                 }
             }
 
@@ -202,7 +219,8 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             queryable = queryable.Include(e => e.EventSchedules);
             if (queryable.Any())
             {
-                queryable = queryable.Where(ev => ev.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault().EventDate >= DateOnly.FromDateTime(DateTime.Now) && ev.IsApprove.HasValue && ev.IsApprove == true);
+                queryable = queryable.Where(ev => ev.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault().EventDate >= DateOnly.FromDateTime(DateTime.Now) 
+                                                  && ev.IsApprove.HasValue && ev.IsApprove == true && ev.IsOpen == true);
                 queryable = queryable.OrderBy(x => Guid.NewGuid());
             }
             var events = await queryable.Take(number).ToListAsync();
@@ -225,9 +243,9 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         {
             var queryable = GetQueryable();
             queryable = queryable.Include(e => e.EventSchedules);
-            queryable = queryable.Where(e => !e.IsDeleted && ((e.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault().EventDate.Month == month && e.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate.Month == month && e.IsApprove.HasValue && e.IsApprove == true) ||
-                                                                (e.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault().EventDate.Month == month && e.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate.Month == (month + 1) && e.IsApprove.HasValue && e.IsApprove == true) ||
-                                                                (e.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault().EventDate.Month == (month - 1) && e.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate.Month == month) && e.IsApprove.HasValue && e.IsApprove == true)
+            queryable = queryable.Where(e => !e.IsDeleted && ((e.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault().EventDate.Month == month && e.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate.Month == month && e.IsApprove.HasValue && e.IsApprove == true && e.IsOpen == true) 
+                                                          || (e.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault().EventDate.Month == month && e.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate.Month == (month + 1) && e.IsApprove.HasValue && e.IsApprove == true && e.IsOpen == true)
+                                                          || (e.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault().EventDate.Month == (month - 1) && e.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate.Month == month) && e.IsApprove.HasValue && e.IsApprove == true && e.IsOpen == true)
             );
             var eventRegistrations = await queryable.ToListAsync();
             return eventRegistrations.Count;
@@ -239,7 +257,12 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             queryable = queryable.Include(e => e.EventSchedules);
             var count = await queryable.CountAsync();
             date = date != null ? date : DateTime.Now;
-            queryable = queryable.Where(ev => !ev.IsDeleted && ev.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault().EventDate <= DateOnly.FromDateTime(date.Value.Date) && ev.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate >= DateOnly.FromDateTime(date.Value.Date) && ev.IsApprove.HasValue && ev.IsApprove == true);
+            queryable = queryable.Where(ev => !ev.IsDeleted 
+                                            && ev.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault().EventDate <= DateOnly.FromDateTime(date.Value.Date) 
+                                            && ev.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate >= DateOnly.FromDateTime(date.Value.Date) 
+                                            && ev.IsApprove.HasValue 
+                                            && ev.IsApprove == true 
+                                            && ev.IsOpen == true);
 
             var totalOrigin = queryable.Count();
             var x = await queryable.CountAsync();
@@ -327,9 +350,10 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 queryable = queryable.Where(e => (e.UpdateForEventId.HasValue && e.UpdateForEventId == eventId) || e.Id == eventId);
             }
-            var events = await queryable.OrderBy(e => e.Version).Include(e => e.Zone)
+            var events = await queryable.OrderBy(e => e.Version)
+                                        .Include(e => e.Zone)
                                             .ThenInclude(z => z.Street)
-                                    .ToListAsync();
+                                        .ToListAsync();
             return events;
         }
     }
