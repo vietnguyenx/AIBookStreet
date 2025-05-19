@@ -282,10 +282,10 @@ namespace AIBookStreet.API.Controllers
                     return BadRequest(new BaseResponse(false, "User data is required"));
                 }
                 
-                if (string.IsNullOrEmpty(userRequest.UserName) || string.IsNullOrEmpty(userRequest.Password))
+                if (string.IsNullOrEmpty(userRequest.UserName) || string.IsNullOrEmpty(userRequest.Password) || string.IsNullOrEmpty(userRequest.Email))
                 {
-                    Console.WriteLine($"Registration failed: Username or password missing");
-                    return BadRequest(new BaseResponse(false, "Username and password are required"));
+                    Console.WriteLine($"Registration failed: Username, password, or email missing");
+                    return BadRequest(new BaseResponse(false, "Username, password, and email are required"));
                 }
 
                 // Create basic user model without using mapper
@@ -322,7 +322,7 @@ namespace AIBookStreet.API.Controllers
                 if (registeredUser == null)
                 {
                     Console.WriteLine("Simplified registration returned null");
-                    return BadRequest(new BaseResponse(false, "User registration failed. The username or email may already be in use."));
+                    return BadRequest(new BaseResponse(false, "Đăng ký thất bại. Email hoặc tên đăng nhập đã được sử dụng."));
                 }
 
                 // Return success with user data
