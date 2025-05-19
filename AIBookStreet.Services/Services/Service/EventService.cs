@@ -25,19 +25,24 @@ namespace AIBookStreet.Services.Services.Service
             {
                 var user = await GetUserInfo();
                 var isStaff = false;
+                var isAdmin = false;
                 if (user != null)
                 {
                     foreach (var userRole in user.UserRoles)
                     {
-                        if (userRole.Role.RoleName == "Staff")
+                        if (userRole.Role.RoleName == "Staff" || userRole.Role.RoleName == "Admin")
                         {
                             isStaff = true;
+                            if (userRole.Role.RoleName == "Admin")
+                            {
+                                isAdmin = true;
+                            }
                         }
                     }
                 }
                 if (!isStaff)
                 {
-                    return (4, null, "Vui lòng đăng nhập với vai trò Người tổ chức sự kiện");
+                    return (4, null, "Vui lòng đăng nhập với vai trò 'Người tổ chức sự kiện' hoặc 'Quản trị viên'");
                 }
                 var existed = await _repository.EventRepository.CheckEventInZone(schedules.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate, schedules.OrderBy(e => e.EventDate).LastOrDefault()?.EventDate, model.ZoneId);
                 //var existed = await _repository.EventRepository.CheckEventInZone(model.EventScheduleModel.EventDate, model.EventScheduleModel.EventDate, model.ZoneId);
@@ -78,10 +83,10 @@ namespace AIBookStreet.Services.Services.Service
                     AllowAds = model.AllowAds,
                     ZoneId = model.ZoneId,
                     OrganizerEmail = user.Email,
-                    IsApprove = null,
+                    IsApprove = isAdmin ? true : null,
                     Message = null,
-                    Version = version,
-                    UpdateForEventId = version == 1 ? null : version == 2 ? lastEventByOrganizerEmail?.Id : lastEventByOrganizerEmail?.UpdateForEventId
+                    Version = isAdmin ? 1 : version,
+                    UpdateForEventId = isAdmin ? null : version == 1 ? null : version == 2 ? lastEventByOrganizerEmail?.Id : lastEventByOrganizerEmail?.UpdateForEventId
                 };
 
                 var setEvent = await SetBaseEntityToCreateFunc(evt);

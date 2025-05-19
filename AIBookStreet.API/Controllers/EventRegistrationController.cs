@@ -38,7 +38,9 @@ namespace AIBookStreet.API.Controllers
                     }
                     if (ticket.Item2?.EventRegistration?.RegistrantEmail != null)
                     {
-                        await _service.SendEmai(ticket.Item2);
+                        //await _service.SendEmai(ticket.Item2);
+                        var emailQueue = HttpContext.RequestServices.GetRequiredService<IEmailQueueService>();
+                        emailQueue.Enqueue(ticket.Item2);
                     }
                     return Ok(new ItemResponse<object>("Đã thêm!", new
                     {
@@ -51,8 +53,8 @@ namespace AIBookStreet.API.Controllers
                         attendeePhone = ticket.Item2?.EventRegistration?.RegistrantPhoneNumber,
                         attendeeAddress = ticket.Item2?.EventRegistration?.RegistrantAddress,
                         eventName = ticket.Item2?.EventRegistration?.Event?.EventName,
-                        eventStartDate = ticket.Item2?.EventRegistration?.Event?.EventSchedules.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate,
-                        eventEndDate = ticket.Item2?.EventRegistration?.Event?.EventSchedules.OrderByDescending(e => e.EventDate).FirstOrDefault()?.EventDate,
+                        eventStartDate = ticket.Item2?.EventRegistration?.Event?.EventSchedules != null ? ticket.Item2?.EventRegistration?.Event?.EventSchedules.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate : null,
+                        eventEndDate = ticket.Item2?.EventRegistration?.Event?.EventSchedules != null ? ticket.Item2?.EventRegistration?.Event?.EventSchedules?.OrderByDescending(e => e.EventDate).FirstOrDefault()?.EventDate : null,
                         zoneId = ticket.Item2?.EventRegistration?.Event?.ZoneId,
                         zoneName = ticket.Item2?.EventRegistration?.Event?.Zone?.ZoneName,
                         latitude = ticket.Item2?.EventRegistration?.Event?.Zone?.Latitude,

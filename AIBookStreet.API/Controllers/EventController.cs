@@ -311,8 +311,8 @@ namespace AIBookStreet.API.Controllers
             };
         }
         [Authorize]
-        [HttpPost("request-create-event")]
-        public async Task<IActionResult> GetRequest(PaginatedRequest request)
+        [HttpPost("get-all-event-create-requests")]
+        public async Task<IActionResult> GetRequest(PaginatedRequest? request)
         {
             try
             {
