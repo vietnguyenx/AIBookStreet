@@ -279,103 +279,28 @@ namespace AIBookStreet.API.Controllers
                 if (userRequest == null)
                 {
                     Console.WriteLine("Registration failed: UserRequest is null");
-                    return BadRequest(new BaseResponse(false, "User data is required"));
+                    return BadRequest(new BaseResponse(false, "Thông tin người dùng không được để trống"));
                 }
                 
                 if (string.IsNullOrEmpty(userRequest.UserName) || string.IsNullOrEmpty(userRequest.Password) || string.IsNullOrEmpty(userRequest.Email))
                 {
                     Console.WriteLine($"Registration failed: Username, password, or email missing");
-                    return BadRequest(new BaseResponse(false, "Username, password, and email are required"));
+                    return BadRequest(new BaseResponse(false, "Tên đăng nhập, mật khẩu và email là bắt buộc"));
                 }
 
-                // Create basic user model without using mapper
-                Console.WriteLine("Creating a simple UserModel manually");
-                var userModel = new UserModel
+                var userModel = _mapper.Map<UserModel>(userRequest);
+                var (result, message) = await _service.Register(userModel);
+
+                if (result == null)
                 {
-                    UserName = userRequest.UserName,
-                    Password = userRequest.Password,
-                    Email = userRequest.Email,
-                    FullName = userRequest.FullName,
-                    DOB = userRequest.DOB,
-                    Address = userRequest.Address,
-                    Phone = userRequest.Phone,
-                    Gender = userRequest.Gender
-                };
-                
-                // Try simplified registration
-                Console.WriteLine("Calling simplified registration method");
-                UserModel registeredUser;
-                try 
-                {
-                    registeredUser = await _service.RegisterSimple(userModel);
-                }
-                catch (Exception regEx)
-                {
-                    Console.WriteLine($"Registration service threw exception: {regEx.Message}");
-                    if (regEx.InnerException != null)
-                    {
-                        Console.WriteLine($"Inner exception: {regEx.InnerException.Message}");
-                    }
-                    return BadRequest(new BaseResponse(false, "Registration failed: " + regEx.Message));
+                    return BadRequest(new BaseResponse(false, message));
                 }
 
-                if (registeredUser == null)
-                {
-                    Console.WriteLine("Simplified registration returned null");
-                    return BadRequest(new BaseResponse(false, "Đăng ký thất bại. Email hoặc tên đăng nhập đã được sử dụng."));
-                }
-
-                // Return success with user data
-                Console.WriteLine("Registration successful");
-                
-                // Tạo yêu cầu role nếu có
-                if (userRequest.RequestedRoleId.HasValue && userRequest.RequestedRoleId.Value != Guid.Empty)
-                {
-                    try
-                    {
-                        // Kiểm tra xem role có tồn tại không
-                        var roleService = HttpContext.RequestServices.GetService<IRoleService>();
-                        var requestedRole = await roleService.GetById(userRequest.RequestedRoleId.Value);
-                        
-                        if (requestedRole != null)
-                        {
-                            // Tạo yêu cầu role mới
-                            var userRoleService = HttpContext.RequestServices.GetService<IUserRoleService>();
-                            var userRoleModel = new UserRoleModel
-                            {
-                                UserId = registeredUser.Id,
-                                RoleId = userRequest.RequestedRoleId.Value,
-                                AssignedAt = DateTime.Now,
-                                IsApproved = false
-                            };
-                            
-                            await userRoleService.Add(userRoleModel);
-                            
-                            Console.WriteLine($"Role request created for role: {requestedRole.RoleName}");
-                        }
-                    }
-                    catch (Exception roleEx)
-                    {
-                        Console.WriteLine($"Failed to create role request: {roleEx.Message}");
-                        // Không trả về lỗi vì đăng ký vẫn thành công
-                    }
-                }
-                
-                return Ok(new ItemResponse<UserModel>(ConstantMessage.Success, registeredUser));
+                return Ok(new ItemResponse<UserModel>(message, result));
             }
             catch (Exception ex)
             {
-                // Log exception details
-                Console.WriteLine($"CRITICAL ERROR in registration controller: {ex.Message}");
-                Console.WriteLine($"Exception type: {ex.GetType().FullName}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
-                    Console.WriteLine($"Inner exception type: {ex.InnerException.GetType().FullName}");
-                }
-                
-                return BadRequest(new BaseResponse(false, $"An error occurred during registration: {ex.Message}"));
+                return BadRequest(new BaseResponse(false, ex.Message));
             }
         }
 

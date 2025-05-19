@@ -23,13 +23,13 @@ namespace AIBookStreet.Services.Services.Interface
         Task<long> GetTotalCount();
 
         Task<(UserModel, bool, string)> Login(AuthModel authModel);
-        Task<UserModel> Register(UserModel userModel);
+        Task<(UserModel?, string)> Register(UserModel userModel);
         Task<UserModel> RegisterSimple(UserModel userModel);
         JwtSecurityToken CreateToken(UserModel userModel);
         Task<UserModel?> GetUserByEmailOrUsername(UserModel userModel);
         Task<UserModel?> GetUserByEmail(UserModel userModel);
         Task<User?> GetUserInfo();
-        Task<UserModel?> ProcessGoogleLoginAsync(ClaimsPrincipal claimsPrincipal);
+        //Task<UserModel?> ProcessGoogleLoginAsync(ClaimsPrincipal claimsPrincipal);
         Task<bool> IsPasswordHashed(string usernameOrEmail);
         Task<(UserModel?, string)> ChangePasswordFirstTime(AuthModel authModel, string newPassword);
     }

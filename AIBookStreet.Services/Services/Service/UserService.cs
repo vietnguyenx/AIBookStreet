@@ -111,6 +111,26 @@ namespace AIBookStreet.Services.Services.Service
                 if (string.IsNullOrEmpty(userModel.Password))
                     return (null, ConstantMessage.User.EmptyPassword);
 
+                // Validate username format
+                if (!ValidationRules.IsValidUsername(userModel.UserName))
+                    return (null, "Tên đăng nhập không hợp lệ. Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới, độ dài từ 3-50 ký tự.");
+
+                // Validate email format
+                if (!string.IsNullOrEmpty(userModel.Email) && !ValidationRules.IsValidEmail(userModel.Email))
+                    return (null, ConstantMessage.Validation.InvalidEmailFormat);
+
+                // Validate password strength
+                if (!ValidationRules.IsValidPassword(userModel.Password))
+                    return (null, ConstantMessage.Validation.PasswordTooWeak);
+
+                // Validate full name if provided
+                if (!string.IsNullOrEmpty(userModel.FullName) && !ValidationRules.IsValidFullName(userModel.FullName))
+                    return (null, "Họ tên không hợp lệ. Họ tên chỉ được chứa chữ cái, dấu cách và dấu gạch ngang, độ dài từ 2-100 ký tự.");
+
+                // Validate phone if provided
+                if (!string.IsNullOrEmpty(userModel.Phone) && !ValidationRules.IsValidPhone(userModel.Phone))
+                    return (null, ConstantMessage.Validation.InvalidPhoneFormat);
+
                 var existingUser = await _repository.SearchWithoutPagination(new User { UserName = userModel.UserName });
                 if (existingUser?.Any() == true)
                     return (null, ConstantMessage.User.UsernameExists);
@@ -181,7 +201,7 @@ namespace AIBookStreet.Services.Services.Service
             }
             catch (Exception ex)
             {
-                return (null, $"Error while adding user: {ex.Message}");
+                return (null, $"Lỗi khi thêm người dùng: {ex.Message}");
             }
         }
 
@@ -299,7 +319,7 @@ namespace AIBookStreet.Services.Services.Service
             }
             catch (Exception ex)
             {
-                return (null, $"Error while updating user: {ex.Message}");
+                return (null, $"Lỗi khi cập nhật người dùng: {ex.Message}");
             }
         }
 
@@ -345,7 +365,7 @@ namespace AIBookStreet.Services.Services.Service
             }
             catch (Exception ex)
             {
-                return (null, $"Error while deleting user: {ex.Message}");
+                return (null, $"Lỗi khi xóa người dùng: {ex.Message}");
             }
         }
 
@@ -392,23 +412,44 @@ namespace AIBookStreet.Services.Services.Service
             return (userModel, false, null);
         }
 
-        public async Task<UserModel?> Register(UserModel userModel)
+        public async Task<(UserModel?, string)> Register(UserModel userModel)
         {
             try
             {
-                Console.WriteLine("Starting user registration for: " + userModel.UserName);
+                Console.WriteLine("Bắt đầu đăng ký người dùng cho: " + userModel.UserName);
                 
                 // Basic validation
                 if (userModel == null)
                 {
                     Console.WriteLine("Registration failed: User model is null");
-                    return null;
+                    return (null, "Thông tin người dùng không được để trống");
                 }
 
                 if (string.IsNullOrEmpty(userModel.UserName) || string.IsNullOrEmpty(userModel.Password))
                 {
                     Console.WriteLine("Registration failed: Username or password is empty");
-                    return null;
+                    return (null, "Tên đăng nhập và mật khẩu không được để trống");
+                }
+
+                // Validate username format
+                if (!ValidationRules.IsValidUsername(userModel.UserName))
+                {
+                    Console.WriteLine("Registration failed: Invalid username format");
+                    return (null, "Tên đăng nhập không hợp lệ. Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới, độ dài từ 3-50 ký tự.");
+                }
+
+                // Validate email format
+                if (!string.IsNullOrEmpty(userModel.Email) && !ValidationRules.IsValidEmail(userModel.Email))
+                {
+                    Console.WriteLine("Registration failed: Invalid email format");
+                    return (null, ConstantMessage.Validation.InvalidEmailFormat);
+                }
+
+                // Validate password strength
+                if (!ValidationRules.IsValidPassword(userModel.Password))
+                {
+                    Console.WriteLine("Registration failed: Password does not meet requirements");
+                    return (null, ConstantMessage.Validation.PasswordTooWeak);
                 }
 
                 // Check if user or email already exists
@@ -419,13 +460,13 @@ namespace AIBookStreet.Services.Services.Service
                     if (existingUserByEmail != null)
                     {
                         Console.WriteLine("Registration failed: Email already exists");
-                        return null;
+                        return (null, "Email đã được sử dụng, vui lòng sử dụng email khác");
                     }
                 }
                 else
                 {
                     Console.WriteLine("Registration failed: Email is required");
-                    return null;
+                    return (null, "Email là bắt buộc");
                 }
 
                 Console.WriteLine("Checking for existing username: " + userModel.UserName);
@@ -433,7 +474,7 @@ namespace AIBookStreet.Services.Services.Service
                 if (existingUserByUsername?.Any() == true)
                 {
                     Console.WriteLine("Registration failed: Username already exists");
-                    return null;
+                    return (null, ConstantMessage.User.UsernameExists);
                 }
 
                 // Set defaults
@@ -453,7 +494,7 @@ namespace AIBookStreet.Services.Services.Service
                 catch (Exception hashEx)
                 {
                     Console.WriteLine("Password hashing failed: " + hashEx.Message);
-                    throw;
+                    return (null, "Lỗi khi mã hóa mật khẩu: " + hashEx.Message);
                 }
 
                 try
@@ -476,7 +517,7 @@ namespace AIBookStreet.Services.Services.Service
                     if (!addResult)
                     {
                         Console.WriteLine("Database add operation returned false");
-                        return null;
+                        return (null, "Không thể thêm người dùng vào cơ sở dữ liệu");
                     }
                     
                     // Retrieve user with roles to return
@@ -485,17 +526,17 @@ namespace AIBookStreet.Services.Services.Service
                     if (createdUser == null)
                     {
                         Console.WriteLine("Failed to retrieve created user");
-                        return null;
+                        return (null, "Không thể lấy thông tin người dùng sau khi tạo");
                     }
                     
                     Console.WriteLine("User registration successful for: " + user.UserName);
-                    return _mapper.Map<UserModel>(createdUser);
+                    return (_mapper.Map<UserModel>(createdUser), "Đăng ký thành công");
                 }
                 catch (Exception dbEx)
                 {
                     Console.WriteLine("Database operation failed: " + dbEx.Message);
                     Console.WriteLine("Stack trace: " + dbEx.StackTrace);
-                    throw;
+                    return (null, "Lỗi khi thao tác với cơ sở dữ liệu: " + dbEx.Message);
                 }
             }
             catch (Exception ex)
@@ -509,7 +550,7 @@ namespace AIBookStreet.Services.Services.Service
                     Console.WriteLine("Inner exception: " + ex.InnerException.Message);
                     Console.WriteLine("Inner exception type: " + ex.InnerException.GetType().FullName);
                 }
-                return null;
+                return (null, "Lỗi không xác định khi đăng ký: " + ex.Message);
             }
         }
 
@@ -604,47 +645,47 @@ namespace AIBookStreet.Services.Services.Service
             return (emailClaim?.Value, usernameClaim?.Value);
         }
 
-        public async Task<UserModel?> ProcessGoogleLoginAsync(ClaimsPrincipal claimsPrincipal)
-        {
-            try
-            {
-                var email = claimsPrincipal.FindFirstValue(ClaimTypes.Email);
-                var name = claimsPrincipal.FindFirstValue(ClaimTypes.Name);
-                var nameid = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
+        //public async Task<UserModel?> ProcessGoogleLoginAsync(ClaimsPrincipal claimsPrincipal)
+        //{
+        //    try
+        //    {
+        //        var email = claimsPrincipal.FindFirstValue(ClaimTypes.Email);
+        //        var name = claimsPrincipal.FindFirstValue(ClaimTypes.Name);
+        //        var nameid = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                if (string.IsNullOrEmpty(email))
-                {
-                    return null;
-                }
+        //        if (string.IsNullOrEmpty(email))
+        //        {
+        //            return null;
+        //        }
 
-                var existingUser = await _repository.GetUserByEmail(new User { Email = email });
+        //        var existingUser = await _repository.GetUserByEmail(new User { Email = email });
 
-                if (existingUser == null)
-                {
-                    var username = email.Split('@')[0] + "_google";
+        //        if (existingUser == null)
+        //        {
+        //            var username = email.Split('@')[0] + "_google";
                     
-                    var randomPassword = Guid.NewGuid().ToString();
-                    var hashedPassword = BCrypt.Net.BCrypt.HashPassword(randomPassword);
+        //            var randomPassword = Guid.NewGuid().ToString();
+        //            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(randomPassword);
                     
-                    var newUser = new UserModel
-                    {
-                        Email = email,
-                        UserName = username,
-                        FullName = name,
-                        Password = hashedPassword,
-                    };
+        //            var newUser = new UserModel
+        //            {
+        //                Email = email,
+        //                UserName = username,
+        //                FullName = name,
+        //                Password = hashedPassword,
+        //            };
 
-                    var registeredUser = await Register(newUser);
-                    return registeredUser;
-                }
+        //            var registeredUser = await Register(newUser);
+        //            return registeredUser;
+        //        }
 
-                return _mapper.Map<UserModel>(existingUser);
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
+        //        return _mapper.Map<UserModel>(existingUser);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return null;
+        //    }
+        //}
 
         public async Task<UserModel?> RegisterSimple(UserModel userModel)
         {
@@ -806,6 +847,10 @@ namespace AIBookStreet.Services.Services.Service
 
                 if (string.IsNullOrEmpty(newPassword))
                     return (null, "Vui lòng nhập mật khẩu mới");
+
+                // Validate new password strength
+                if (!ValidationRules.IsValidPassword(newPassword))
+                    return (null, ConstantMessage.Validation.PasswordTooWeak);
 
                 // Find user
                 var user = await _repository.FindUsernameOrEmail(new User 
