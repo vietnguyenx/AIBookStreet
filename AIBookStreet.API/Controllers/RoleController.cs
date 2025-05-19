@@ -90,5 +90,31 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [AllowAnonymous]
+        [HttpGet("available-for-request")]
+        public async Task<IActionResult> GetAvailableForRequest()
+        {
+            try
+            {
+                // Lấy tất cả các roles
+                var roles = await _roleService.GetAll();
+                
+                if (roles == null || !roles.Any())
+                {
+                    return Ok(new ItemListResponse<RoleModel>(ConstantMessage.NotFound));
+                }
+                
+                // Có thể lọc các roles mà người dùng được phép yêu cầu ở đây
+                // Ví dụ: không cho phép yêu cầu role admin
+                var availableRoles = roles.Where(r => !r.RoleName.ToLower().Contains("admin")).ToList();
+                
+                return Ok(new ItemListResponse<RoleModel>(ConstantMessage.Success, availableRoles));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

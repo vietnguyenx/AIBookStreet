@@ -56,7 +56,19 @@ namespace AIBookStreet.Services.Services.Service
         {
             var userRole = await _userRoleRepository.GetByUserIdAndRoleId(userRoleModel.UserId, userRoleModel.RoleId);
             if (userRole != null) { return false; }
+            
             var mappedUserRole = _mapper.Map<UserRole>(userRoleModel);
+            
+            // Đảm bảo rằng IsApproved được đặt khi tạo mới
+            if (userRoleModel.IsApproved)
+            {
+                mappedUserRole.IsApproved = true;
+            }
+            else 
+            {
+                mappedUserRole.IsApproved = false;
+            }
+            
             var newUserRole = await SetBaseEntityToCreateFunc(mappedUserRole);
             return await _userRoleRepository.Add(newUserRole);
         }
@@ -71,6 +83,33 @@ namespace AIBookStreet.Services.Services.Service
 
             var deleteUserRole = _mapper.Map<UserRole>(userRole);
             return await _userRoleRepository.Remove(deleteUserRole);
+        }
+
+        public async Task<bool> ApproveRole(Guid userId, Guid roleId, bool approve)
+        {
+            var userRole = await _userRoleRepository.GetByUserIdAndRoleId(userId, roleId);
+            if (userRole == null)
+            {
+                return false;
+            }
+
+            userRole.IsApproved = approve;
+            userRole.LastUpdatedDate = DateTime.Now;
+
+            return await _userRoleRepository.Update(userRole);
+        }
+
+        public async Task<List<UserRoleModel>?> GetPendingRoleRequests()
+        {
+            var userRoles = await _userRoleRepository.GetAll();
+            var pendingRoles = userRoles.Where(ur => !ur.IsApproved).ToList();
+            
+            if (!pendingRoles.Any())
+            {
+                return null;
+            }
+
+            return _mapper.Map<List<UserRoleModel>>(pendingRoles);
         }
     }
 }

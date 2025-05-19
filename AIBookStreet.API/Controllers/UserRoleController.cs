@@ -126,6 +126,48 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        
+        [Authorize]
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingRoleRequests()
+        {
+            try
+            {
+                var pendingRoles = await _userRoleService.GetPendingRoleRequests();
+                return pendingRoles switch
+                {
+                    null => Ok(new ItemListResponse<UserRoleModel>(ConstantMessage.NotFound)),
+                    not null => Ok(new ItemListResponse<UserRoleModel>(ConstantMessage.Success, pendingRoles))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
+        [Authorize]
+        [HttpPatch("approve/{userId}/{roleId}")]
+        public async Task<IActionResult> ApproveRole(Guid userId, Guid roleId, [FromQuery] bool approve)
+        {
+            try
+            {
+                if (userId == Guid.Empty || roleId == Guid.Empty)
+                {
+                    return BadRequest("IDs must not be empty");
+                }
+
+                var result = await _userRoleService.ApproveRole(userId, roleId, approve);
+                return result switch
+                {
+                    true => Ok(new BaseResponse(true, approve ? "Yêu cầu quyền đã được phê duyệt" : "Yêu cầu quyền đã bị từ chối")),
+                    false => BadRequest(new BaseResponse(false, "Không tìm thấy yêu cầu quyền"))
+                };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

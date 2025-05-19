@@ -14,5 +14,7 @@ namespace AIBookStreet.Services.Services.Interface
         Task<List<UserRoleModel>?> GetByRoleId(Guid roleId);
         Task<bool> Add(UserRoleModel userRoleModel);
         Task<bool> Delete(Guid idUser, Guid idRole);
+        Task<bool> ApproveRole(Guid userId, Guid roleId, bool approve);
+        Task<List<UserRoleModel>?> GetPendingRoleRequests();
     }
 }

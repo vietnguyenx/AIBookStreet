@@ -529,7 +529,8 @@ namespace AIBookStreet.Services.Services.Service
             {
                 foreach (var userRole in userModel.UserRoles)
                 {
-                    if (userRole.Role != null)
+                    // Chỉ thêm role đã được phê duyệt
+                    if (userRole.Role != null && userRole.IsApproved)
                     {
                         claims.Add(new Claim(ClaimTypes.Role, userRole.Role.RoleName));
                     }

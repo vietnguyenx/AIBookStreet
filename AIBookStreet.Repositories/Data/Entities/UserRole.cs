@@ -11,6 +11,7 @@ namespace AIBookStreet.Repositories.Data.Entities
         public Guid UserId { get; set; }
         public Guid RoleId { get; set; }
         public DateTime? AssignedAt { get; set; }
+        public bool IsApproved { get; set; } = false;
 
         public virtual User User { get; set; }
         public virtual Role Role { get; set; }

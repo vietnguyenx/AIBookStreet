@@ -327,6 +327,40 @@ namespace AIBookStreet.API.Controllers
 
                 // Return success with user data
                 Console.WriteLine("Registration successful");
+                
+                // Tạo yêu cầu role nếu có
+                if (userRequest.RequestedRoleId.HasValue && userRequest.RequestedRoleId.Value != Guid.Empty)
+                {
+                    try
+                    {
+                        // Kiểm tra xem role có tồn tại không
+                        var roleService = HttpContext.RequestServices.GetService<IRoleService>();
+                        var requestedRole = await roleService.GetById(userRequest.RequestedRoleId.Value);
+                        
+                        if (requestedRole != null)
+                        {
+                            // Tạo yêu cầu role mới
+                            var userRoleService = HttpContext.RequestServices.GetService<IUserRoleService>();
+                            var userRoleModel = new UserRoleModel
+                            {
+                                UserId = registeredUser.Id,
+                                RoleId = userRequest.RequestedRoleId.Value,
+                                AssignedAt = DateTime.Now,
+                                IsApproved = false
+                            };
+                            
+                            await userRoleService.Add(userRoleModel);
+                            
+                            Console.WriteLine($"Role request created for role: {requestedRole.RoleName}");
+                        }
+                    }
+                    catch (Exception roleEx)
+                    {
+                        Console.WriteLine($"Failed to create role request: {roleEx.Message}");
+                        // Không trả về lỗi vì đăng ký vẫn thành công
+                    }
+                }
+                
                 return Ok(new ItemResponse<UserModel>(ConstantMessage.Success, registeredUser));
             }
             catch (Exception ex)
