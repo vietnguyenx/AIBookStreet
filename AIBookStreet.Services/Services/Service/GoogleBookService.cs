@@ -8,6 +8,7 @@ using AIBookStreet.Services.Services.Interface;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.RegularExpressions;
 
 namespace AIBookStreet.Services.Services.Service
 {
@@ -16,12 +17,15 @@ namespace AIBookStreet.Services.Services.Service
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
         private readonly ILogger<GoogleBookService> _logger;
+        private readonly ITranslationService _translationService;
+        private static readonly Regex _vietnamesePattern = new Regex(@"[àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴĐ]", RegexOptions.Compiled);
 
-        public GoogleBookService(HttpClient httpClient, IConfiguration configuration, ILogger<GoogleBookService> logger)
+        public GoogleBookService(HttpClient httpClient, IConfiguration configuration, ILogger<GoogleBookService> logger, ITranslationService translationService)
         {
             _httpClient = httpClient;
             _apiKey = configuration["GoogleBooks:ApiKey"];
             _logger = logger;
+            _translationService = translationService;
         }
 
         public async Task<GoogleBookResponseModel?> SearchBookByISBN(string isbn)
@@ -79,6 +83,25 @@ namespace AIBookStreet.Services.Services.Service
                     }
                 }
 
+                // Kiểm tra xem tiêu đề sách có chứa ký tự tiếng Việt không
+                bool isTitleVietnamese = !string.IsNullOrEmpty(book.Title) && IsVietnameseText(book.Title);
+                
+                string? description = book.Description;
+                
+                // Nếu tiêu đề là tiếng Việt nhưng mô tả không phải tiếng Việt, dịch sang tiếng Việt
+                if (isTitleVietnamese && !string.IsNullOrEmpty(description) && !IsVietnameseText(description))
+                {
+                    try
+                    {
+                        _logger.LogInformation("Book title contains Vietnamese characters. Translating description to Vietnamese.");
+                        description = await _translationService.TranslateToVietnameseAsync(description);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to translate description. Using original description.");
+                    }
+                }
+
                 var bookModel = new GoogleBookResponseModel
                 {
                     ISBN = isbn,
@@ -86,7 +109,7 @@ namespace AIBookStreet.Services.Services.Service
                     PublicationDate = publishedDate,
                     Price = book.Price,
                     Languages = book.Language,
-                    Description = book.Description,                                     
+                    Description = description,                                     
                     Size = book.Dimensions?.Height != null
                         ? $"{book.Dimensions.Height}x{book.Dimensions.Width}x{book.Dimensions.Thickness}"
                         : null,
@@ -154,6 +177,14 @@ namespace AIBookStreet.Services.Services.Service
                 _logger.LogError(ex, $"Error searching Google Books API for ISBN: {isbn}");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Kiểm tra văn bản có chứa ký tự tiếng Việt không
+        /// </summary>
+        private bool IsVietnameseText(string text)
+        {
+            return _vietnamesePattern.IsMatch(text);
         }
     }
 
