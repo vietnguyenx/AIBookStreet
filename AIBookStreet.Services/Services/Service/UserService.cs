@@ -114,6 +114,14 @@ namespace AIBookStreet.Services.Services.Service
                 var existingUser = await _repository.SearchWithoutPagination(new User { UserName = userModel.UserName });
                 if (existingUser?.Any() == true)
                     return (null, ConstantMessage.User.UsernameExists);
+                    
+                // Check if email is already in use
+                if (!string.IsNullOrEmpty(userModel.Email))
+                {
+                    var existingUserByEmail = await _repository.GetUserByEmail(new User { Email = userModel.Email });
+                    if (existingUserByEmail != null)
+                        return (null, "Email đã được sử dụng, vui lòng sử dụng email khác");
+                }
 
                 var mappedUser = _mapper.Map<User>(userModel);
                 var newUser = await SetBaseEntityToCreateFunc(mappedUser);
@@ -414,6 +422,11 @@ namespace AIBookStreet.Services.Services.Service
                         return null;
                     }
                 }
+                else
+                {
+                    Console.WriteLine("Registration failed: Email is required");
+                    return null;
+                }
 
                 Console.WriteLine("Checking for existing username: " + userModel.UserName);
                 var existingUserByUsername = await _repository.SearchWithoutPagination(new User { UserName = userModel.UserName });
@@ -661,11 +674,9 @@ namespace AIBookStreet.Services.Services.Service
                 if (!string.IsNullOrEmpty(userModel.Email))
                 {
                     Console.WriteLine("Checking for existing email: " + userModel.Email);
-                    var userWithSameEmail = existingUsers.FirstOrDefault(u => 
-                        !string.IsNullOrEmpty(u.Email) && 
-                        string.Equals(u.Email, userModel.Email, StringComparison.OrdinalIgnoreCase));
-                        
-                    if (userWithSameEmail != null)
+                    // Sử dụng phương thức chuyên biệt để kiểm tra email
+                    var existingUserByEmail = await _repository.GetUserByEmail(new User { Email = userModel.Email });
+                    if (existingUserByEmail != null) 
                     {
                         Console.WriteLine("Email already exists");
                         return null;
