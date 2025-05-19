@@ -249,7 +249,7 @@ namespace AIBookStreet.Services.Services.Service
                 //    zoneName = ticket?.EventRegistration?.Event?.Zone?.ZoneName,
                 //    issuedAt = ticket?.CreatedDate
                 //};
-                var qrData = ticket?.RegistrationId + " | " + ticket?.TicketCode + " | " + ticket?.EventRegistration?.RegistrantName;
+                //var qrData = ticket?.RegistrationId + " | " + ticket?.TicketCode + " | " + ticket?.EventRegistration?.RegistrantName;
                 //    new
                 //{
                 //    id = ticket?.Id,
@@ -259,6 +259,8 @@ namespace AIBookStreet.Services.Services.Service
                 //    issuedAt = ticket?.CreatedDate
                 //};
                 //string jsonData = JsonSerializer.Serialize(qrData);
+
+                var qrData = ticket?.RegistrationId + " | " + ticket?.TicketCode + " | " + ticket?.EventRegistration?.RegistrantName;
                 QRCodeGenerator qrGenerator = new();
                 QRCodeData qrCodeData = qrGenerator.CreateQrCode(qrData, QRCodeGenerator.ECCLevel.Q);
                 QRCode qrCode = new(qrCodeData);

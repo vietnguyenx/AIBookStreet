@@ -112,6 +112,8 @@ namespace AIBookStreet.API.Controllers
                     return BadRequest(new ItemResponse<EventRequest>(ConstantMessage.NotFound));
                 }
                 var eventInfor = _mapper.Map<EventRequest>(result.Item1);
+                eventInfor.StartDate = result.Item1.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                eventInfor.EndDate = result.Item1.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
                 eventInfor.AgeChart = result.Item2;
                 eventInfor.GenderChart = result.Item3;
                 eventInfor.ReferenceChart = result.Item4;
@@ -297,12 +299,20 @@ namespace AIBookStreet.API.Controllers
             {
                 var events = await _service.GetEventsForStaff(request.Result?.Date, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == -1);
 
-                return events.Item2 switch
+                if (events.Item2 == 0)
                 {
-                    99 => BadRequest("Hãy đăng nhập với vai trò Nhân viên"),
-                    0 => Ok("Không có sự kiện trong HÔM NAY"),
-                    _ => Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<List<EventRequest>>(events.Item1), events.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "StartDate", request != null && request.SortOrder != -1 ? 1 : -1))
-                };
+                    return Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, null));
+                }
+                var resp = new List<EventRequest>();
+                foreach (var evt in events.Item1)
+                {
+                    var evtCovert = _mapper.Map<EventRequest>(evt);
+                    evtCovert.StartDate = evt.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                    evtCovert.EndDate = evt.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                    resp.Add(evtCovert);
+                }
+
+                return Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, resp, resp.Count, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? 1 : -1));
             }
             catch (Exception ex)
             {
