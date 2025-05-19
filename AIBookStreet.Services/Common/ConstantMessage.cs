@@ -29,8 +29,8 @@
             public const string InvalidEmailFormat = "Định dạng email không hợp lệ";
             public const string InvalidPhoneFormat = "Định dạng số điện thoại không hợp lệ";
             public const string InvalidDOB = "Ngày sinh không được ở tương lai";
-            public const string PasswordTooShort = "Mật khẩu phải có ít nhất 6 ký tự";
-            public const string PasswordTooWeak = "Mật khẩu phải chứa ít nhất một chữ cái viết hoa, một chữ cái viết thường, một chữ số và một ký tự đặc biệt";
+            public const string PasswordTooShort = "Mật khẩu phải có ít nhất 8 ký tự";
+            public const string PasswordTooWeak = "Mật khẩu phải chứa ít nhất một chữ cái viết hoa, một chữ cái viết thường, một chữ số và một ký tự đặc biệt, không được chứa khoảng trắng và có độ dài từ 8-50 ký tự";
             public const string InvalidGender = "Giới tính phải là 'Nam' hoặc 'Nữ'";
 
         }
