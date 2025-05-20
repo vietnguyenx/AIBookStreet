@@ -18,6 +18,7 @@ namespace AIBookStreet.Services.Model
         public string? Address { get; set; }
         public string? Phone { get; set; }
         public string? Gender { get; set; }
+        public Guid? RequestedRoleId { get; set; }
         public IFormFile? MainImageFile { get; set; }
         public List<IFormFile>? AdditionalImageFiles { get; set; }
 
