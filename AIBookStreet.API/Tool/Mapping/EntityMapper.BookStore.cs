@@ -10,7 +10,17 @@ namespace AIBookStreet.API.Tool.Mapping
     {
         public void BookStoreMapping()
         {
-            CreateMap<Store, StoreModel>().ReverseMap();
+            CreateMap<Store, StoreModel>()
+                .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images.Select(i => new Image
+                {
+                    Id = i.Id,
+                    Url = i.Url,
+                    Type = i.Type,
+                    AltText = i.AltText,
+                    EntityId = i.EntityId
+                })))
+            .ReverseMap();
+
             CreateMap<StoreModel, StoreRequest>().ReverseMap();
             CreateMap<StoreModel, StoreSearchRequest>().ReverseMap();
         }

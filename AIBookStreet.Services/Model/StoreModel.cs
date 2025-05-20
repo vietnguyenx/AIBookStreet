@@ -25,5 +25,7 @@ namespace AIBookStreet.Services.Model
 
         public IList<InventoryModel>? Inventories { get; set; }
         public IList<Image>? Images { get; set; }
+        public IList<StoreScheduleModel>? StoreSchedules { get; set; }
+        public IList<UserStoreModel>? UserStores { get; set; }
     }
 }
