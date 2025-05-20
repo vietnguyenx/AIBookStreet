@@ -30,7 +30,7 @@ namespace AIBookStreet.Services.Services.Service
                 {
                     foreach (var userRole in user.UserRoles)
                     {
-                        if (userRole.Role.RoleName == "Staff" || userRole.Role.RoleName == "Admin")
+                        if (userRole.Role.RoleName == "Organizer" || userRole.Role.RoleName == "Admin")
                         {
                             isStaff = true;
                             if (userRole.Role.RoleName == "Admin")
@@ -238,18 +238,18 @@ namespace AIBookStreet.Services.Services.Service
             try
             {
                 var user = await GetUserInfo();
-                var isStaff = false;
+                var isOrganizer = false;
                 if (user != null)
                 {
                     foreach (var userRole in user.UserRoles)
                     {
-                        if (userRole.Role.RoleName == "Staff")
+                        if (userRole.Role.RoleName == "Organizer")
                         {
-                            isStaff = true;
+                            isOrganizer = true;
                         }
                     }
                 }
-                if (!isStaff)
+                if (!isOrganizer)
                 {
                     return (4, null, "Vui lòng đăng nhập với vai trò Người tổ chức sự kiện");
                 }
@@ -362,21 +362,21 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.EventRepository.GetNumberEventInMonth(month);
         }
-        public async Task<(List<Event>?, long)> GetEventsForStaff(DateTime? date, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<(List<Event>?, long)> GetEventsForCheckin(DateTime? date, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             var user = await GetUserInfo();
-            var isStaff = false;
+            var isOrganizer = false;
             if (user != null)
             {
                 foreach (var userRole in user.UserRoles)
                 {
-                    if (userRole.Role.RoleName == "Staff")
+                    if (userRole.Role.RoleName == "Organizer")
                     {
-                        isStaff = true;
+                        isOrganizer = true;
                     }
                 }
             }
-            if (!isStaff)
+            if (!isOrganizer)
             {
                 return (null, 99);
             }
@@ -480,6 +480,33 @@ namespace AIBookStreet.Services.Services.Service
                 return (2, history);
             }
             catch
+            {
+                throw;
+            }
+        }
+        public async Task<(long, List<Event>?, string?)> GetCreationHistory(int? pageNumber, int? pageSize)
+        {
+            try
+            {
+                var user = await GetUserInfo();
+                var isOrganizer = false;
+                if (user != null)
+                {
+                    foreach (var userRole in user.UserRoles)
+                    {
+                        if (userRole.Role.RoleName == "Organizer")
+                        {
+                            isOrganizer = true;
+                        }
+                    }
+                }
+                if (!isOrganizer)
+                {
+                    return (0, null, "Vui lòng đăng nhập với vai trò Người tổ chức sự kiện");
+                }
+                var history = await _repository.EventRepository.GetCreationHistory(user?.Email, pageNumber, pageSize);
+                return (1, history, null);
+            } catch
             {
                 throw;
             }

@@ -19,14 +19,11 @@ namespace AIBookStreet.API.RequestModel
         public bool? IsApprove { get; set; }
         public string? Message { get; set; }
         public Guid? UpdateForEventId { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public DateTime? LastUpdatedDate { get; set; }
         public virtual ZoneRequest? Zone { get; set; }
         public virtual ICollection<ImageRequest>? Images { get; set; }
         public virtual ICollection<EventScheduleRequest> EventSchedules { get; set; }
-        public List<object>? AgeChart { get; set; }
-        public List<object>? GenderChart { get; set; }
-        public List<object>? ReferenceChart { get; set; }
-        public List<object>? AddressChart { get; set; }
-        public List<object>? AttendedChart { get; set; }
         public int TotalRegistrations { get; set; }
     }
 }

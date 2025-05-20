@@ -46,10 +46,10 @@ namespace AIBookStreet.API.Controllers
                         });
                     }
                     var result = await _service.AddAnEvent(model, schedules);
-                    return result.Item1 == 1 ? BadRequest(new BaseResponse(false, result.Item3))
+                    return result.Item1 == 1 ? BadRequest(new BaseResponse(false, result.Item3 ?? ""))
                          : result.Item1 == 2 ? Ok(new ItemResponse<EventRequest>("Đã thêm", _mapper.Map<EventRequest>(result.Item2)))
                          : result.Item1 == 4 ? BadRequest(result.Item3)
-                         : BadRequest(new BaseResponse(false, result.Item3));
+                         : BadRequest(new BaseResponse(false, result.Item3 ?? ""));
                 }
                 return BadRequest(new BaseResponse(false, "Vui lòng điền giờ bắt đầu và giờ kết thúc tương ứng cho từng ngày diễn ra sự kiện"));
             }
@@ -92,7 +92,7 @@ namespace AIBookStreet.API.Controllers
                     1 => NotFound(new BaseResponse(false, "Không tồn tại!!!")),
                     2 => Ok(new ItemResponse<EventRequest>("Đã xóa thành công!", _mapper.Map<EventRequest>(result.Item2))),
                     4 => BadRequest(result.Item3),
-                    _ => BadRequest(new BaseResponse(false, result.Item3))
+                    _ => BadRequest(new BaseResponse(false, result.Item3 ?? ""))
                 };
             }
             catch (Exception ex)
@@ -114,11 +114,6 @@ namespace AIBookStreet.API.Controllers
                 var eventInfor = _mapper.Map<EventRequest>(result.Item1);
                 eventInfor.StartDate = result.Item1.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
                 eventInfor.EndDate = result.Item1.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
-                eventInfor.AgeChart = result.Item2;
-                eventInfor.GenderChart = result.Item3;
-                eventInfor.ReferenceChart = result.Item4;
-                eventInfor.AddressChart = result.Item5;
-                eventInfor.AttendedChart = result.Item6;
                 eventInfor.TotalRegistrations = result.Item7;
                 return Ok(new ItemResponse<object>(ConstantMessage.Success, eventInfor));
 
@@ -182,12 +177,15 @@ namespace AIBookStreet.API.Controllers
                     return Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, null));
                 }
                 var resp = new List<EventRequest>();
-                foreach (var evt in events.Item1)
+                if (events.Item1 != null)
                 {
-                    var evtCovert = _mapper.Map<EventRequest>(evt);
-                    evtCovert.StartDate = evt.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
-                    evtCovert.EndDate = evt.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
-                    resp.Add(evtCovert);
+                    foreach (var evt in events.Item1)
+                    {
+                        var evtCovert = _mapper.Map<EventRequest>(evt);
+                        evtCovert.StartDate = evt.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                        evtCovert.EndDate = evt.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                        resp.Add(evtCovert);
+                    }
                 }
 
                 return Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, resp, events.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? 1 : -1));
@@ -292,24 +290,27 @@ namespace AIBookStreet.API.Controllers
             }
         }
         [Authorize]
-        [HttpPost("staff")]
+        [HttpPost("events-in-date-for-checkin")]
         public async Task<IActionResult> GetAllEventsPaginationForStaff(PaginatedRequest<DateEventSearchRequest> request)
         {
             try
             {
-                var events = await _service.GetEventsForStaff(request.Result?.Date, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == -1);
+                var events = await _service.GetEventsForCheckin(request.Result?.Date, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == -1);
 
                 if (events.Item2 == 0)
                 {
                     return Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, null));
                 }
                 var resp = new List<EventRequest>();
-                foreach (var evt in events.Item1)
+                if (events.Item1 != null)
                 {
-                    var evtCovert = _mapper.Map<EventRequest>(evt);
-                    evtCovert.StartDate = evt.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
-                    evtCovert.EndDate = evt.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
-                    resp.Add(evtCovert);
+                    foreach (var evt in events.Item1)
+                    {
+                        var evtCovert = _mapper.Map<EventRequest>(evt);
+                        evtCovert.StartDate = evt.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                        evtCovert.EndDate = evt.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                        resp.Add(evtCovert);
+                    }
                 }
 
                 return Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, resp, resp.Count, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? 1 : -1));
@@ -326,7 +327,7 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var events = await _service.GetEventRequests(request.PageNumber, request.PageSize, request.SortField, request.SortOrder == -1);
+                var events = await _service.GetEventRequests(request?.PageNumber, request?.PageSize, request?.SortField, request?.SortOrder == -1);
 
                 if (events.Item2 == 0)
                 {
@@ -337,12 +338,15 @@ namespace AIBookStreet.API.Controllers
                     return BadRequest("Vui lòng đăng nhập với vai trò Quản trị viên");
                 }
                 var resp = new List<EventRequest>();
-                foreach (var evt in events.Item1)
+                if (events.Item1 != null)
                 {
-                    var evtCovert = _mapper.Map<EventRequest>(evt);
-                    evtCovert.StartDate = evt.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
-                    evtCovert.EndDate = evt.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
-                    resp.Add(evtCovert);
+                    foreach (var evt in events.Item1)
+                    {
+                        var evtCovert = _mapper.Map<EventRequest>(evt);
+                        evtCovert.StartDate = evt.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                        evtCovert.EndDate = evt.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                        resp.Add(evtCovert);
+                    }
                 }
 
                 return Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, resp, events.Item2, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? 1 : -1));
@@ -400,6 +404,27 @@ namespace AIBookStreet.API.Controllers
                 //        addressChart = result.Item5
                 //    }))
                 //};
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            };
+        }
+        [Authorize]
+        [HttpPost("get-event-creations-history")]
+        public async Task<IActionResult> GetCreationHistory(PaginatedRequest request)
+        {
+            try
+            {
+                var events = await _service.GetCreationHistory(request.PageNumber, request.PageSize);
+                
+                if (events.Item1 == 0)
+                {
+                    return BadRequest(events.Item3);
+                }
+
+                return Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<List<EventRequest>>(events.Item2), events.Item2 != null ?events.Item2.Count : 0, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? 1 : -1));
             }
             catch (Exception ex)
             {

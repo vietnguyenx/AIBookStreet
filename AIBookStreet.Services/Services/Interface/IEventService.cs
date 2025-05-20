@@ -20,9 +20,10 @@ namespace AIBookStreet.Services.Services.Interface
         Task<List<Event>?> GetEventByDate(DateTime? date);
         Task<List<Event>?> GetRandom(int number);
         Task<object> GetNumberEventInMonth(int month);
-        Task<(List<Event>?, long)> GetEventsForStaff(DateTime? date, int? pageNumber, int? pageSize, string? sortField, bool? desc);
+        Task<(List<Event>?, long)> GetEventsForCheckin(DateTime? date, int? pageNumber, int? pageSize, string? sortField, bool? desc);
         Task<(List<Event>?, long)> GetEventRequests(int? pageNumber, int? pageSize, string? sortField, bool? desc);
         Task<(long, Event?, string)> OpenState(Guid id);
         Task<(long, List<Event>?)> GetHistory(Guid eventId);
+        Task<(long, List<Event>?, string?)> GetCreationHistory(int? pageNumber, int? pageSize);
     }
 }

@@ -348,9 +348,37 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             queryable = base.ApplySort(queryable, "CreatedDate", 1);
             if (queryable.Any())
             {
-                queryable = queryable.Where(e => (e.UpdateForEventId.HasValue && e.UpdateForEventId == eventId) || e.Id == eventId);
+                if (eventId != null)
+                {
+                    queryable = queryable.Where(e => (e.UpdateForEventId.HasValue && e.UpdateForEventId == eventId) || e.Id == eventId);
+                }
             }
             var events = await queryable.OrderBy(e => e.Version)
+                                        .Include(e => e.Zone)
+                                            .ThenInclude(z => z.Street)
+                                        .ToListAsync();
+            return events;
+        }
+        public async Task<List<Event>?> GetCreationHistory(string? email, int? pageNumber, int? pageSize)
+        {
+            if (email == null) { return null; }
+            var queryable = GetQueryable();
+
+            if (queryable.Any())
+            {
+                if (email != null)
+                {
+                    queryable = queryable.Where(e => e.OrganizerEmail.ToLower().Equals(email.ToLower()));
+                }
+            }
+            var totalOrigin = queryable.Count();
+
+            pageNumber = pageNumber == null ? 1 : pageNumber;
+            pageSize = pageSize == null ? 10 : pageSize;
+
+            queryable = GetQueryablePagination(queryable, (int)pageNumber, (int)pageSize);
+
+            var events = await queryable.OrderByDescending(e => e.CreatedDate)
                                         .Include(e => e.Zone)
                                             .ThenInclude(z => z.Street)
                                         .ToListAsync();
