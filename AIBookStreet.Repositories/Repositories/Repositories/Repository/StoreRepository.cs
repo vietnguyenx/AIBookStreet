@@ -88,6 +88,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             var bookstores = await queryable
                 .Include(bs => bs.Images)
+                .Include(bs => bs.StoreSchedules)
                 .Include(bs => bs.UserStores).ThenInclude(bs => bs.User)
                 .ToListAsync();
 
