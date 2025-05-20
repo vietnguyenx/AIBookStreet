@@ -197,6 +197,25 @@ namespace AIBookStreet.Services.Services.Service
                 if (!result)
                     return (null, ConstantMessage.Common.AddFail);
 
+                // Xử lý tạo UserRole nếu có RequestedRoleId
+                if (userModel.RequestedRoleId.HasValue && userModel.RequestedRoleId != Guid.Empty)
+                {
+                    var userRoleModel = new UserRoleModel
+                    {
+                        UserId = newUser.Id,
+                        RoleId = userModel.RequestedRoleId.Value,
+                        AssignedAt = DateTime.Now,
+                        IsApproved = false // Mặc định là chưa được phê duyệt
+                    };
+                    
+                    var userRoleService = new UserRoleService(_unitOfWork, _mapper, _httpContextAccessor);
+                    var addRoleResult = await userRoleService.Add(userRoleModel);
+                    if (!addRoleResult)
+                    {
+                        Console.WriteLine("Failed to create UserRole");
+                    }
+                }
+
                 return (_mapper.Map<UserModel>(newUser), ConstantMessage.Common.AddSuccess);
             }
             catch (Exception ex)
@@ -530,6 +549,27 @@ namespace AIBookStreet.Services.Services.Service
                     }
                     
                     Console.WriteLine("User registration successful for: " + user.UserName);
+                    
+                    // Xử lý tạo UserRole nếu có RequestedRoleId
+                    if (userModel.RequestedRoleId.HasValue && userModel.RequestedRoleId != Guid.Empty)
+                    {
+                        Console.WriteLine("Creating UserRole for role ID: " + userModel.RequestedRoleId);
+                        var userRoleModel = new UserRoleModel
+                        {
+                            UserId = user.Id,
+                            RoleId = userModel.RequestedRoleId.Value,
+                            AssignedAt = DateTime.Now,
+                            IsApproved = false // Mặc định là chưa được phê duyệt
+                        };
+                        
+                        var userRoleService = new UserRoleService(_unitOfWork, _mapper, _httpContextAccessor);
+                        var addRoleResult = await userRoleService.Add(userRoleModel);
+                        if (!addRoleResult)
+                        {
+                            Console.WriteLine("Failed to create UserRole");
+                        }
+                    }
+                    
                     return (_mapper.Map<UserModel>(createdUser), "Đăng ký thành công");
                 }
                 catch (Exception dbEx)
