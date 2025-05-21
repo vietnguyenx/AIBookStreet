@@ -24,17 +24,17 @@ namespace AIBookStreet.Services.Services.Service
             {
                 if (_emailQueue.TryDequeue(out var message))
                 {
-                    _logger.LogInformation($"Đang xử lý email cho RegistrationId: {message?.RegistrationId}");
+                    _logger.LogInformation($"Đang xử lý email cho RegistrationId: {message?.EventRegistrations?.FirstOrDefault()?.Id}");
                     using var scope = _serviceScopeFactory.CreateScope();
                     var emailService = scope.ServiceProvider.GetRequiredService<IEventRegistrationService>(); // Thay YourNamespace.YourEmailSendingService bằng service chứa phương thức SendEmail của bạn
                     try
                     {
                         await emailService.SendEmai(message);
-                        _logger.LogInformation($"Đã gửi email thành công cho RegistrationId: {message?.RegistrationId}");
+                        _logger.LogInformation($"Đã gửi email thành công cho RegistrationId: {message?.EventRegistrations?.FirstOrDefault()?.Id}");
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError($"Lỗi khi gửi email cho RegistrationId: {message?.RegistrationId}: {ex.Message}");
+                        _logger.LogError($"Lỗi khi gửi email cho RegistrationId: {message?.EventRegistrations?.FirstOrDefault()?.Id}: {ex.Message}");
                     }
                 }
                 else
