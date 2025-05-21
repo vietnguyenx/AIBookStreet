@@ -32,32 +32,7 @@ namespace AIBookStreet.Services.Services.Service
                 Id = Guid.NewGuid(),
                 TicketCode = "123456",
                 SecretPasscode = "789456",
-                EventRegistration = new EventRegistration {
-                    Id = Guid.NewGuid(),
-                    RegistrantName = "Nguyen Tran Ngoc Trieu Linh Linh",
-                    RegistrantGender = "Nam",
-                    RegistrantAgeRange = "18-25",
-                    RegistrantEmail = email,
-                    RegistrantPhoneNumber = "0983637752",
-                    RegistrantAddress = "Bình Dương",
-                    Event = new Event
-                    {
-                        Id = Guid.NewGuid(),
-                        EventName = "Sự kiện mẫu",
-                        
-                        IsOpen = true,
-                        AllowAds = true,
-                        CreatedDate = DateTime.Now,
-                        IsDeleted = false,
-                        Zone = new Zone {
-                            ZoneName = "Zone A",
-                            Street = new Street
-                            {
-                                Address = "Đường sách Hồ Chí Minh, Đường Nguyễn Văn Bình, Phường Bến Nghé, Quận 1, TP.HCM"
-                            }
-                        }
-                    }
-                }
+                
             };
             //    var qrData = new
             //    {
@@ -98,7 +73,7 @@ namespace AIBookStreet.Services.Services.Service
 
             //}
 
-            var barCodeInfor = evtRegistration.Id + " " + evtRegistration.TicketCode + " " + evtRegistration.EventRegistration.RegistrantName;
+            var barCodeInfor = evtRegistration.Id + " " + evtRegistration.TicketCode;
             Barcode barcode = new();
             barcode.Encode(BarcodeStandard.Type.Code128, barCodeInfor, 1200, 400);
             using MemoryStream ms1 = new();
