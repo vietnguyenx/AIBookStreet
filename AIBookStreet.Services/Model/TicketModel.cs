@@ -10,6 +10,5 @@ namespace AIBookStreet.Services.Model
     {
         public string TicketCode { get; set; } = null!;
         public string SecretPasscode { get; set; } = null!;
-        public Guid? RegistrationId { get; set; }
     }
 }

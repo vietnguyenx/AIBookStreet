@@ -13,8 +13,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
         Task<Ticket?> SearchTicketCode(Guid? eventId, string ticketCode);
         Task<Ticket?> SearchSecretPasscode(Guid? eventId, string secretPasscode);
         Task<Ticket?> GetTicket(string email, string passcode);
-        Task<Ticket?> GetByID(Guid id);
+        Task<Ticket?> GetByID(Guid? id);
         Task<List<Ticket>> GetAllTicketOnEvent(Guid eventId);
-        Task<Ticket?> GetByRegistrationId(Guid registrationId);
     }
 }

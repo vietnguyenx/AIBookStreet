@@ -10,9 +10,7 @@ namespace AIBookStreet.Repositories.Data.Entities
     {
         public string TicketCode { get; set; }
         public string SecretPasscode { get; set; }
-        public Guid? RegistrationId { get; set; }
-
-        public virtual EventRegistration? EventRegistration { get; set; }
+        public virtual ICollection<EventRegistration>? EventRegistrations { get; set; }
 
     }
 }
