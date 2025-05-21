@@ -12,6 +12,12 @@
             padding: 0;
         }
 
+        ul {
+            list-style-type: disc;
+            padding-left: 0;
+            margin-left: 0;
+        }
+
         .container {
             max-width: 900px;
             margin: 30px auto;
@@ -210,28 +216,34 @@
         </div>
         <div class="divider"></div>
         <div class="content">
-            <p>Xin chào <strong>@Model.EventRegistration?.RegistrantName</strong>,</p>
+            <p>Xin chào <strong>@Model?.EventRegistrations?.FirstOrDefault()?.RegistrantName.ToString()</strong>,</p>
             <p>Cảm ơn bạn đã đăng ký tham dự sự kiện. Đây là vé tham dự của bạn.</p>
 
             <div class="ticket-box">
-                <h3>@Model.EventRegistration?.Event?.EventName</h3>
+                <h3>@Model?.EventRegistrations?.FirstOrDefault()?.Event?.EventName.ToString()</h3>
                 <div style="display: flex; width: 100%"> 
                     <div class="ticket-left">
                         <table>
                             <tbody style="text-align: left">
-                                @if (@Model.EventRegistration?.Event?.EventSchedules != null)
+                                @if (Model?.EventRegistrations?.FirstOrDefault()?.Event?.EventSchedules != null)
                                 {
                                     <tr>
                                         <td style="width: 120px">
                                             <strong>Thời gian:</strong>
                                         </td>
-                                        <td>@Model.EventRegistration?.Event?.EventSchedules?.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate.ToString("dd/MM/yyyy")</td>
-                                    </tr>
-                                    <tr>
                                         <td>
-                                            <strong>Giờ mở cửa:</strong>
+                                            <ul>
+                                                @foreach (var schedule in Model?.EventRegistrations?.FirstOrDefault()?.Event?.EventSchedules?.OrderBy(e => e.EventDate))
+                                            {
+                                                <li>
+                                                        @schedule.EventDate.ToString("dd/MM/yyyy")                                                         
+                                                        @schedule.StartTime.ToString("HH:mm")
+                                                        -
+                                                        @schedule.EndTime.ToString("HH:mm")
+                                                </li>
+                                            }
+                                            </ul>
                                         </td>
-                                        <td>@Model.EventRegistration?.Event?.EventSchedules?.OrderBy(e => e.EventDate).FirstOrDefault()?.StartTime.ToString("HH:mm")</td>
                                     </tr>
                                 }
                                 <tr>
@@ -239,14 +251,29 @@
                                         <strong>Địa điểm:</strong>
                                     </td>
                                     <td>
-                                        @Model.EventRegistration?.Event?.Zone?.Street?.Address
+                                        @Model?.EventRegistrations?.FirstOrDefault()?.Event?.Zone?.Street?.Address?.ToString()
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>
                                         <strong>Khu vực:</strong>
                                     </td>
-                                    <td>@Model.EventRegistration?.Event?.Zone?.ZoneName</td>
+                                    <td>@Model?.EventRegistrations?.FirstOrDefault()?.Event?.Zone?.ZoneName.ToString()</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Thời gian bạn đã đăng ký:</strong>
+                                    </td>
+                                    <td>
+                                        <ul>
+                                            @foreach (var date in Model?.EventRegistrations)
+                                            {
+                                                <li>
+                                                    @date.DateToAttend.ToString("dd/MM/yyyy")
+                                                </li>
+                                            }
+                                        </ul>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>
@@ -259,8 +286,8 @@
                     </div>
                     <div class="ticket-right" >
                         <div class="free">Miễn phí</div>
-                        <div class="name">@Model.EventRegistration?.RegistrantName</div>
-                        <div class="code">@Model.TicketCode</div>
+                        <div class="name">@Model?.EventRegistrations?.FirstOrDefault()?.RegistrantName.ToString()</div>
+                        <div class="code">@Model?.EventRegistrations?.FirstOrDefault()?.Ticket?.TicketCode.ToString()</div>
                         <img src="cid:qrImage" alt="QR Code" />
                     </div>
                 </div>
@@ -274,7 +301,7 @@
 
             <div class="code-box">
                 <h2>MÃ KHÔI PHỤC VÉ CỦA BẠN:</h2>
-                <div class="recovery-code">@Model.SecretPasscode</div>
+                <div class="recovery-code">@Model?.EventRegistrations?.FirstOrDefault()?.Ticket?.SecretPasscode.ToString()</div>
                 <p><em>Lưu ý: Vui lòng giữ mã này bí mật và sử dụng khi cần khôi phục vé.</em></p>
             </div>
 

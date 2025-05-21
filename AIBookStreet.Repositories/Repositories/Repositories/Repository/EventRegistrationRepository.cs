@@ -16,11 +16,11 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         public async Task<List<EventRegistration>> GetAll(Guid eventId, string? searchKey)
         {
             var queryable = GetQueryable();
-            queryable = queryable.Where(z => !z.IsDeleted && z.EventId == eventId);
+            queryable = queryable.Where(z => !z.IsDeleted && z.EventId == eventId && z.DateToAttend == DateOnly.FromDateTime(DateTime.Now));
             if (!string.IsNullOrEmpty(searchKey))
             {
                 queryable = queryable.Where(er => er.RegistrantName.ToLower().Contains(searchKey.ToLower()) || 
-                                                  er.RegistrantEmail.ToLower().Contains(searchKey.ToLower()) ||
+                                                  (er.RegistrantEmail != null && er.RegistrantEmail.ToLower().Contains(searchKey.ToLower())) ||
                                                   er.RegistrantAddress.ToLower().Contains(searchKey.ToLower()));
             }
             var eventRegistrations = await queryable.ToListAsync();
@@ -29,14 +29,20 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         public async Task<EventRegistration?> GetByID(Guid? id)
         {
             var query = GetQueryable(z => z.Id == id);
-            var eventRegistration = await query.Include(z => z.Event).Include(er => er.Ticket)
+            var eventRegistration = await query.Include(z => z.Event)
+                                                    .ThenInclude(e => e.Zone)
+                                                    .ThenInclude(z => z.Street)
+                                                .Include(z => z.Event)
+                                                    .ThenInclude(e => e.EventSchedules)
+                                               .Include(er => er.Ticket)
                                   .SingleOrDefaultAsync();
 
             return eventRegistration;
         }
-        public async Task<EventRegistration?> GetByEmail(Guid? eventId, string email)
+        public async Task<EventRegistration?> GetByEmail(Guid? eventId, string email, string date)
         {
-            var query = GetQueryable(z => z.RegistrantEmail == email && z.EventId == eventId);
+            var dateConvert = DateOnly.Parse(date);
+            var query = GetQueryable(z => z.RegistrantEmail == email && z.EventId == eventId && z.DateToAttend == dateConvert);
             var eventRegistration = await query.SingleOrDefaultAsync();
 
             return eventRegistration;
@@ -132,6 +138,15 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         public async Task<EventRegistration?> GetByIDForCheckIn(Guid? id)
         {
             var query = GetQueryable(z => z.Id == id);
+            var eventRegistration = await query.Include(er => er.Ticket)
+                                  .SingleOrDefaultAsync();
+
+            return eventRegistration;
+        }
+        public async Task<EventRegistration?> GetRegistrationValidInDate(Guid? ticketId)
+        {
+            if (ticketId == null) { return null; }
+            var query = GetQueryable(z => z.TicketId == ticketId && z.DateToAttend == DateOnly.FromDateTime(DateTime.Now));
             var eventRegistration = await query.Include(er => er.Ticket)
                                   .SingleOrDefaultAsync();
 

@@ -558,7 +558,7 @@ namespace AIBookStreet.Repositories.Data
                 o.HasMany(or => or.OrderDetails)
                 .WithOne(od => od.Order)
                 .HasForeignKey(od => od.OrderId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.Cascade);
 
                 o.HasOne(or => or.Store)
                 .WithMany(or => or.Orders)
@@ -576,7 +576,7 @@ namespace AIBookStreet.Repositories.Data
                 e.HasOne(x => x.Order)
                     .WithMany(x => x.OrderDetails)
                     .HasForeignKey(x => x.OrderId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 e.HasOne(x => x.Inventory)
                     .WithMany(x => x.OrderDetails)
@@ -603,14 +603,15 @@ namespace AIBookStreet.Repositories.Data
             {
                 e.ToTable("EventRegistrations");
                 e.Property(x => x.RegistrantName).HasMaxLength(255).IsRequired();
-                e.Property(x => x.RegistrantEmail).HasMaxLength(255).IsRequired(false);
+                e.Property(x => x.RegistrantEmail).HasMaxLength(255).IsRequired();
                 e.Property(x => x.RegistrantPhoneNumber).HasMaxLength(255).IsRequired();
                 e.Property(x => x.RegistrantAgeRange).HasMaxLength(255).IsRequired();
                 e.Property(x => x.RegistrantGender).HasMaxLength(255).IsRequired();
-                e.Property(x => x.RegistrantAddress).HasMaxLength(255).IsRequired(false);
-                e.Property(x => x.ReferenceSource).HasMaxLength(1000).IsRequired(false);
+                e.Property(x => x.RegistrantAddress).HasMaxLength(255).IsRequired();
+                e.Property(x => x.ReferenceSource).HasMaxLength(1000).IsRequired();
                 e.Property(x => x.HasAttendedBefore).IsRequired();
                 e.Property(x => x.IsAttended).IsRequired();
+                e.Property(x => x.DateToAttend).IsRequired();
 
                 e.HasOne(x => x.Event)
                  .WithMany(ev => ev.EventRegistrations)
@@ -618,9 +619,9 @@ namespace AIBookStreet.Repositories.Data
                  .OnDelete(DeleteBehavior.SetNull);
 
                 e.HasOne(x => x.Ticket)
-                .WithOne(t => t.EventRegistration)
-                .HasForeignKey<Ticket>(t => t.RegistrationId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .WithMany(t => t.EventRegistrations)
+                .HasForeignKey(x => x.TicketId)
+                .OnDelete(DeleteBehavior.SetNull);
             });
             modelBuilder.Entity<Ticket>(e =>
             {
@@ -628,10 +629,10 @@ namespace AIBookStreet.Repositories.Data
                 e.Property(x => x.TicketCode).HasMaxLength(20).IsRequired();
                 e.Property(x => x.SecretPasscode).HasMaxLength(6).IsRequired();
 
-                e.HasOne(x => x.EventRegistration)
+                e.HasMany(x => x.EventRegistrations)
                 .WithOne(er => er.Ticket)
-                .HasForeignKey<Ticket>(t => t.RegistrationId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .HasForeignKey(t => t.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
             });
             modelBuilder.Entity<EventSchedule>(e =>
             {

@@ -31,7 +31,7 @@ namespace AIBookStreet.Services.Services.Service
         private readonly SmtpClient _smtpClient = smtpClient;
         private readonly SmtpSettings _smtpSettings = smtpSettings.Value;
         private readonly ITicketService _ticketService = ticketService;
-        public async Task<(long, EventRegistration?, string?)> AddAnEventRegistration(EventRegistrationModel model)
+        public async Task<(long, List<EventRegistration>?, string)> AddAnEventRegistration(EventRegistrationModel model)
         {
             try
             {
@@ -40,66 +40,101 @@ namespace AIBookStreet.Services.Services.Service
                 {
                     return (3, null, "Không tìm thấy sự kiện"); //khong tim thay
                 }
-                if (evt.EventSchedules.OrderBy(es => es.EventDate).FirstOrDefault()?.EventDate <= DateOnly.FromDateTime(DateTime.Now))
+                if (evt.EventSchedules?.OrderBy(es => es.EventDate).FirstOrDefault()?.EventDate <= DateOnly.FromDateTime(DateTime.Now))
                 {
                     return (3, null, "Sự kiện đã/đang diễn ra, không thể đăng ký");
-                }
-                var existed = await _repository.EventRegistrationRepository.GetByEmail(model.EventId, model.RegistrantEmail);
-                if (existed != null)
+                }                
+
+                if (model.RegistrantGender.ToLower() != "nam" && model.RegistrantGender.ToLower() != "nữ")
                 {
-                    return (3, null, "Đã tồn tại người đăng ký email này cho sự kiện này"); //da ton tai
+                    return (3, null, "Vui lòng chọn giới tính là Nam hoặc Nữ.");
+                }
+                var resp = new List<EventRegistration>();
+
+                var ticket = await _ticketService.AddATicket(model.EventId);
+                if (ticket.Item1 == 1)
+                {
+                    return (3, null, ticket.Item3);
                 }
 
-                var eventRegistrationModel = _mapper.Map<EventRegistration>(model);
-                eventRegistrationModel.IsAttended = false;
-                var setEventRegistrationModel = await SetBaseEntityToCreateFunc(eventRegistrationModel);
-                var isSuccess = await _repository.EventRegistrationRepository.Add(setEventRegistrationModel);
-                if (isSuccess)
+                foreach (var date in model.DateToAttends)
                 {
-                    return (2, setEventRegistrationModel, null);
+                    var existed = await _repository.EventRegistrationRepository.GetByEmail(model.EventId, model.RegistrantEmail, date);
+                    if (existed != null)
+                    {
+                        if (ticket.Item2 != null)
+                        {
+                            await _repository.TicketRepository.Remove(ticket.Item2);
+                        }
+                        return (3, null, "Đã tồn tại người đăng ký email này trong ngày " + DateOnly.Parse(date).ToString("dd/MM") + " cho sự kiện này"); //da ton tai
+                    }
+                    var eventRegistrationModel = _mapper.Map<EventRegistration>(model);
+                    eventRegistrationModel.IsAttended = false;
+                    eventRegistrationModel.DateToAttend = DateOnly.Parse(date);
+                    eventRegistrationModel.TicketId = ticket.Item2?.Id;
+                    var setEventRegistrationModel = await SetBaseEntityToCreateFunc(eventRegistrationModel);
+                    var isSuccess = await _repository.EventRegistrationRepository.Add(setEventRegistrationModel);
+                    if (!isSuccess)
+                    {
+                        if (resp.Count > 0)
+                        {
+                            foreach (var e in resp)
+                            {
+                                await _repository.EventRegistrationRepository.Remove(e);
+                            }
+                        }
+                        if (ticket.Item2 != null)
+                        {
+                            await _repository.TicketRepository.Remove(ticket.Item2);
+                        }
+                        return (3, null, "Đăng ký thất bại cho ngày " + DateOnly.Parse(date).ToString("dd/MM") + "!");
+                    }
+                    resp.Add(eventRegistrationModel);
                 }
-                return (3, null, "Đăng ký thất bại");
+
+                return (2, resp, "Đăng ký thành công");
+                
             } catch
             {
                 throw;
             }
         }
-        public async Task<(long, List<EventRegistration>?)> CheckAttend(List<CheckAttendModel> models, Event? evt)
+        public async Task<(long, List<EventRegistration>?, string)> CheckAttend(List<CheckAttendModel> models, Event? evt)
         {
             try
             {
                 var user = await GetUserInfo();
-                var isStaff = false;
+                var isOrganizer = false;
                 if (user != null)
                 {
                     foreach (var userRole in user.UserRoles)
                     {
-                        if (userRole.Role.RoleName == "Staff")
+                        if (userRole.Role.RoleName == "Organizer")
                         {
-                            isStaff = true;
+                            isOrganizer = true;
                             break;
                         }
                     }
                 }
-                if (!isStaff)
+                if (!isOrganizer)
                 {
-                    return (0, null);
+                    return (0, null, "Hãy đăng nhập với vai trò Người tổ chức sự kiện");
                 }
                 if (models == null)
                 {
-                    return (6, null);
+                    return (0, null, "Danh sách điểm danh trống");
                 }
                 if (evt == null)
                 {
-                    return (7, null);
+                    return (0, null, "Sự kiện không hợp lệ");
                 }
                 if (evt.EventSchedules?.OrderBy(es => es.EventDate).FirstOrDefault()?.EventDate > DateOnly.FromDateTime(DateTime.Now.Date))
                 {
-                    return (4, null);
+                    return (0, null, "Chỉ có thể điểm danh trong ngày diễn ra sự kiện");
                 }
                 if (evt.EventSchedules?.OrderByDescending(es => es.EventDate).FirstOrDefault()?.EventDate < DateOnly.FromDateTime(DateTime.Now))
                 {
-                    return (4, null);
+                    return (0, null, "Chỉ có thể điểm danh trong ngày diễn ra sự kiện");
                 }
 
                 var resp = new List<EventRegistration>();
@@ -108,50 +143,51 @@ namespace AIBookStreet.Services.Services.Service
                     var existed = await _repository.EventRegistrationRepository.GetByIDForCheckIn(model.Id);
                     if (existed == null)
                     {
-                        return (1, null); //khong ton tai
+                        return (0, null, "Đơn đăng ký không tồn tại!!!"); //khong ton tai
                     }
 
                     if (existed.IsDeleted)
                     {
-                        return (3, null);
+                        return (0, null, "Đơn đăng ký đã bị xóa");
                     }
                     if (!string.IsNullOrEmpty(model.TicketCode))
                     {
-                        if (model.Id == existed.Id && model.TicketCode == existed.Ticket?.TicketCode)
+                        var validRegistrationInDate = await _repository.EventRegistrationRepository.GetRegistrationValidInDate(existed.TicketId);
+                        if (model.TicketCode == validRegistrationInDate?.Ticket?.TicketCode)
                         {
-                            if (existed.IsAttended)
+                            if (validRegistrationInDate.IsAttended)
                             {
-                                return (5, null);
+                                return (0 , null, "Vé đã được sử dụng");
                             }
                             else
                             {
-                                existed.IsAttended = true;
+                                validRegistrationInDate.IsAttended = true;
                                 var name = user?.FullName?.Split(" ");
-                                var updateBy = name?[0][..1].ToUpper();
+                                var updateBy = name?.Length > 1 ? name?[0][..1].ToUpper() : name?[0][..1].ToUpper() + name?[0][1..];
                                 for (int i = 1; i < name?.Length; i++)
                                 {
                                     updateBy += " " + name[i];
                                 }
-                                existed.LastUpdatedBy = updateBy;
-                                existed.LastUpdatedDate = DateTime.Now;
-                                var success = await _repository.EventRegistrationRepository.Update(existed);
+                                validRegistrationInDate.LastUpdatedBy = updateBy;
+                                validRegistrationInDate.LastUpdatedDate = DateTime.Now;
+                                var success = await _repository.EventRegistrationRepository.Update(validRegistrationInDate);
                                 if (!success)
                                 {
-                                    return (3, null);       //update fail
+                                    return (0, null, "Đã xảy ra lỗi, không thể điểm danh cho '"+validRegistrationInDate.RegistrantName+"'!");       //update fail
                                 }
-                                resp.Add(existed);
+                                resp.Add(validRegistrationInDate);
                             }
                         }
                         else
                         {
-                            return (5, null);
+                            return (0, null, "Vé không hợp lệ");
                         }
                     }
                     else
                     {
                         existed.IsAttended = model.IsAttended;
                         var name = user?.FullName?.Split(" ");
-                        var updateBy = name?[0][..1].ToUpper();
+                        var updateBy = name?.Length > 1 ? name?[0][..1].ToUpper() : name?[0][..1].ToUpper() + name?[0][1..];
                         for (int i = 1; i < name?.Length; i++)
                         {
                             updateBy += " " + name[i];
@@ -161,12 +197,12 @@ namespace AIBookStreet.Services.Services.Service
                         var success = await _repository.EventRegistrationRepository.Update(existed);
                         if (!success)
                         {
-                            return (3, null);       //update fail
+                            return (0, null, "Đã xảy ra lỗi, không thể điểm danh cho '"+existed.RegistrantName+"'!");       //update fail
                         }
                         resp.Add(existed);
                     }
                 }
-                return (2, resp); //update thanh cong
+                return (1, resp, "Điểm danh thành công"); //update thanh cong
             } catch
             {
                 throw;
@@ -184,7 +220,7 @@ namespace AIBookStreet.Services.Services.Service
         //    return await _repository.EventRegistrationRepository.Delete(existed) ? (2, existed) //delete thanh cong
         //                                                                  : (3, null);       //delete fail
         //}
-        public async Task<EventRegistration?> GetAnEventRegistrationById(Guid id)
+        public async Task<EventRegistration?> GetAnEventRegistrationById(Guid? id)
         {
             try
             {
@@ -199,19 +235,19 @@ namespace AIBookStreet.Services.Services.Service
             try
             {
                 var user = await GetUserInfo();
-                var isStaff = false;
+                var isOrganizer = false;
                 if (user != null)
                 {
                     foreach (var userRole in user.UserRoles)
                     {
-                        if (userRole.Role.RoleName == "Staff")
+                        if (userRole.Role.RoleName == "Organizer")
                         {
-                            isStaff = true;
+                            isOrganizer = true;
                             break;
                         }
                     }
                 }
-                if (!isStaff)
+                if (!isOrganizer)
                 {
                     return (0, null);
                 }
@@ -260,13 +296,13 @@ namespace AIBookStreet.Services.Services.Service
                 //};
                 //string jsonData = JsonSerializer.Serialize(qrData);
 
-                var qrData = ticket?.RegistrationId + " | " + ticket?.TicketCode + " | " + ticket?.EventRegistration?.RegistrantName;
+                var qrData = ticket?.EventRegistrations?.FirstOrDefault()?.Id + " | " + ticket?.TicketCode + " | " + ticket?.EventRegistrations?.FirstOrDefault()?.RegistrantName;
                 QRCodeGenerator qrGenerator = new();
                 QRCodeData qrCodeData = qrGenerator.CreateQrCode(qrData, QRCodeGenerator.ECCLevel.Q);
                 QRCode qrCode = new(qrCodeData);
                 Bitmap qrCodeImage = qrCode.GetGraphic(5);
 
-                var barCodeInfor = ticket?.RegistrationId.ToString();
+                var barCodeInfor = ticket?.EventRegistrations?.FirstOrDefault()?.Id.ToString();
                 Barcode barcode = new();
                 barcode.Encode(BarcodeStandard.Type.Code128, barCodeInfor, 1200, 400);
                 //string tempBarFilePath = Path.Combine(Path.GetTempPath(), "test-bar.png");
@@ -276,7 +312,7 @@ namespace AIBookStreet.Services.Services.Service
                 ms1.Position = 0;
 
                 var from = new MailAddress(_smtpSettings.From);
-                var to = new MailAddress(ticket.EventRegistration.RegistrantEmail);
+                var to = new MailAddress(ticket?.EventRegistrations?.FirstOrDefault()?.RegistrantEmail);
                 var htmlBody = await _razorTemplateEngine.RenderAsync("ResponseModel/EventRegistration.cshtml", ticket);
 
                 var mail = new MailMessage(from, to)
@@ -362,23 +398,6 @@ namespace AIBookStreet.Services.Services.Service
 
         //    return (2, resp);
         //}
-        public async Task<EventRegistration?> Remove(EventRegistration model)
-        {
-            try
-            {
-                var existed = await _repository.EventRegistrationRepository.GetByID(model.Id);
-                if (existed == null)
-                {
-                    return null; //khong ton tai
-                }
 
-                return await _repository.EventRegistrationRepository.Remove(existed) ? existed //delete thanh cong
-                                                                              : null;       //delete fail
-            }
-            catch
-            {
-                throw;
-            }
-        }
     }
 }

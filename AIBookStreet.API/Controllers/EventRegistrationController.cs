@@ -22,44 +22,38 @@ namespace AIBookStreet.API.Controllers
         private readonly IMapper _mapper = mapper;
         [AllowAnonymous]
         [HttpPost("")]
-        public async Task<IActionResult> AddAnEventRegistration(EventRegistrationModel model)
+        public async Task<IActionResult> AddAnEventRegistration([FromQuery]EventRegistrationModel model)
         {
             try
             {
                 var result = await _service.AddAnEventRegistration(model);
                 if (result.Item1 == 2)
                 {
-                    //await _service.SendEmai(result.Item2);
-                    var ticket = await _ticketService.AddATicket(result.Item2.Id);
-                    if (ticket.Item1 == 1)
-                    {
-                        var nsc = await _service.Remove(result.Item2);
-                        return BadRequest(new BaseResponse(false, ticket.Item3));
-                    }
-                    if (ticket.Item2?.EventRegistration?.RegistrantEmail != null)
+                    var ticket = await _ticketService.GetTicketById(result.Item2?.FirstOrDefault()?.TicketId);
+                    if (ticket != null)
                     {
                         //await _service.SendEmai(ticket.Item2);
                         var emailQueue = HttpContext.RequestServices.GetRequiredService<IEmailQueueService>();
-                        emailQueue.Enqueue(ticket.Item2);
+                        emailQueue.Enqueue(ticket);
                     }
-                    return Ok(new ItemResponse<object>("Đã thêm!", new
+                    return Ok(new ItemResponse<object>(result.Item3, new
                     {
-                        id = ticket.Item2?.Id,
-                        ticketCode = ticket.Item2?.TicketCode,
-                        eventId = ticket.Item2?.EventRegistration?.EventId,
-                        registrationId = ticket.Item2?.RegistrationId,
-                        attendeeName = ticket.Item2?.EventRegistration?.RegistrantName,
-                        attendeeEmail = ticket.Item2?.EventRegistration?.RegistrantEmail,
-                        attendeePhone = ticket.Item2?.EventRegistration?.RegistrantPhoneNumber,
-                        attendeeAddress = ticket.Item2?.EventRegistration?.RegistrantAddress,
-                        eventName = ticket.Item2?.EventRegistration?.Event?.EventName,
-                        eventStartDate = ticket.Item2?.EventRegistration?.Event?.EventSchedules != null ? ticket.Item2?.EventRegistration?.Event?.EventSchedules.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate : null,
-                        eventEndDate = ticket.Item2?.EventRegistration?.Event?.EventSchedules != null ? ticket.Item2?.EventRegistration?.Event?.EventSchedules?.OrderByDescending(e => e.EventDate).FirstOrDefault()?.EventDate : null,
-                        zoneId = ticket.Item2?.EventRegistration?.Event?.ZoneId,
-                        zoneName = ticket.Item2?.EventRegistration?.Event?.Zone?.ZoneName,
-                        latitude = ticket.Item2?.EventRegistration?.Event?.Zone?.Latitude,
-                        longitude = ticket.Item2?.EventRegistration?.Event?.Zone?.Longitude,
-                        issuedAt = ticket.Item2?.CreatedDate
+                        id = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.TicketId : null,
+                        ticketCode = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.Ticket?.TicketCode : null,
+                        eventId = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.EventId : null,
+                        registrationId = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.Id : null,
+                        attendeeName = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.RegistrantName : null,
+                        attendeeEmail = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.RegistrantEmail : null,
+                        attendeePhone = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.RegistrantPhoneNumber : null,
+                        attendeeAddress = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.RegistrantAddress : null,
+                        eventName = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null) ? result.Item2?.FirstOrDefault()?.Event?.EventName : null,
+                        eventStartDate = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null && result.Item2?.FirstOrDefault()?.Event?.EventSchedules != null) ? result.Item2?.FirstOrDefault()?.Event?.EventSchedules?.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate : null,
+                        eventEndDate = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null && result.Item2?.FirstOrDefault()?.Event?.EventSchedules != null) ? result.Item2?.FirstOrDefault()?.Event?.EventSchedules?.OrderByDescending(e => e.EventDate).FirstOrDefault()?.EventDate : null,
+                        zoneId = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null) ? result.Item2?.FirstOrDefault()?.Event?.ZoneId : null,
+                        zoneName = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null && result.Item2?.FirstOrDefault()?.Event?.Zone != null) ? result.Item2?.FirstOrDefault()?.Event?.Zone?.ZoneName : null,
+                        latitude = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null && result.Item2?.FirstOrDefault()?.Event?.Zone != null) ? result.Item2?.FirstOrDefault()?.Event?.Zone?.Latitude : null,
+                        longitude = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null && result.Item2?.FirstOrDefault()?.Event?.Zone != null) ? result.Item2?.FirstOrDefault()?.Event?.Zone?.Longitude : null,
+                        issuedAt = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.Ticket?.CreatedDate : null,
                     }));
 
                 }
@@ -85,14 +79,8 @@ namespace AIBookStreet.API.Controllers
 
                 return result.Item1 switch
                 {
-                    0 => BadRequest("Hãy đăng nhập với vai trò quản trị viên"),
-                    1 => BadRequest(new BaseResponse(false, "Không tồn tại!!!")),
-                    2 => Ok(new BaseResponse(true, "Đã cập nhật trạng thái!")),
-                    4 => BadRequest("Chỉ có thể điểm danh trong ngày diễn ra sự kiện"),
-                    5 => BadRequest("Vé đã đưuọc sử dụng hoặc không hợp lệ"),
-                    6 => BadRequest("Danh sách trống"),
-                    7 => BadRequest("Sự kiện không hợp lệ"),
-                    _ => BadRequest(new BaseResponse(false, "Đã xảy ra lỗi, vui lòng kiểm tra lại"))
+                    0 => BadRequest(result.Item3),
+                    _ => Ok(new BaseResponse(true, result.Item3))
                 };
             }
             catch (Exception ex)
@@ -150,7 +138,7 @@ namespace AIBookStreet.API.Controllers
 
                 return eventRegistrations.Item1 switch
                 {
-                    0 => BadRequest("Hãy đăng nhập với vai trò quản trị viên"),
+                    0 => BadRequest("Hãy đăng nhập với vai trò Người tổ chức sự kiện"),
                     1 => Ok(new ItemListResponse<EventRegistrationRequest>(ConstantMessage.Success, null)),
                     _ => Ok(new ItemListResponse<EventRegistrationRequest>(ConstantMessage.Success, _mapper.Map<List<EventRegistrationRequest>>(eventRegistrations.Item2)))
                 };
@@ -206,31 +194,33 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var ticket = await _ticketService.GetTicketByRegistrationId(registrtionId);
-                if (ticket != null)
+                var eventRegistration = await _service.GetAnEventRegistrationById(registrtionId);
+                if (eventRegistration != null)
                 {
-                    if (ticket.EventRegistration?.RegistrantEmail != null)
+                    var ticket = await _ticketService.GetTicketById(eventRegistration.TicketId);
+                    if (eventRegistration?.RegistrantEmail != null && ticket != null)
                     {
-                        await _service.SendEmai(ticket);
+                        var emailQueue = HttpContext.RequestServices.GetRequiredService<IEmailQueueService>();
+                        emailQueue.Enqueue(ticket);
                     }
                     return Ok(new ItemResponse<object>("Đã thêm!", new
                     {
-                        id = ticket?.Id,
-                        ticketCode = ticket?.TicketCode,
-                        eventId = ticket?.EventRegistration?.EventId,
-                        registrationId = ticket?.RegistrationId,
-                        attendeeName = ticket?.EventRegistration?.RegistrantName,
-                        attendeeEmail = ticket?.EventRegistration?.RegistrantEmail,
-                        attendeePhone = ticket?.EventRegistration?.RegistrantPhoneNumber,
-                        attendeeAddress = ticket?.EventRegistration?.RegistrantAddress,
-                        eventName = ticket?.EventRegistration?.Event?.EventName,
-                        eventStartDate = ticket?.EventRegistration?.Event?.EventSchedules.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate,
-                        eventEndDate = ticket?.EventRegistration?.Event?.EventSchedules.OrderByDescending(e => e.EventDate).FirstOrDefault()?.EventDate,
-                        zoneId = ticket?.EventRegistration?.Event?.ZoneId,
-                        zoneName = ticket?.EventRegistration?.Event?.Zone?.ZoneName,
-                        latitude = ticket?.EventRegistration?.Event?.Zone?.Latitude,
-                        longitude = ticket?.EventRegistration?.Event?.Zone?.Longitude,
-                        issuedAt = ticket?.CreatedDate
+                        id = eventRegistration?.TicketId,
+                        ticketCode = eventRegistration?.Ticket?.TicketCode,
+                        eventId = eventRegistration?.EventId,
+                        registrationId = eventRegistration?.Id,
+                        attendeeName = eventRegistration?.RegistrantName,
+                        attendeeEmail = eventRegistration?.RegistrantEmail,
+                        attendeePhone = eventRegistration?.RegistrantPhoneNumber,
+                        attendeeAddress = eventRegistration?.RegistrantAddress,
+                        eventName = eventRegistration?.Event?.EventName,
+                        eventStartDate = eventRegistration?.Event?.EventSchedules?.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate,
+                        eventEndDate = eventRegistration?.Event?.EventSchedules?.OrderByDescending(e => e.EventDate).FirstOrDefault()?.EventDate,
+                        zoneId = eventRegistration?.Event?.ZoneId,
+                        zoneName = eventRegistration?.Event?.Zone?.ZoneName,
+                        latitude = eventRegistration?.Event?.Zone?.Latitude,
+                        longitude = eventRegistration?.Event?.Zone?.Longitude,
+                        issuedAt = eventRegistration?.Ticket?.CreatedDate,
                     }));
                 }
                 return BadRequest("Không thể gửi email, không tìm thấy email đăng ký");

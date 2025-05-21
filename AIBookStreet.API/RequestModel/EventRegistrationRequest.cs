@@ -1,4 +1,6 @@
-﻿namespace AIBookStreet.API.RequestModel
+﻿using AIBookStreet.Repositories.Data.Entities;
+
+namespace AIBookStreet.API.RequestModel
 {
     public class EventRegistrationRequest
     {
@@ -11,9 +13,11 @@
         public string? RegistrantAddress { get; set; }
         public string? ReferenceSource { get; set; }
         public bool HasAttendedBefore { get; set; }
+        public DateOnly DateToAttend { get; set; }
         public bool IsAttended { get; set; }
         public string? LastUpdatedBy { get; set; }
         public DateTime? LastUpdatedDate { get; set; }
         public EventRequest? Event { get; set; }
+        public TicketRequest? Ticket { get; set; }
     }
 }
