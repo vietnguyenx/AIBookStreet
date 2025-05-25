@@ -13,7 +13,7 @@ namespace AIBookStreet.Services.Services.Interface
         Task<(long, Event?, string?)> AddAnEvent(EventModel model, List<EventScheduleModel> schedules);
         Task<(long, Event?, string)> ProcessEvent(Guid id, ProcesingEventModel model);
         Task<(long, Event?, string?)> DeleteAnEvent(Guid id);
-        Task<(Event?, List<object>, List<object>, List<object>, List<object>, List<object>, int)> GetAnEventById(Guid id);
+        Task<(Event?, int)> GetAnEventById(Guid id);
         Task<(List<Event>?, long)> GetAllEventsPagination(string? key, bool? allowAds, DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc);
         Task<List<Event>?> GetEventComing(int number, bool? allowAds);
         Task<List<DateModel>?> GetEventDatesInMonth(int? month);

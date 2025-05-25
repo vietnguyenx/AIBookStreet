@@ -1,4 +1,5 @@
 ﻿using AIBookStreet.Repositories.Data.Entities;
+using AIBookStreet.Services.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace AIBookStreet.Services.Services.Interface
 {
-    public interface IEmailQueueService
+    public interface IExportEventStatisticQueueService
     {
-        void Enqueue(Ticket message);
-        bool TryDequeue(out Ticket message);
+        void Enqueue(ExportStatisticModel model);
+        bool TryDequeue(out ExportStatisticModel model);
     }
 }

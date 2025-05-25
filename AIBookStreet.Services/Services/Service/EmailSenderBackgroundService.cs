@@ -10,9 +10,10 @@ using System.Threading.Tasks;
 
 namespace AIBookStreet.Services.Services.Service
 {
-    public class EmailSenderBackgroundService(IEmailQueueService emailQueue, IServiceScopeFactory serviceScopeFactory, ILogger<EmailSenderBackgroundService> logger) : BackgroundService
+    public class EmailSenderBackgroundService(IEventRegistrationQueueService eventRegistrationQueue, IExportEventStatisticQueueService exportEventStatisticQueue, IServiceScopeFactory serviceScopeFactory, ILogger<EmailSenderBackgroundService> logger) : BackgroundService
     {
-        private readonly IEmailQueueService _emailQueue = emailQueue;
+        private readonly IEventRegistrationQueueService _eventRegistrationQueue = eventRegistrationQueue;
+        private readonly IExportEventStatisticQueueService _exportEventStatisticQueue = exportEventStatisticQueue;
         private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
         private readonly ILogger<EmailSenderBackgroundService> _logger = logger;
 
@@ -22,19 +23,32 @@ namespace AIBookStreet.Services.Services.Service
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                if (_emailQueue.TryDequeue(out var message))
+                if (_eventRegistrationQueue.TryDequeue(out var message))
                 {
                     _logger.LogInformation($"Đang xử lý email cho RegistrationId: {message?.EventRegistrations?.FirstOrDefault()?.Id}");
                     using var scope = _serviceScopeFactory.CreateScope();
-                    var emailService = scope.ServiceProvider.GetRequiredService<IEventRegistrationService>(); // Thay YourNamespace.YourEmailSendingService bằng service chứa phương thức SendEmail của bạn
+                    var emailRegistrationService = scope.ServiceProvider.GetRequiredService<IEventRegistrationService>();
                     try
                     {
-                        await emailService.SendEmai(message);
+                        await emailRegistrationService.SendRegistrationEmai(message);
                         _logger.LogInformation($"Đã gửi email thành công cho RegistrationId: {message?.EventRegistrations?.FirstOrDefault()?.Id}");
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError($"Lỗi khi gửi email cho RegistrationId: {message?.EventRegistrations?.FirstOrDefault()?.Id}: {ex.Message}");
+                    }
+                } else if (_exportEventStatisticQueue.TryDequeue(out var model)){
+                    _logger.LogInformation($"Đang gửi số liệu đến {model.Email} cho EventId: {model.EventId}");
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var emailStatistcService = scope.ServiceProvider.GetRequiredService<IEventRegistrationService>(); 
+                    try
+                    {
+                        await emailStatistcService.ExportStatisticReport(model);
+                        _logger.LogInformation($"Đã gửi số liệu đến {model.Email} thành công cho EventId: {model.EventId}");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError($"Lỗi khi gửi số liệu cho EventId: {model.EventId}: {ex.Message}");
                     }
                 }
                 else

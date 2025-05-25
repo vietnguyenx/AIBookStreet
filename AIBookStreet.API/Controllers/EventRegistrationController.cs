@@ -33,8 +33,8 @@ namespace AIBookStreet.API.Controllers
                     if (ticket != null)
                     {
                         //await _service.SendEmai(ticket.Item2);
-                        var emailQueue = HttpContext.RequestServices.GetRequiredService<IEmailQueueService>();
-                        emailQueue.Enqueue(ticket);
+                        var eventRegistrationQueue = HttpContext.RequestServices.GetRequiredService<IEventRegistrationQueueService>();
+                        eventRegistrationQueue.Enqueue(ticket);
                     }
                     return Ok(new ItemResponse<object>(result.Item3, new
                     {
@@ -130,11 +130,11 @@ namespace AIBookStreet.API.Controllers
         }
         [Authorize]
         [HttpGet("get-all/{eventId}")]
-        public async Task<IActionResult> GetAllEventRegistrations([FromRoute]Guid eventId, string? searchKey)
+        public async Task<IActionResult> GetAllActiveEventRegistrationsInAnEvent([FromRoute]Guid eventId, string? searchKey, string? date)
         {
             try
             {
-                var eventRegistrations = await _service.GetAllActiveEventRegistrations(eventId, searchKey);
+                var eventRegistrations = await _service.GetAllActiveEventRegistrationsInAnEvent(eventId, searchKey, date);
 
                 return eventRegistrations.Item1 switch
                 {
@@ -150,18 +150,16 @@ namespace AIBookStreet.API.Controllers
         }
         [AllowAnonymous]
         [HttpGet("statistic/{eventId}")]
-        public async Task<IActionResult> Test([FromRoute] Guid eventId, bool? isAttended)
+        public async Task<IActionResult> GetAnEventStatistics([FromRoute] Guid eventId, bool? isAttended, string? province, string? district, string? date)
         {
             try
             {
-                var result = await _service.Test(eventId, isAttended);
+                var result = await _service.GetAnEventStatistics(eventId, isAttended, province, district, date);
                 if (result.Item6 == 0)
                 {
                     return BadRequest("Chưa có thông tin đăng ký của sự kiện này");
                 }
-                return isAttended switch
-                {
-                    null => Ok(new
+                return Ok(new
                     {
                         success = true,
                         ageChart = result.Item1,
@@ -172,17 +170,7 @@ namespace AIBookStreet.API.Controllers
                         totalRegistrations = result.Item6,
                         participation = result.Item7,
                         participationRate = (result.Item7 * 100) / result.Item6 + "%"
-                    }),
-                    _ => Ok(new
-                    {
-                        success = true,
-                        ageChart = result.Item1,
-                        genderChart = result.Item2,
-                        referenceChart = result.Item3,
-                        addressChart = result.Item4,
-                        attendedBeforeChart = result.Item5
-                    })
-                };
+                    });
             } catch (Exception ex)
             {
                 return BadRequest(ex.Message);
@@ -200,7 +188,7 @@ namespace AIBookStreet.API.Controllers
                     var ticket = await _ticketService.GetTicketById(eventRegistration.TicketId);
                     if (eventRegistration?.RegistrantEmail != null && ticket != null)
                     {
-                        var emailQueue = HttpContext.RequestServices.GetRequiredService<IEmailQueueService>();
+                        var emailQueue = HttpContext.RequestServices.GetRequiredService<IEventRegistrationQueueService>();
                         emailQueue.Enqueue(ticket);
                     }
                     return Ok(new ItemResponse<object>("Đã thêm!", new
@@ -254,5 +242,25 @@ namespace AIBookStreet.API.Controllers
         //        return BadRequest(ex.Message);
         //    }
         //}
+        [AllowAnonymous]
+        [HttpGet("export-statistic/{eventId}")]
+        public IActionResult ExportAnEventStatistics([FromRoute] Guid eventId, string? email)
+        {
+            try
+            {
+                var model = new ExportStatisticModel
+                {
+                    EventId = eventId,
+                    Email = email
+                };
+                var exportEventStatisticQueue = HttpContext.RequestServices.GetRequiredService<IExportEventStatisticQueueService>();
+                exportEventStatisticQueue.Enqueue(model);
+                return Ok(new BaseResponse(true, "File số liệu sẽ được gửi tới email của bạn"));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

@@ -13,15 +13,19 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 {
     public class EventRegistrationRepository(BSDbContext context) : BaseRepository<EventRegistration>(context), IEventRegistrationRepository
     {
-        public async Task<List<EventRegistration>> GetAll(Guid eventId, string? searchKey)
+        public async Task<List<EventRegistration>> GetAll(Guid eventId, string? searchKey, string? date)
         {
             var queryable = GetQueryable();
-            queryable = queryable.Where(z => !z.IsDeleted && z.EventId == eventId && z.DateToAttend == DateOnly.FromDateTime(DateTime.Now));
+            queryable = queryable.Where(z => !z.IsDeleted && z.EventId == eventId);
             if (!string.IsNullOrEmpty(searchKey))
             {
                 queryable = queryable.Where(er => er.RegistrantName.ToLower().Contains(searchKey.ToLower()) || 
                                                   (er.RegistrantEmail != null && er.RegistrantEmail.ToLower().Contains(searchKey.ToLower())) ||
                                                   er.RegistrantAddress.ToLower().Contains(searchKey.ToLower()));
+            }
+            if (!string.IsNullOrEmpty(date))
+            {
+                queryable = queryable.Where(z => z.DateToAttend == DateOnly.Parse(date));
             }
             var eventRegistrations = await queryable.ToListAsync();
             return eventRegistrations;
@@ -47,14 +51,28 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
 
             return eventRegistration;
         }
-        public async Task<(List<object>, List<object>, List<object>, List<object>, List<object>, int, int)> GetStatistic(Guid? eventId, bool? isAttend)
+        public async Task<(List<object>, List<object>, List<object>, List<object>, List<object>, int, int)> GetStatistic(Guid eventId, bool? isAttended, string? province, string? district, string? date)
         {
             var queryable = GetQueryable();
             queryable = queryable.Where(z => !z.IsDeleted && z.EventId == eventId);
-            if (isAttend != null)
+            if (isAttended != null)
             {
-                queryable = queryable.Where(er => er.IsAttended == isAttend);
+                queryable = queryable.Where(er => er.IsAttended == isAttended);
             }
+            if (province != null)
+            {
+                queryable = queryable.Where(er => er.RegistrantAddress.ToLower().Contains(province.ToLower()));
+                if (district != null)
+                {
+                    queryable = queryable.Where(er => er.RegistrantAddress.ToLower().Contains(district.ToLower()));
+                }
+            }
+            if (date != null)
+            {
+                queryable = queryable.Where(er => er.DateToAttend == DateOnly.Parse(date));
+            }
+            var dataList = await queryable.ToListAsync();
+
             var ageStatistic = new List<object>();
             var genderStatistic = new List<object>();
             var referenceStatistic = new List<object>();
@@ -79,12 +97,12 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                                             ReferenceSource = group.Key,
                                             Count = group.Count()
                                         }).ToListAsync();
-            var addressCount = await queryable.GroupBy(er => er.RegistrantAddress)
+            var addressCount = dataList.GroupBy(er => er.RegistrantAddress.Split(",")[district != null ? 0 : province != null ? 1 : 2])
                                         .Select(group => new
                                         {
                                             Address = group.Key,
                                             Count = group.Count()
-                                        }).ToListAsync();
+                                        });
             var hasAttendedBeforeCount = await queryable.GroupBy(er => er.HasAttendedBefore)
                                         .Select(group => new
                                         {
@@ -95,7 +113,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 ageStatistic.Add(new
                 {
-                    Label = group.AgeRange.ToString(),
+                    Label = group.AgeRange.Trim().ToString(),
                     Value = group.Count
                 });
             }
@@ -103,7 +121,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 genderStatistic.Add(new
                 {
-                    Label = group.Gender.ToString(),
+                    Label = group.Gender.Trim().ToString(),
                     Value = group.Count
                 });
             }
@@ -111,7 +129,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 referenceStatistic.Add(new
                 {
-                    Label = group.ReferenceSource.ToString(),
+                    Label = group.ReferenceSource.Trim().ToString(),
                     Value = group.Count
                 });
             }
@@ -119,7 +137,8 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             {
                 addressStatistic.Add(new
                 {
-                    Label = group.Address.ToString(),
+                    //Label = district != null ? group.Address.Split(",")[0].Trim().ToString() : province != null ? group.Address.Split(",")[1].Trim().ToString() : group.Address.Split(",")[2].Trim().ToString(),
+                    Label = group.Address.Trim().ToString(),
                     Value = group.Count
                 });
             }

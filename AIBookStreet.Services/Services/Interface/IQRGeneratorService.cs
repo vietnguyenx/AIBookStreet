@@ -8,8 +8,6 @@ namespace AIBookStreet.Services.Services.Interface
 {
     public interface IQRGeneratorService
     {
-        Task<int> SendEmail(string email);
-        int GenerateQRCode(string name, int age);
-        int GenerateBarCode(string infor);
+        Task<Task> ExportListToExcel(string email);
     }
 }

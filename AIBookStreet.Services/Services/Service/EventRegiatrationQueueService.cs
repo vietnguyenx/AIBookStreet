@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace AIBookStreet.Services.Services.Service
 {
-    public class EmailQueueService : IEmailQueueService
+    public class EventRegiatrationQueueService : IEventRegistrationQueueService
     {
         private readonly ConcurrentQueue<Ticket> _queue = new();
         public void Enqueue(Ticket message) => _queue.Enqueue(message);

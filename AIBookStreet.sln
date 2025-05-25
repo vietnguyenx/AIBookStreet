@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AIBookStreet.Repositories",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AIBookStreet.Services", "AIBookStreet.Services\AIBookStreet.Services.csproj", "{D977B96F-01A7-466B-A065-777DBDECFEBC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIBookStreet.API", "AIBookStreet.API\AIBookStreet.API.csproj", "{E3ADD784-3650-407E-A03C-7DD6897E39D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AIBookStreet.API", "AIBookStreet.API\AIBookStreet.API.csproj", "{E3ADD784-3650-407E-A03C-7DD6897E39D2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

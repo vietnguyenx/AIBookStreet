@@ -291,14 +291,6 @@ namespace AIBookStreet.Services.Services.Service
                             await _repository.EventScheduleRepository.Remove(schedule);
                         }
                     }
-                    var eventRegistrations = await _repository.EventRegistrationRepository.GetAll(id, null);
-                    if (eventRegistrations != null)
-                    {
-                        foreach (var er in eventRegistrations)
-                        {
-                            await _repository.EventRegistrationRepository.Remove(er);
-                        }
-                    }
                     return (2, existed, "Đã xóa sự kiện");//delete thanh cong
                 }
                 return (3, null, "Không thể xóa sự kiện, vui lòng thử lại sau");       //delete fail
@@ -307,11 +299,11 @@ namespace AIBookStreet.Services.Services.Service
                 throw;
             }
         }
-        public async Task<(Event?, List<object>, List<object>, List<object>, List<object>, List<object>, int)> GetAnEventById(Guid id)
+        public async Task<(Event?, int)> GetAnEventById(Guid id)
         {
             var evt = await _repository.EventRepository.GetByID(id);
-            var statistic = await _repository.EventRegistrationRepository.GetStatistic(id, null);
-            return (evt, statistic.Item1, statistic.Item2, statistic.Item3, statistic.Item4, statistic.Item5, statistic.Item6);
+            var statistic = await _repository.EventRegistrationRepository.GetStatistic(id, null, null, null, null);
+            return (evt, statistic.Item6);
         }
         public async Task<(List<Event>?, long)> GetAllEventsPagination(string? key, bool? allowAds, DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {

@@ -114,8 +114,8 @@ namespace AIBookStreet.API.Controllers
                 var eventInfor = _mapper.Map<EventRequest>(result.Item1);
                 eventInfor.StartDate = result.Item1.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
                 eventInfor.EndDate = result.Item1.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
-                eventInfor.TotalRegistrations = result.Item7;
-                return Ok(new ItemResponse<object>(ConstantMessage.Success, eventInfor));
+                eventInfor.TotalRegistrations = result.Item2;
+                return Ok(new ItemResponse<EventRequest>(ConstantMessage.Success, eventInfor));
 
                 //return result.Item1 switch
                 //{
