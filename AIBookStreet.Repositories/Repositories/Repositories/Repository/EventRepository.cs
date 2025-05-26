@@ -250,7 +250,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var eventRegistrations = await queryable.ToListAsync();
             return eventRegistrations.Count;
         }
-        public async Task<(List<Event>?, long)> GetEventsForStaff(DateTime? date, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<(List<Event>?, long)> GetEventsForOrganizer(DateTime? date, string? eventName, string? email, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             var queryable = GetQueryable();
             queryable = base.ApplySort(queryable, "StartDate", 1);
@@ -263,6 +263,18 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                                             && ev.IsApprove.HasValue 
                                             && ev.IsApprove == true 
                                             && ev.IsOpen == true);
+
+            if (queryable.Any())
+            {
+                if (!string.IsNullOrEmpty(eventName))
+                {
+                    queryable = queryable.Where(ev => ev.EventName.ToLower().Contains(eventName.ToLower()));
+                }
+                if (!string.IsNullOrEmpty(email))
+                {
+                    queryable = queryable.Where(ev => ev.OrganizerEmail == email);
+                }
+            }
 
             var totalOrigin = queryable.Count();
             var x = await queryable.CountAsync();

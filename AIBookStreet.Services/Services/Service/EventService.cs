@@ -354,7 +354,7 @@ namespace AIBookStreet.Services.Services.Service
         {
             return await _repository.EventRepository.GetNumberEventInMonth(month);
         }
-        public async Task<(List<Event>?, long)> GetEventsForCheckin(DateTime? date, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<(List<Event>?, long)> GetEventsForCheckin(DateTime? date, string? eventName, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             var user = await GetUserInfo();
             var isOrganizer = false;
@@ -372,7 +372,7 @@ namespace AIBookStreet.Services.Services.Service
             {
                 return (null, 99);
             }
-            var events = await _repository.EventRepository.GetEventsForStaff(date, pageNumber, pageSize, sortField, desc);
+            var events = await _repository.EventRepository.GetEventsForOrganizer(date, eventName, user?.Email, pageNumber, pageSize, sortField, desc);
             return (events.Item1, events.Item2);
         }
         public async Task<(List<Event>?, long)> GetEventRequests(int? pageNumber, int? pageSize, string? sortField, bool? desc)

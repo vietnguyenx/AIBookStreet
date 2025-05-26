@@ -463,8 +463,7 @@ namespace AIBookStreet.Services.Services.Service
                     // Tự động điều chỉnh độ rộng cột
                     worksheet.Cells.AutoFitColumns();
 
-                    //==================================================================================================
-
+                    //======================Tỷ lệ tham gia============================================================================
                     ExcelWorksheet worksheet2 = excelPackage.Workbook.Worksheets.Add("Số liệu");
 
                     worksheet2.Cells[5, 13].Value = "Tham dự";
@@ -511,7 +510,7 @@ namespace AIBookStreet.Services.Services.Service
                     attendanceChart.Series.Add(worksheet2.Cells[7, 14, 8, 14], worksheet2.Cells[7, 13, 8, 13]);
                     attendanceChart.DataLabel.ShowPercent = true;
 
-                    //=================================================================================================
+                    //==========================Kinh nghiệm=======================================================================
                     worksheet2.Cells[24, 14].Value = "Có kinh nghiệm";
                     worksheet2.Cells[24, 15].Value = "Chưa có kinh nghiệm";
                     worksheet2.Cells[25, 13].Value = "Đăng ký";
@@ -568,7 +567,7 @@ namespace AIBookStreet.Services.Services.Service
                     //sampleExpChart.XAxis.Title.Text = "Kinh nghiệm";
                     sampleExpChart.YAxis.Title.Text = "Số người";
 
-                    //==================================================================================
+                    //=========================Giới tính=========================================================
 
                     worksheet2.Cells[42, 14].Value = "Giới tính";
                     worksheet2.Cells[42, 14, 42, 15].Merge = true;
@@ -627,7 +626,7 @@ namespace AIBookStreet.Services.Services.Service
 
                     //genderChart.XAxis.Title.Text = "Giới tính";
                     genderChart.YAxis.Title.Text = "Số người";
-                    //=================================================================================
+                    //=========================Kênh truyền thông========================================================
 
                     worksheet2.Cells[59, 14].Value = "Đăng ký";
                     worksheet2.Cells[59, 15].Value = "Tham gia";
@@ -686,8 +685,8 @@ namespace AIBookStreet.Services.Services.Service
 
                     ExcelLineChart? referenceChart = worksheet2.Drawings.AddChart("ReferenceLineChart", eChartType.Line) as ExcelLineChart;
                     referenceChart.SetPosition(55, 0, 1, 0);
-                    referenceChart.SetSize(600, 300);
-                    referenceChart.Title.Text = "Biểu đồ nguồn tiếp cận";
+                    referenceChart.SetSize(600, 400);
+                    referenceChart.Title.Text = "Biểu đồ Truyền thông";
 
                     ExcelChartSerie seriesReference1 = referenceChart.Series.Add(worksheet2.Cells[60, 14, 65, 14], worksheet2.Cells[60, 13, 65, 13]);
                     seriesReference1.Header = "Đăng ký";
@@ -695,49 +694,50 @@ namespace AIBookStreet.Services.Services.Service
                     seriesReference2.Header = "Tham gia";
 
                     //referenceChart.XAxis.Title.Text = "Nguồn";
+                    referenceChart.XAxis.TextBody.Rotation = -45;
                     referenceChart.YAxis.Title.Text = "Số người";
 
-                    //=================================================================================
-                    worksheet2.Cells[75, 14].Value = "Đăng ký";
-                    worksheet2.Cells[75, 15].Value = "Tham gia";
-                    worksheet2.Cells[76, 13].Value = "Dưới 12 tuổi";
-                    worksheet2.Cells[77, 13].Value = "13-17 tuổi";
-                    worksheet2.Cells[78, 13].Value = "18-24 tuổi";
-                    worksheet2.Cells[79, 13].Value = "25-34 tuổi";
-                    worksheet2.Cells[80, 13].Value = "35-44 tuổi";
-                    worksheet2.Cells[81, 13].Value = "45-54 tuổi";
-                    worksheet2.Cells[82, 13].Value = "Trên 55 tuổi";
+                    //==========================Độ tuổi=======================================================
+                    worksheet2.Cells[80, 14].Value = "Đăng ký";
+                    worksheet2.Cells[80, 15].Value = "Tham gia";
+                    worksheet2.Cells[81, 13].Value = "Dưới 12 tuổi";
+                    worksheet2.Cells[82, 13].Value = "13-17 tuổi";
+                    worksheet2.Cells[83, 13].Value = "18-24 tuổi";
+                    worksheet2.Cells[84, 13].Value = "25-34 tuổi";
+                    worksheet2.Cells[85, 13].Value = "35-44 tuổi";
+                    worksheet2.Cells[86, 13].Value = "45-54 tuổi";
+                    worksheet2.Cells[87, 13].Value = "Trên 55 tuổi";
 
-                    using (ExcelRange headerRange = worksheet2.Cells[75, 14, 75, 15])
+                    using (ExcelRange headerRange = worksheet2.Cells[80, 14, 80, 15])
                     {
                         headerRange.Style.Font.Bold = true;
                         headerRange.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                         headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
                     }
 
-                    using (ExcelRange headerRange = worksheet2.Cells[76, 13, 82, 13])
+                    using (ExcelRange headerRange = worksheet2.Cells[81, 13, 87, 13])
                     {
                         headerRange.Style.Font.Bold = true;
                         headerRange.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                         headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
                     }
 
-                    worksheet2.Cells[76, 14].Value = dataList.Where(er => er.RegistrantAgeRange.Equals("Dưới 12 tuổi")).Count();
-                    worksheet2.Cells[77, 14].Value = dataList.Where(er => er.RegistrantAgeRange.Equals("13-17 tuổi")).Count();
-                    worksheet2.Cells[78, 14].Value = dataList.Where(er => er.RegistrantAgeRange.Equals("18-24 tuổi")).Count();
-                    worksheet2.Cells[79, 14].Value = dataList.Where(er => er.RegistrantAgeRange.Equals("25-34 tuổi")).Count();
-                    worksheet2.Cells[80, 14].Value = dataList.Where(er => er.RegistrantAgeRange.Equals("35-44 tuổi")).Count();
-                    worksheet2.Cells[81, 14].Value = dataList.Where(er => er.RegistrantAgeRange.Equals("45-54 tuổi")).Count();
-                    worksheet2.Cells[82, 14].Value = dataList.Where(er => er.RegistrantAgeRange.Equals("Trên 55 tuổi")).Count();
-                    worksheet2.Cells[76, 15].Value = dataList.Where(er => er.IsAttended == true && er.RegistrantAgeRange.Equals("Dưới 12 tuổi")).Count();
-                    worksheet2.Cells[77, 15].Value = dataList.Where(er => er.IsAttended == true && er.RegistrantAgeRange.Equals("13-17 tuổi")).Count();
-                    worksheet2.Cells[78, 15].Value = dataList.Where(er => er.IsAttended == true && er.RegistrantAgeRange.Equals("18-24 tuổi")).Count();
-                    worksheet2.Cells[79, 15].Value = dataList.Where(er => er.IsAttended == true && er.RegistrantAgeRange.Equals("25-34 tuổi")).Count();
-                    worksheet2.Cells[80, 15].Value = dataList.Where(er => er.IsAttended == true && er.RegistrantAgeRange.Equals("35-44 tuổi")).Count();
-                    worksheet2.Cells[81, 15].Value = dataList.Where(er => er.IsAttended == true && er.RegistrantAgeRange.Equals("45-54 tuổi")).Count();
-                    worksheet2.Cells[82, 15].Value = dataList.Where(er => er.IsAttended == true && er.RegistrantAgeRange.Equals("Trên 55 tuổi")).Count();
+                    worksheet2.Cells[81, 14].Value = dataList.Where(er => er.RegistrantAgeRange.Equals("Dưới 12 tuổi")).Count();
+                    worksheet2.Cells[82, 14].Value = dataList.Where(er => er.RegistrantAgeRange.Equals("13-17 tuổi")).Count();
+                    worksheet2.Cells[83, 14].Value = dataList.Where(er => er.RegistrantAgeRange.Equals("18-24 tuổi")).Count();
+                    worksheet2.Cells[84, 14].Value = dataList.Where(er => er.RegistrantAgeRange.Equals("25-34 tuổi")).Count();
+                    worksheet2.Cells[85, 14].Value = dataList.Where(er => er.RegistrantAgeRange.Equals("35-44 tuổi")).Count();
+                    worksheet2.Cells[86, 14].Value = dataList.Where(er => er.RegistrantAgeRange.Equals("45-54 tuổi")).Count();
+                    worksheet2.Cells[87, 14].Value = dataList.Where(er => er.RegistrantAgeRange.Equals("Trên 55 tuổi")).Count();
+                    worksheet2.Cells[81, 15].Value = dataList.Where(er => er.IsAttended == true && er.RegistrantAgeRange.Equals("Dưới 12 tuổi")).Count();
+                    worksheet2.Cells[82, 15].Value = dataList.Where(er => er.IsAttended == true && er.RegistrantAgeRange.Equals("13-17 tuổi")).Count();
+                    worksheet2.Cells[83, 15].Value = dataList.Where(er => er.IsAttended == true && er.RegistrantAgeRange.Equals("18-24 tuổi")).Count();
+                    worksheet2.Cells[84, 15].Value = dataList.Where(er => er.IsAttended == true && er.RegistrantAgeRange.Equals("25-34 tuổi")).Count();
+                    worksheet2.Cells[85, 15].Value = dataList.Where(er => er.IsAttended == true && er.RegistrantAgeRange.Equals("35-44 tuổi")).Count();
+                    worksheet2.Cells[86, 15].Value = dataList.Where(er => er.IsAttended == true && er.RegistrantAgeRange.Equals("45-54 tuổi")).Count();
+                    worksheet2.Cells[87, 15].Value = dataList.Where(er => er.IsAttended == true && er.RegistrantAgeRange.Equals("Trên 55 tuổi")).Count();
 
-                    using (ExcelRange tableRange = worksheet2.Cells[76, 13, 82, 15])
+                    using (ExcelRange tableRange = worksheet2.Cells[81, 13, 87, 15])
                     {
                         tableRange.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
                         tableRange.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -746,7 +746,7 @@ namespace AIBookStreet.Services.Services.Service
                         tableRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                         tableRange.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
                     };
-                    using (ExcelRange tableRange = worksheet2.Cells[75, 14, 75, 15])
+                    using (ExcelRange tableRange = worksheet2.Cells[80, 14, 80, 15])
                     {
                         tableRange.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
                         tableRange.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -757,23 +757,24 @@ namespace AIBookStreet.Services.Services.Service
                     };
 
                     ExcelLineChart? ageChart = worksheet2.Drawings.AddChart("AgeLineChart", eChartType.Line) as ExcelLineChart;
-                    ageChart.SetPosition(72, 0, 1, 0);
-                    ageChart.SetSize(600, 300);
-                    ageChart.Title.Text = "Biểu đồ nguồn tiếp cận";
+                    ageChart.SetPosition(77, 0, 1, 0);
+                    ageChart.SetSize(600, 400);
+                    ageChart.Title.Text = "Biểu đồ Nhóm tuổi";
 
-                    ExcelChartSerie seriesAge1 = ageChart.Series.Add(worksheet2.Cells[76, 14, 82, 14], worksheet2.Cells[76, 13, 82, 13]);
+                    ExcelChartSerie seriesAge1 = ageChart.Series.Add(worksheet2.Cells[81, 14, 87, 14], worksheet2.Cells[81, 13, 87, 13]);
                     seriesAge1.Header = "Đăng ký";
-                    ExcelChartSerie seriesAge2 = ageChart.Series.Add(worksheet2.Cells[76, 15, 82, 15], worksheet2.Cells[76, 13, 82, 13]);
+                    ExcelChartSerie seriesAge2 = ageChart.Series.Add(worksheet2.Cells[81, 15, 87, 15], worksheet2.Cells[81, 13, 87, 13]);
                     seriesAge2.Header = "Tham gia";
 
                     //ageChart.XAxis.Title.Text = "Độ tuổi";
+                    referenceChart.XAxis.TextBody.Rotation = -45;
                     ageChart.YAxis.Title.Text = "Số người";
 
-                    //=================================================================================
-                    worksheet2.Cells[92, 14].Value = "Đăng ký";
-                    worksheet2.Cells[92, 15].Value = "Tham gia";
+                    //===========================Địa điểm======================================================
+                    worksheet2.Cells[102, 16].Value = "Đăng ký";
+                    worksheet2.Cells[102, 17].Value = "Tham gia";
 
-                    using (ExcelRange headerRange = worksheet2.Cells[92, 14, 92, 15])
+                    using (ExcelRange headerRange = worksheet2.Cells[102, 16, 102, 17])
                     {
                         headerRange.Style.Font.Bold = true;
                         headerRange.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -787,22 +788,22 @@ namespace AIBookStreet.Services.Services.Service
                                                    Count = group.Count(),
                                                    CountAttended = group.Where(er => er.IsAttended == true).Count()
                                                });
-                    var addressIndex = 93;
+                    var addressIndex = 103;
                     foreach (var address in addressCount)
                     {
-                        worksheet2.Cells[addressIndex, 13].Value = address.Address.Trim().ToString();
-                        using (ExcelRange headerRange = worksheet2.Cells[addressIndex, 13])
+                        worksheet2.Cells[addressIndex, 15].Value = address.Address.Trim().ToString();
+                        using (ExcelRange headerRange = worksheet2.Cells[addressIndex, 15])
                         {
                             headerRange.Style.Font.Bold = true;
                             headerRange.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                             headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
                         }
-                        worksheet2.Cells[addressIndex, 14].Value = address.Count;
-                        worksheet2.Cells[addressIndex, 15].Value = address.CountAttended;
+                        worksheet2.Cells[addressIndex, 16].Value = address.Count;
+                        worksheet2.Cells[addressIndex, 17].Value = address.CountAttended;
                         addressIndex++;
                     }
 
-                    using (ExcelRange tableRange = worksheet2.Cells[92, 14, 92, 15])
+                    using (ExcelRange tableRange = worksheet2.Cells[102, 16, 102, 17])
                     {
                         tableRange.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
                         tableRange.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -811,7 +812,7 @@ namespace AIBookStreet.Services.Services.Service
                         tableRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                         tableRange.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
                     };
-                    using (ExcelRange tableRange = worksheet2.Cells[93, 13, addressIndex - 1, 15])
+                    using (ExcelRange tableRange = worksheet2.Cells[103, 15, addressIndex - 1, 17])
                     {
                         tableRange.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
                         tableRange.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -822,16 +823,17 @@ namespace AIBookStreet.Services.Services.Service
                     };
 
                     ExcelLineChart? addressChart = worksheet2.Drawings.AddChart("AddressLineChart", eChartType.Line) as ExcelLineChart;
-                    addressChart.SetPosition(90, 0, 1, 0);
-                    addressChart.SetSize(600, 300);
+                    addressChart.SetPosition(100, 0, 1, 0);
+                    addressChart.SetSize(800, 400);
                     addressChart.Title.Text = "Biểu đồ địa điểm";
 
-                    ExcelChartSerie seriesAddress1 = addressChart.Series.Add(worksheet2.Cells[93, 14, addressIndex - 1, 14], worksheet2.Cells[93, 13, addressIndex - 1, 13]);
+                    ExcelChartSerie seriesAddress1 = addressChart.Series.Add(worksheet2.Cells[103, 16, addressIndex - 1, 16], worksheet2.Cells[103, 15, addressIndex - 1, 15]);
                     seriesAddress1.Header = "Đăng ký";
-                    ExcelChartSerie seriesAddress2 = addressChart.Series.Add(worksheet2.Cells[93, 15, addressIndex - 1, 15], worksheet2.Cells[93, 13, addressIndex - 1, 13]);
+                    ExcelChartSerie seriesAddress2 = addressChart.Series.Add(worksheet2.Cells[103, 17, addressIndex - 1, 17], worksheet2.Cells[103, 15, addressIndex - 1, 15]);
                     seriesAddress2.Header = "Tham gia";
 
                     //ageChart.XAxis.Title.Text = "Địa điểm";
+                    referenceChart.XAxis.TextBody.Rotation = -45;
                     addressChart.YAxis.Title.Text = "Số người";
 
 

@@ -3,5 +3,6 @@
     public class DateEventSearchRequest
     {
         public DateTime? Date { get; set; }
+        public string? EventName { get; set; }
     }
 }

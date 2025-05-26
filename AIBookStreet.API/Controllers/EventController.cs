@@ -295,7 +295,7 @@ namespace AIBookStreet.API.Controllers
         {
             try
             {
-                var events = await _service.GetEventsForCheckin(request.Result?.Date, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == -1);
+                var events = await _service.GetEventsForCheckin(request.Result?.Date, request.Result?.EventName, request.PageNumber, request.PageSize, request.SortField, request.SortOrder == -1);
 
                 if (events.Item2 == 0)
                 {
