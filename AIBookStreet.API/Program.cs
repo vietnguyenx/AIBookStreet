@@ -124,6 +124,7 @@ builder.Services.AddScoped<IEventRegistrationService, EventRegistrationService>(
 builder.Services.AddScoped<IQRGeneratorService, QRGeneratorService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<ITranslationService, TranslationService>();
+builder.Services.AddScoped<IUserAccountEmailService, UserAccountEmailService>();
 
 builder.Services.AddSingleton<IEventRegistrationQueueService, EventRegiatrationQueueService>();
 builder.Services.AddSingleton<IExportEventStatisticQueueService, ExportEventStatisticQueueService>();

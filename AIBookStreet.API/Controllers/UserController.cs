@@ -379,5 +379,40 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(new BaseResponse(false, ex.Message));
             }
         }
+
+        [HttpPost("test-email")]
+        public async Task<IActionResult> TestEmail([FromBody] TestEmailRequest request)
+        {
+            try
+            {
+                var emailService = HttpContext.RequestServices.GetRequiredService<IUserAccountEmailService>();
+                
+                var emailModel = new UserAccountEmailModel
+                {
+                    UserName = request.UserName,
+                    Email = request.Email,
+                    FullName = request.FullName,
+                    Phone = request.Phone,
+                    Address = request.Address,
+                    DOB = request.DOB,
+                    Gender = request.Gender,
+                    TemporaryPassword = request.TemporaryPassword,
+                    CreatedDate = DateTime.Now,
+                    LoginUrl = "https://smart-book-street-next-aso3.vercel.app/login",
+                    BaseImgUrl = request.BaseImgUrl,
+                    RequestedRoleName = request.RequestedRoleName
+                };
+
+                var result = await emailService.SendAccountCreatedEmailAsync(emailModel);
+                
+                return result 
+                    ? Ok(new BaseResponse(true, "Email đã được gửi thành công"))
+                    : BadRequest(new BaseResponse(false, "Không thể gửi email"));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BaseResponse(false, ex.Message));
+            }
+        }
     }
 }

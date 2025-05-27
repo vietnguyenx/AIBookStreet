@@ -25,14 +25,16 @@ namespace AIBookStreet.Services.Services.Service
         private readonly IUserRepository _repository;
         private readonly IImageService _imageService;
         private readonly IConfiguration _configuration;
+        private readonly IUserAccountEmailService _userAccountEmailService;
         private DateTime countDown = DateTime.Now.AddDays(7);
         private static readonly Dictionary<string, (string Otp, DateTime Expiry)> OtpStore = new();
 
-        public UserService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IHttpContextAccessor _httpContextAccessor, IImageService imageService) : base(mapper, unitOfWork, _httpContextAccessor)
+        public UserService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IHttpContextAccessor _httpContextAccessor, IImageService imageService, IUserAccountEmailService userAccountEmailService) : base(mapper, unitOfWork, _httpContextAccessor)
         {
             _repository = unitOfWork.UserRepository;
             _configuration = configuration;
             _imageService = imageService;
+            _userAccountEmailService = userAccountEmailService;
         }
 
         public async Task<List<UserModel>> GetAll()
@@ -143,6 +145,9 @@ namespace AIBookStreet.Services.Services.Service
                         return (null, "Email đã được sử dụng, vui lòng sử dụng email khác");
                 }
 
+                // Lưu mật khẩu gốc để gửi email
+                var originalPassword = userModel.Password;
+
                 var mappedUser = _mapper.Map<User>(userModel);
                 var newUser = await SetBaseEntityToCreateFunc(mappedUser);
 
@@ -197,7 +202,6 @@ namespace AIBookStreet.Services.Services.Service
                 if (!result)
                     return (null, ConstantMessage.Common.AddFail);
 
-                // Xử lý tạo UserRole nếu có RequestedRoleId
                 if (userModel.RequestedRoleId.HasValue && userModel.RequestedRoleId != Guid.Empty)
                 {
                     var userRoleModel = new UserRoleModel
@@ -205,7 +209,7 @@ namespace AIBookStreet.Services.Services.Service
                         UserId = newUser.Id,
                         RoleId = userModel.RequestedRoleId.Value,
                         AssignedAt = DateTime.Now,
-                        IsApproved = false // Mặc định là chưa được phê duyệt
+                        IsApproved = false 
                     };
                     
                     var userRoleService = new UserRoleService(_unitOfWork, _mapper, _httpContextAccessor);
@@ -213,6 +217,47 @@ namespace AIBookStreet.Services.Services.Service
                     if (!addRoleResult)
                     {
                         Console.WriteLine("Failed to create UserRole");
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(newUser.Email))
+                {
+                    try
+                    {
+                        string requestedRoleName = null;
+                        if (userModel.RequestedRoleId.HasValue && userModel.RequestedRoleId != Guid.Empty)
+                        {
+                            var roleService = new RoleService(_unitOfWork, _mapper, _httpContextAccessor);
+                            var role = await roleService.GetById(userModel.RequestedRoleId.Value);
+                            requestedRoleName = role?.RoleName;
+                        }
+
+                        var emailModel = new UserAccountEmailModel
+                        {
+                            UserName = newUser.UserName,
+                            Email = newUser.Email,
+                            FullName = newUser.FullName ?? newUser.UserName,
+                            Phone = newUser.Phone,
+                            Address = newUser.Address,
+                            DOB = newUser.DOB,
+                            Gender = newUser.Gender,
+                            TemporaryPassword = originalPassword,
+                            CreatedDate = newUser.CreatedDate,
+                            LoginUrl = _configuration["AppSettings:LoginUrl"] ?? "https://aibookstreet.azurewebsites.net/login",
+                            BaseImgUrl = newUser.BaseImgUrl,
+                            RequestedRoleId = userModel.RequestedRoleId,
+                            RequestedRoleName = requestedRoleName
+                        };
+
+                        var emailSent = await _userAccountEmailService.SendAccountCreatedEmailAsync(emailModel);
+                        if (!emailSent)
+                        {
+                            Console.WriteLine($"Không thể gửi email thông báo tài khoản cho {newUser.Email}");
+                        }
+                    }
+                    catch (Exception emailEx)
+                    {
+                        Console.WriteLine($"Lỗi khi gửi email thông báo tài khoản: {emailEx.Message}");
                     }
                 }
 
