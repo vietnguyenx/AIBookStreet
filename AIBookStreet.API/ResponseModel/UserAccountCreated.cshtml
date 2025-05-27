@@ -1,0 +1,341 @@
+@model AIBookStreet.Services.Model.UserAccountEmailModel
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <title>Thông báo tài khoản được tạo thành công</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .header img {
+            height: 50px;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .welcome-message {
+            background-color: #f8f9fa;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+
+        .account-info {
+            background-color: #fff;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .account-info h3 {
+            color: #495057;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 18px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #495057;
+            width: 140px;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            color: #212529;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            flex: 1;
+            font-family: 'Courier New', monospace;
+            word-break: break-word;
+        }
+
+        .info-value.password {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            font-weight: bold;
+            color: #856404;
+        }
+
+        .info-value.role {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+            font-weight: bold;
+        }
+
+        .profile-image {
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 50%;
+            border: 3px solid #dee2e6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .password-notice {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+
+        .password-notice h4 {
+            color: #856404;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .password-notice ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #856404;
+        }
+
+        .login-button {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .login-button a {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+
+        .login-button a:hover {
+            transform: translateY(-2px);
+        }
+
+        .security-tips {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+
+        .security-tips h4 {
+            color: #0c5460;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .security-tips ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #0c5460;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 25px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .footer strong {
+            display: block;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+
+        .footer .contact {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://th.bing.com/th/id/OIP.Hysz-KWv7FXNrBEvEWn3agHaHa?rs=1&pid=ImgDetMain" alt="Logo" style="border-radius: 10px;" />
+            <h1>CHÀO MỪNG BẠN ĐẾN VỚI AIBOOKSTREET</h1>
+        </div>
+
+        <div class="content">
+            <div class="welcome-message">
+                <p><strong>Xin chào @Model.FullName,</strong></p>
+                <p>Chúng tôi rất vui mừng thông báo rằng tài khoản của bạn đã được tạo thành công trên hệ thống AIBookStreet. Bạn có thể bắt đầu sử dụng các dịch vụ của chúng tôi ngay bây giờ!</p>
+            </div>
+
+            <div class="account-info">
+                <h3>📋 Thông tin tài khoản của bạn</h3>
+                
+                <div class="info-row">
+                    <div class="info-label">Tên đăng nhập:</div>
+                    <div class="info-value">@Model.UserName</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">Email:</div>
+                    <div class="info-value">@Model.Email</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">Họ và tên:</div>
+                    <div class="info-value">@Model.FullName</div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Phone))
+                {
+                    <div class="info-row">
+                        <div class="info-label">Số điện thoại:</div>
+                        <div class="info-value">@Model.Phone</div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.Address))
+                {
+                    <div class="info-row">
+                        <div class="info-label">Địa chỉ:</div>
+                        <div class="info-value">@Model.Address</div>
+                    </div>
+                }
+
+                @if (Model.DOB.HasValue)
+                {
+                    <div class="info-row">
+                        <div class="info-label">Ngày sinh:</div>
+                        <div class="info-value">@Model.DOB.Value.ToString("dd/MM/yyyy")</div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.Gender))
+                {
+                    <div class="info-row">
+                        <div class="info-label">Giới tính:</div>
+                        <div class="info-value">@Model.Gender</div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.RequestedRoleName))
+                {
+                    <div class="info-row">
+                        <div class="info-label">Vai trò yêu cầu:</div>
+                        <div class="info-value role">@Model.RequestedRoleName</div>
+                    </div>
+                }
+
+                <div class="info-row">
+                    <div class="info-label">Mật khẩu tạm thời:</div>
+                    <div class="info-value password">@Model.TemporaryPassword</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">Ngày tạo:</div>
+                    <div class="info-value">@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.BaseImgUrl))
+                {
+                    <div class="info-row">
+                        <div class="info-label">Ảnh đại diện:</div>
+                        <div class="info-value">
+                            <img src="@Model.BaseImgUrl" alt="Ảnh đại diện" style="max-width: 80px; max-height: 80px; border-radius: 50%; border: 3px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="password-notice">
+                <h4>🔐 Lưu ý quan trọng về mật khẩu</h4>
+                <ul>
+                    <li><strong>Bạn cần đổi mật khẩu ngay lần đăng nhập đầu tiên</strong> để đảm bảo bảo mật tài khoản</li>
+                    <li>Mật khẩu tạm thời chỉ có hiệu lực cho lần đăng nhập đầu tiên</li>
+                    <li>Vui lòng không chia sẻ thông tin đăng nhập với bất kỳ ai</li>
+                </ul>
+            </div>
+
+            <div class="login-button">
+                <a href="@Model.LoginUrl" target="_blank">ĐĂNG NHẬP NGAY</a>
+            </div>
+
+            <div class="security-tips">
+                <h4>🛡️ Mẹo bảo mật tài khoản</h4>
+                <ul>
+                    <li>Sử dụng mật khẩu mạnh có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt</li>
+                    <li>Không sử dụng mật khẩu giống với các tài khoản khác</li>
+                    <li>Đăng xuất khỏi tài khoản khi sử dụng máy tính chung</li>
+                    <li>Liên hệ với chúng tôi ngay nếu phát hiện hoạt động bất thường</li>
+                </ul>
+            </div>
+
+            <p>Nếu bạn có bất kỳ câu hỏi nào hoặc cần hỗ trợ, vui lòng liên hệ với đội ngũ hỗ trợ của chúng tôi.</p>
+        </div>
+
+        <div class="footer">
+            <strong>Trân trọng,<br>Đội ngũ AIBookStreet</strong>
+            
+            <div>
+                <a href="https://street-book-visitor.vercel.app">Website</a> |
+                <a href="https://www.facebook.com/duongsachtphcmvn">Facebook</a> |
+                <a href="mailto:duongsachthuduc@gmail.com">Hỗ trợ</a>
+            </div>
+
+            <div class="contact">
+                © 2024 - AIBookStreet. Tất cả các quyền được bảo lưu.<br>
+                Email: support@aibookstreet.com | Hotline: 1900-xxxx
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
