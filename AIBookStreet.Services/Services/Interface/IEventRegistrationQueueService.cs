@@ -9,7 +9,7 @@ namespace AIBookStreet.Services.Services.Interface
 {
     public interface IEventRegistrationQueueService
     {
-        void Enqueue(Ticket message);
-        bool TryDequeue(out Ticket message);
+        void Enqueue(Guid? ticketId);
+        bool TryDequeue(out Guid? ticketId);
     }
 }

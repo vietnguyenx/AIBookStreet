@@ -25,17 +25,19 @@ namespace AIBookStreet.Services.Services.Service
             {
                 if (_eventRegistrationQueue.TryDequeue(out var message))
                 {
-                    _logger.LogInformation($"Đang xử lý email cho RegistrationId: {message?.EventRegistrations?.FirstOrDefault()?.Id}");
+                    _logger.LogInformation($"Đang xử lý email cho RegistrationId: {message}");
                     using var scope = _serviceScopeFactory.CreateScope();
                     var emailRegistrationService = scope.ServiceProvider.GetRequiredService<IEventRegistrationService>();
+                    var ticketService = scope.ServiceProvider.GetRequiredService<ITicketService>();
                     try
                     {
-                        await emailRegistrationService.SendRegistrationEmai(message);
-                        _logger.LogInformation($"Đã gửi email thành công cho RegistrationId: {message?.EventRegistrations?.FirstOrDefault()?.Id}");
+                        var ticket = await ticketService.GetTicketById(message);
+                        await emailRegistrationService.SendRegistrationEmai(ticket);
+                        _logger.LogInformation($"Đã gửi email thành công cho RegistrationId: {message}");
                     }
-                    catch (Exception ex)
+                    catch
                     {
-                        _logger.LogError($"Lỗi khi gửi email cho RegistrationId: {message?.EventRegistrations?.FirstOrDefault()?.Id}: {ex.Message}");
+                        _logger.LogError($"Lỗi khi gửi email cho RegistrationId: {message}");
                     }
                 } else if (_exportEventStatisticQueue.TryDequeue(out var model)){
                     _logger.LogInformation($"Đang gửi số liệu đến {model.Email} cho EventId: {model.EventId}");
@@ -53,7 +55,7 @@ namespace AIBookStreet.Services.Services.Service
                 }
                 else
                 {
-                    await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+                    await Task.Delay(10000, stoppingToken);
                 }
             }
 

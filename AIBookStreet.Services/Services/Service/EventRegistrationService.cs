@@ -53,7 +53,7 @@ namespace AIBookStreet.Services.Services.Service
                 {
                     return (3, null, "Vui lòng chọn giới tính là Nam hoặc Nữ.");
                 }
-                if (model.RegistrantAddress.Split(",").Length <3)
+                if (model.RegistrantAddress.Split(",").Length < 3)
                 {
                     return (3, null, "Vui lòng chọn đủ các trường địa chỉ");
                 }
@@ -97,6 +97,8 @@ namespace AIBookStreet.Services.Services.Service
                         }
                         return (3, null, "Đăng ký thất bại cho ngày " + DateOnly.Parse(date).ToString("dd/MM") + "!");
                     }
+                    eventRegistrationModel.Ticket = ticket.Item2;
+                    eventRegistrationModel.Event = evt;
                     resp.Add(eventRegistrationModel);
                 }
 
@@ -781,7 +783,7 @@ namespace AIBookStreet.Services.Services.Service
                         headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
                     }
 
-                    var addressCount = dataList.GroupBy(er => er.RegistrantAddress.Split(",")[2])
+                    var addressCount = dataList.GroupBy(er => er.RegistrantAddress.Split(",")[0])
                                                .Select(group => new
                                                {
                                                    Address = group.Key,

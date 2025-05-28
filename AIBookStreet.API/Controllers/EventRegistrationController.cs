@@ -29,12 +29,11 @@ namespace AIBookStreet.API.Controllers
                 var result = await _service.AddAnEventRegistration(model);
                 if (result.Item1 == 2)
                 {
-                    var ticket = await _ticketService.GetTicketById(result.Item2?.FirstOrDefault()?.TicketId);
-                    if (ticket != null)
+                    if (result.Item2?.FirstOrDefault()?.TicketId != null)
                     {
                         //await _service.SendEmai(ticket.Item2);
                         var eventRegistrationQueue = HttpContext.RequestServices.GetRequiredService<IEventRegistrationQueueService>();
-                        eventRegistrationQueue.Enqueue(ticket);
+                        eventRegistrationQueue.Enqueue(result.Item2?.FirstOrDefault()?.TicketId);
                     }
                     return Ok(new ItemResponse<object>(result.Item3, new
                     {
@@ -185,11 +184,10 @@ namespace AIBookStreet.API.Controllers
                 var eventRegistration = await _service.GetAnEventRegistrationById(registrtionId);
                 if (eventRegistration != null)
                 {
-                    var ticket = await _ticketService.GetTicketById(eventRegistration.TicketId);
-                    if (eventRegistration?.RegistrantEmail != null && ticket != null)
+                    if (eventRegistration?.RegistrantEmail != null && eventRegistration.TicketId != null)
                     {
                         var emailQueue = HttpContext.RequestServices.GetRequiredService<IEventRegistrationQueueService>();
-                        emailQueue.Enqueue(ticket);
+                        emailQueue.Enqueue(eventRegistration.TicketId);
                     }
                     return Ok(new ItemResponse<object>("Đã thêm!", new
                     {
