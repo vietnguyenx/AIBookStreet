@@ -473,6 +473,12 @@ namespace AIBookStreet.Services.Services.Service
             user = await _repository.GetById(user.Id);
             UserModel userModel = _mapper.Map<UserModel>(user);
 
+            // Lọc bỏ những userRole chưa được phê duyệt
+            if (userModel.UserRoles != null && userModel.UserRoles.Any())
+            {
+                userModel.UserRoles = userModel.UserRoles.Where(ur => ur.IsApproved).ToList();
+            }
+
             return (userModel, false, null);
         }
 

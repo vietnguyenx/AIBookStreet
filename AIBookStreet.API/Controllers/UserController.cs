@@ -32,12 +32,42 @@ namespace AIBookStreet.API.Controllers
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Lọc bỏ những userRole chưa được phê duyệt khỏi UserModel
+        /// </summary>
+        private void FilterUnapprovedUserRoles(UserModel userModel)
+        {
+            if (userModel?.UserRoles != null && userModel.UserRoles.Any())
+            {
+                userModel.UserRoles = userModel.UserRoles.Where(ur => ur.IsApproved).ToList();
+            }
+        }
+
+        /// <summary>
+        /// Lọc bỏ những userRole chưa được phê duyệt khỏi danh sách UserModel
+        /// </summary>
+        private void FilterUnapprovedUserRoles(List<UserModel> userModels)
+        {
+            if (userModels != null)
+            {
+                foreach (var userModel in userModels)
+                {
+                    FilterUnapprovedUserRoles(userModel);
+                }
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             try
             {
                 var users = await _service.GetAll();
+
+                if (users != null)
+                {
+                    FilterUnapprovedUserRoles(users);
+                }
 
                 return users switch
                 {
@@ -82,6 +112,12 @@ namespace AIBookStreet.API.Controllers
                 }
                 var userModel = await _service.GetById(id);
 
+                if (userModel != null)
+                {
+                    // Lọc bỏ những userRole chưa được phê duyệt
+                    FilterUnapprovedUserRoles(userModel);
+                }
+
                 return userModel switch
                 {
                     null => Ok(new ItemResponse<UserModel>(ConstantMessage.NotFound)),
@@ -101,6 +137,12 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var userModel = await _service.GetUserByEmail(new UserModel { Email = email });
+
+                if (userModel != null)
+                {
+                    // Lọc bỏ những userRole chưa được phê duyệt
+                    FilterUnapprovedUserRoles(userModel);
+                }
 
                 return userModel switch
                 {
@@ -143,6 +185,11 @@ namespace AIBookStreet.API.Controllers
             {
                 var user = _mapper.Map<UserModel>(userSearchRequest);
                 var users = await _service.SearchWithoutPagination(user);
+
+                if (users != null)
+                {
+                    FilterUnapprovedUserRoles(users);
+                }
 
                 return users switch
                 {
@@ -317,6 +364,10 @@ namespace AIBookStreet.API.Controllers
                 }
 
                 var userModel = _mapper.Map<UserModel>(user);
+                
+                // Lọc bỏ những userRole chưa được phê duyệt
+                FilterUnapprovedUserRoles(userModel);
+                
                 return Ok(new ItemResponse<UserModel>(ConstantMessage.Success, userModel));
             }
             catch (Exception ex)
