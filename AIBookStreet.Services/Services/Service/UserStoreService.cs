@@ -150,33 +150,5 @@ namespace AIBookStreet.Services.Services.Service
             await CheckAndUpdateExpiredContracts();
             return true;
         }
-
-        public async Task<(byte[] fileData, string contentType, string fileName)?> DownloadContractFile(Guid userId, Guid storeId)
-        {
-            try
-            {
-                // Lấy thông tin hợp đồng
-                var userStore = await _userStoreRepository.GetByUserIdAndStoreId(userId, storeId);
-                if (userStore == null)
-                {
-                    throw new Exception("Không tìm thấy hợp đồng");
-                }
-
-                // Kiểm tra xem có file hợp đồng không
-                if (string.IsNullOrEmpty(userStore.ContractFileUrl))
-                {
-                    throw new Exception("Hợp đồng này không có file đính kèm");
-                }
-
-                // Download file từ Firebase Storage
-                var (fileData, contentType, fileName) = await _firebaseStorage.DownloadFileAsync(userStore.ContractFileUrl);
-                
-                return (fileData, contentType, fileName);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Lỗi khi tải xuống file hợp đồng: {ex.Message}");
-            }
-        }
     }
 }

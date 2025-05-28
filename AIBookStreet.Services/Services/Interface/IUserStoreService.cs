@@ -15,6 +15,5 @@ namespace AIBookStreet.Services.Services.Interface
         Task<(bool isSuccess, string message)> Add(UserStoreModel userStoreModel);
         Task<bool> Delete(Guid idUser, Guid idStore);
         Task<bool> UpdateExpiredContracts();
-        Task<(byte[] fileData, string contentType, string fileName)?> DownloadContractFile(Guid userId, Guid storeId);
     }
 }
