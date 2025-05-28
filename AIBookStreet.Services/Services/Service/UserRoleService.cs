@@ -93,10 +93,18 @@ namespace AIBookStreet.Services.Services.Service
                 return false;
             }
 
-            userRole.IsApproved = approve;
-            userRole.LastUpdatedDate = DateTime.Now;
-
-            return await _userRoleRepository.Update(userRole);
+            if (approve)
+            {
+                // Nếu phê duyệt, cập nhật IsApproved = true
+                userRole.IsApproved = true;
+                userRole.LastUpdatedDate = DateTime.Now;
+                return await _userRoleRepository.Update(userRole);
+            }
+            else
+            {
+                // Nếu từ chối, xóa userRole khỏi database
+                return await _userRoleRepository.Remove(userRole);
+            }
         }
 
         public async Task<List<UserRoleModel>?> GetPendingRoleRequests()

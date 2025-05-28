@@ -160,7 +160,7 @@ namespace AIBookStreet.API.Controllers
                 var result = await _userRoleService.ApproveRole(userId, roleId, approve);
                 return result switch
                 {
-                    true => Ok(new BaseResponse(true, approve ? "Yêu cầu quyền đã được phê duyệt" : "Yêu cầu quyền đã bị từ chối")),
+                    true => Ok(new BaseResponse(true, approve ? "Yêu cầu quyền đã được phê duyệt" : "Yêu cầu quyền đã bị từ chối và đã được xóa")),
                     false => BadRequest(new BaseResponse(false, "Không tìm thấy yêu cầu quyền"))
                 };
             }
