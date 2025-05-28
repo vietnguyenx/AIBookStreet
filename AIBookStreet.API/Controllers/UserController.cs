@@ -15,6 +15,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Linq;
+using System.Net.Mail;
+using Microsoft.Extensions.Options;
 
 namespace AIBookStreet.API.Controllers
 {
@@ -463,6 +465,46 @@ namespace AIBookStreet.API.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new BaseResponse(false, ex.Message));
+            }
+        }
+
+        [HttpPost("test-email-health")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> TestEmailHealth([FromBody] TestEmailHealthRequest request)
+        {
+            try
+            {
+                var emailService = HttpContext.RequestServices.GetRequiredService<IUserAccountEmailService>();
+                
+                // Test với một email đơn giản
+                var testResult = await emailService.SendEmailWithRetryAsync(async () =>
+                {
+                    // Tạo một email test đơn giản
+                    var smtpSettings = HttpContext.RequestServices.GetRequiredService<IOptions<SmtpSettings>>().Value;
+                    var smtpClient = HttpContext.RequestServices.GetRequiredService<SmtpClient>();
+                    
+                    var from = new MailAddress(smtpSettings.From);
+                    var to = new MailAddress(request.TestEmail);
+
+                    var mail = new MailMessage(from, to)
+                    {
+                        Subject = "[AIBookStreet] Test Email Health Check",
+                        Body = $"Đây là email test được gửi lúc {DateTime.Now:yyyy-MM-dd HH:mm:ss}. Nếu bạn nhận được email này, hệ thống email đang hoạt động bình thường.",
+                        IsBodyHtml = false
+                    };
+
+                    await smtpClient.SendMailAsync(mail);
+                    mail.Dispose();
+                    
+                }, request.TestEmail, "Health Check");
+                
+                return testResult 
+                    ? Ok(new BaseResponse(true, $"Email test đã được gửi thành công đến {request.TestEmail}"))
+                    : BadRequest(new BaseResponse(false, $"Không thể gửi email test đến {request.TestEmail}"));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BaseResponse(false, $"Lỗi khi test email: {ex.Message}"));
             }
         }
     }
