@@ -34,7 +34,7 @@ namespace AIBookStreet.Services.Services.Service
 
         public async Task<bool> SendAccountCreatedEmailAsync(UserAccountEmailModel userAccountInfo)
         {
-            try
+            return await SendEmailWithRetryAsync(async () =>
             {
                 _logger.LogInformation($"Bắt đầu gửi email thông báo tài khoản cho {userAccountInfo.Email}");
 
@@ -57,20 +57,17 @@ namespace AIBookStreet.Services.Services.Service
 
                 // Gửi email
                 await _smtpClient.SendMailAsync(mail);
+                
+                // Dispose mail object
+                mail.Dispose();
 
                 _logger.LogInformation($"Đã gửi email thông báo tài khoản thành công cho {userAccountInfo.Email}");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Lỗi khi gửi email thông báo tài khoản cho {userAccountInfo.Email}: {ex.Message}");
-                return false;
-            }
+            }, userAccountInfo.Email, "Account Creation");
         }
 
         public async Task<bool> SendRoleApprovalEmailAsync(RoleApprovalEmailModel roleApprovalInfo)
         {
-            try
+            return await SendEmailWithRetryAsync(async () =>
             {
                 _logger.LogInformation($"Bắt đầu gửi email thông báo phê duyệt role cho {roleApprovalInfo.Email}");
 
@@ -97,15 +94,63 @@ namespace AIBookStreet.Services.Services.Service
 
                 // Gửi email
                 await _smtpClient.SendMailAsync(mail);
+                
+                // Dispose mail object
+                mail.Dispose();
 
                 _logger.LogInformation($"Đã gửi email thông báo phê duyệt role thành công cho {roleApprovalInfo.Email}");
-                return true;
-            }
-            catch (Exception ex)
+            }, roleApprovalInfo.Email, "Role Approval");
+        }
+
+        public async Task<bool> SendEmailWithRetryAsync(Func<Task> emailSendAction, string recipientEmail, string emailType)
+        {
+            var maxRetries = _smtpSettings.MaxRetryAttempts;
+            var retryDelay = _smtpSettings.RetryDelayMs;
+
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
-                _logger.LogError($"Lỗi khi gửi email thông báo phê duyệt role cho {roleApprovalInfo.Email}: {ex.Message}");
-                return false;
+                try
+                {
+                    await emailSendAction();
+                    return true;
+                }
+                catch (SmtpException smtpEx)
+                {
+                    _logger.LogWarning($"SMTP Error (Attempt {attempt}/{maxRetries}) khi gửi {emailType} email cho {recipientEmail}: {smtpEx.Message}");
+                    
+                    if (attempt == maxRetries)
+                    {
+                        _logger.LogError($"Đã thử {maxRetries} lần nhưng không thể gửi {emailType} email cho {recipientEmail}. SMTP Error: {smtpEx.Message}");
+                        return false;
+                    }
+                    
+                    await Task.Delay(retryDelay * attempt); // Exponential backoff
+                }
+                catch (InvalidOperationException invOpEx)
+                {
+                    _logger.LogError($"Invalid Operation khi gửi {emailType} email cho {recipientEmail}: {invOpEx.Message}");
+                    return false; // Don't retry for configuration errors
+                }
+                catch (ArgumentException argEx)
+                {
+                    _logger.LogError($"Argument Error khi gửi {emailType} email cho {recipientEmail}: {argEx.Message}");
+                    return false; // Don't retry for argument errors
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning($"General Error (Attempt {attempt}/{maxRetries}) khi gửi {emailType} email cho {recipientEmail}: {ex.Message}");
+                    
+                    if (attempt == maxRetries)
+                    {
+                        _logger.LogError($"Đã thử {maxRetries} lần nhưng không thể gửi {emailType} email cho {recipientEmail}. Error: {ex.Message}");
+                        return false;
+                    }
+                    
+                    await Task.Delay(retryDelay * attempt); // Exponential backoff
+                }
             }
+
+            return false;
         }
     }
 } 
