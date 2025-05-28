@@ -142,6 +142,8 @@ namespace AIBookStreet.Services.Services.Service
                     return;
                 }
 
+                Console.WriteLine($"Bắt đầu chuẩn bị email {(isApproved ? "phê duyệt" : "từ chối")} role {role.RoleName} cho user {user.UserName} ({user.Email})");
+
                 var emailModel = new RoleApprovalEmailModel
                 {
                     UserName = user.UserName,
@@ -154,19 +156,22 @@ namespace AIBookStreet.Services.Services.Service
                     BaseImgUrl = user.BaseImgUrl
                 };
 
+                Console.WriteLine($"Đã tạo email model, bắt đầu gửi email...");
+
                 var emailSent = await _userAccountEmailService.SendRoleApprovalEmailAsync(emailModel);
                 if (emailSent)
                 {
-                    Console.WriteLine($"Đã gửi email thông báo {(isApproved ? "phê duyệt" : "từ chối")} role {role.RoleName} cho {user.Email}");
+                    Console.WriteLine($"✅ Đã gửi email thông báo {(isApproved ? "phê duyệt" : "từ chối")} role {role.RoleName} cho {user.Email} thành công");
                 }
                 else
                 {
-                    Console.WriteLine($"Không thể gửi email thông báo {(isApproved ? "phê duyệt" : "từ chối")} role cho {user.Email}");
+                    Console.WriteLine($"❌ Không thể gửi email thông báo {(isApproved ? "phê duyệt" : "từ chối")} role {role.RoleName} cho {user.Email}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Lỗi khi gửi email thông báo role: {ex.Message}");
+                Console.WriteLine($"💥 Lỗi khi gửi email thông báo role: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
             }
         }
 

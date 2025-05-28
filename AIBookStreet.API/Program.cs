@@ -208,7 +208,9 @@ builder.Services.AddSingleton<SmtpClient>(sp =>
     return new SmtpClient(smtpConfig.SmtpServer, smtpConfig.Port)
     {
         EnableSsl = smtpConfig.EnableSsl,
-        Credentials = new NetworkCredential(smtpConfig.Email, smtpConfig.Password)
+        Credentials = new NetworkCredential(smtpConfig.Email, smtpConfig.Password),
+        Timeout = smtpConfig.Timeout,
+        DeliveryMethod = SmtpDeliveryMethod.Network
     };
 });
 
