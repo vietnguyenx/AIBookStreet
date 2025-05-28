@@ -212,7 +212,7 @@ namespace AIBookStreet.Services.Services.Service
                         IsApproved = false 
                     };
                     
-                    var userRoleService = new UserRoleService(_unitOfWork, _mapper, _httpContextAccessor);
+                    var userRoleService = new UserRoleService(_unitOfWork, _mapper, _httpContextAccessor, _userAccountEmailService, _configuration);
                     var addRoleResult = await userRoleService.Add(userRoleModel);
                     if (!addRoleResult)
                     {
@@ -613,7 +613,7 @@ namespace AIBookStreet.Services.Services.Service
                             IsApproved = false // Mặc định là chưa được phê duyệt
                         };
                         
-                        var userRoleService = new UserRoleService(_unitOfWork, _mapper, _httpContextAccessor);
+                        var userRoleService = new UserRoleService(_unitOfWork, _mapper, _httpContextAccessor, _userAccountEmailService, _configuration);
                         var addRoleResult = await userRoleService.Add(userRoleModel);
                         if (!addRoleResult)
                         {

@@ -67,5 +67,45 @@ namespace AIBookStreet.Services.Services.Service
                 return false;
             }
         }
+
+        public async Task<bool> SendRoleApprovalEmailAsync(RoleApprovalEmailModel roleApprovalInfo)
+        {
+            try
+            {
+                _logger.LogInformation($"Bắt đầu gửi email thông báo phê duyệt role cho {roleApprovalInfo.Email}");
+
+                // Tạo nội dung email từ template
+                var htmlBody = await _razorTemplateEngine.RenderAsync("ResponseModel/RoleApproval.cshtml", roleApprovalInfo);
+
+                // Tạo email
+                var from = new MailAddress(_smtpSettings.From);
+                var to = new MailAddress(roleApprovalInfo.Email);
+
+                var subject = roleApprovalInfo.IsApproved 
+                    ? $"[AIBookStreet] Yêu cầu quyền {roleApprovalInfo.RoleName} đã được phê duyệt"
+                    : $"[AIBookStreet] Yêu cầu quyền {roleApprovalInfo.RoleName} đã bị từ chối";
+
+                var mail = new MailMessage(from, to)
+                {
+                    Subject = subject,
+                    IsBodyHtml = true
+                };
+
+                // Thêm nội dung HTML
+                var view = AlternateView.CreateAlternateViewFromString(htmlBody, null, MediaTypeNames.Text.Html);
+                mail.AlternateViews.Add(view);
+
+                // Gửi email
+                await _smtpClient.SendMailAsync(mail);
+
+                _logger.LogInformation($"Đã gửi email thông báo phê duyệt role thành công cho {roleApprovalInfo.Email}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi khi gửi email thông báo phê duyệt role cho {roleApprovalInfo.Email}: {ex.Message}");
+                return false;
+            }
+        }
     }
 } 

@@ -10,5 +10,6 @@ namespace AIBookStreet.Services.Services.Interface
     public interface IUserAccountEmailService
     {
         Task<bool> SendAccountCreatedEmailAsync(UserAccountEmailModel userAccountInfo);
+        Task<bool> SendRoleApprovalEmailAsync(RoleApprovalEmailModel roleApprovalInfo);
     }
 } 

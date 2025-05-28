@@ -14,16 +14,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace AIBookStreet.Services.Services.Service
 {
     public class UserRoleService : BaseService<UserRole>, IUserRoleService
     {
         private readonly IUserRoleRepository _userRoleRepository;
+        private readonly IUserAccountEmailService _userAccountEmailService;
+        private readonly IConfiguration _configuration;
 
-        public UserRoleService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor) : base(mapper, unitOfWork, httpContextAccessor)
+        public UserRoleService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IUserAccountEmailService userAccountEmailService, IConfiguration configuration) : base(mapper, unitOfWork, httpContextAccessor)
         {
             _userRoleRepository = unitOfWork.UserRoleRepository;
+            _userAccountEmailService = userAccountEmailService;
+            _configuration = configuration;
         }
 
         public async Task<List<UserRoleModel>> GetAll()
@@ -93,17 +98,75 @@ namespace AIBookStreet.Services.Services.Service
                 return false;
             }
 
+            // Lưu thông tin để gửi email
+            var user = userRole.User;
+            var role = userRole.Role;
+
             if (approve)
             {
                 // Nếu phê duyệt, cập nhật IsApproved = true
                 userRole.IsApproved = true;
                 userRole.LastUpdatedDate = DateTime.Now;
-                return await _userRoleRepository.Update(userRole);
+                var updateResult = await _userRoleRepository.Update(userRole);
+                
+                if (updateResult)
+                {
+                    // Gửi email thông báo phê duyệt
+                    await SendRoleApprovalEmail(user, role, true);
+                }
+                
+                return updateResult;
             }
             else
             {
                 // Nếu từ chối, xóa userRole khỏi database
-                return await _userRoleRepository.Remove(userRole);
+                var deleteResult = await _userRoleRepository.Remove(userRole);
+                
+                if (deleteResult)
+                {
+                    // Gửi email thông báo từ chối
+                    await SendRoleApprovalEmail(user, role, false);
+                }
+                
+                return deleteResult;
+            }
+        }
+
+        private async Task SendRoleApprovalEmail(User user, Role role, bool isApproved)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(user.Email))
+                {
+                    Console.WriteLine($"Không thể gửi email: User {user.UserName} không có email");
+                    return;
+                }
+
+                var emailModel = new RoleApprovalEmailModel
+                {
+                    UserName = user.UserName,
+                    Email = user.Email,
+                    FullName = user.FullName ?? user.UserName,
+                    RoleName = role.RoleName,
+                    IsApproved = isApproved,
+                    DecisionDate = DateTime.Now,
+                    LoginUrl = _configuration["AppSettings:LoginUrl"] ?? "https://smart-book-street-next-aso3.vercel.app/login",
+                    BaseImgUrl = user.BaseImgUrl
+                };
+
+                var emailSent = await _userAccountEmailService.SendRoleApprovalEmailAsync(emailModel);
+                if (emailSent)
+                {
+                    Console.WriteLine($"Đã gửi email thông báo {(isApproved ? "phê duyệt" : "từ chối")} role {role.RoleName} cho {user.Email}");
+                }
+                else
+                {
+                    Console.WriteLine($"Không thể gửi email thông báo {(isApproved ? "phê duyệt" : "từ chối")} role cho {user.Email}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi khi gửi email thông báo role: {ex.Message}");
             }
         }
 
