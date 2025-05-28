@@ -127,5 +127,33 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(new BaseResponse(false, ex.Message));
             }
         }
+
+        [Authorize]
+        [HttpGet("download-contract/{userId}/{storeId}")]
+        public async Task<IActionResult> DownloadContractFile(Guid userId, Guid storeId)
+        {
+            try
+            {
+                if (userId == Guid.Empty || storeId == Guid.Empty)
+                {
+                    return BadRequest(new BaseResponse(false, "User ID và Store ID không được để trống"));
+                }
+
+                var result = await _userStoreService.DownloadContractFile(userId, storeId);
+                
+                if (result == null)
+                {
+                    return NotFound(new BaseResponse(false, "Không tìm thấy file hợp đồng"));
+                }
+
+                var (fileData, contentType, fileName) = result.Value;
+                
+                return File(fileData, contentType, fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BaseResponse(false, ex.Message));
+            }
+        }
     }
 }
