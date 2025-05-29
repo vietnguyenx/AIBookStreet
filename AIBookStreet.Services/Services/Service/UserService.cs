@@ -243,7 +243,7 @@ namespace AIBookStreet.Services.Services.Service
                             Gender = newUser.Gender,
                             TemporaryPassword = originalPassword,
                             CreatedDate = newUser.CreatedDate,
-                            LoginUrl = _configuration["AppSettings:LoginUrl"] ?? "https://aibookstreet.azurewebsites.net/login",
+                            LoginUrl = _configuration["AppSettings:LoginUrl"] ?? "https://smart-book-street-next-aso3.vercel.app/login",
                             BaseImgUrl = newUser.BaseImgUrl,
                             RequestedRoleId = userModel.RequestedRoleId,
                             RequestedRoleName = requestedRoleName
