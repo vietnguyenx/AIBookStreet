@@ -302,6 +302,7 @@ namespace AIBookStreet.Services.Services.Service
         public async Task<(Event?, int)> GetAnEventById(Guid id)
         {
             var evt = await _repository.EventRepository.GetByID(id);
+            evt.EventSchedules = evt.EventSchedules?.OrderBy(e => e.EventDate).ToList();
             var statistic = await _repository.EventRegistrationRepository.GetStatistic(id, null, null, null, null);
             return (evt, statistic.Item6);
         }
@@ -322,7 +323,23 @@ namespace AIBookStreet.Services.Services.Service
 
             var events = isAdmin ? await _repository.EventRepository.GetAllPaginationForAdmin(key, allowAds, start, end, streetID, pageNumber, pageSize, sortField, desc)
                                                    : await _repository.EventRepository.GetAllPagination(key, allowAds, streetID, pageNumber, pageSize, sortField, desc);
-            return events.Item1?.Count > 0 ? (events.Item1, events.Item2) : (null, 0);
+            if (events.Item1?.Count > 0 && isAdmin)
+            {
+                foreach (var evt in events.Item1)
+                {
+                    if (evt.EventSchedules?.OrderByDescending(es => es.EventDate).FirstOrDefault()?.EventDate < DateOnly.FromDateTime(DateTime.Now))
+                    {
+                        evt.IsOpen = false;
+                        var updateSuccess = await _repository.EventRepository.Update(evt);
+                        if (!updateSuccess)
+                        {
+                            return (null, 0); //update thành công
+                        }
+                    }
+                }
+                return (events.Item1, events.Item2);
+            }
+            return (null, 0);
         }
         public async Task<List<Event>?> GetEventComing(int number, bool? allowAds)
         {
