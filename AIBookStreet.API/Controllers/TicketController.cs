@@ -19,7 +19,7 @@ namespace AIBookStreet.API.Controllers
         private readonly IMapper _mapper = mapper;
         [AllowAnonymous]
         [HttpGet("{email}/{passcode}")]
-        public async Task<IActionResult> GetAnEventRegistrationById([FromRoute]string email, string passcode)
+        public async Task<IActionResult> GetATicketByEmailAndPasscode([FromRoute]string email, string passcode)
         {
             try
             {
@@ -28,8 +28,13 @@ namespace AIBookStreet.API.Controllers
                 {
                     return BadRequest(new ItemResponse<Ticket>(ConstantMessage.NotFound));
                 }
+                var response = _mapper.Map<TicketResponse>(ticket);
+                response.EventRegistration = _mapper.Map<EventRegistrationResponse>(ticket.EventRegistrations?.FirstOrDefault());
+                response.EventRegistration.Event = _mapper.Map<EventResponse>(ticket.EventRegistrations?.FirstOrDefault()?.Event);
+                response.EventRegistration.Event.StartDate = ticket.EventRegistrations?.FirstOrDefault()?.Event?.EventSchedules?.OrderBy(es => es.EventDate).FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                response.EventRegistration.Event.EndDate = ticket.EventRegistrations?.FirstOrDefault()?.Event?.EventSchedules?.OrderByDescending(es => es.EventDate).FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
 
-                return Ok(new ItemResponse<TicketRequest>(ConstantMessage.Success, _mapper.Map<TicketRequest>(ticket)));
+                return Ok(new ItemResponse<TicketResponse>(ConstantMessage.Success, response));
             }
             catch (Exception ex)
             {
@@ -37,29 +42,29 @@ namespace AIBookStreet.API.Controllers
                 return BadRequest(ex.Message);
             };
         }
-        [AllowAnonymous]
-        [HttpPost]
-        public async Task<IActionResult> Create (Guid registrantId)
-        {
-            try
-            {
-                var ticket = await _service.AddATicket(registrantId);
+        //[AllowAnonymous]
+        //[HttpPost]
+        //public async Task<IActionResult> Create (Guid registrantId)
+        //{
+        //    try
+        //    {
+        //        var ticket = await _service.AddATicket(registrantId);
 
-                return ticket.Item2 switch
-                {
-                    null => BadRequest(new ItemResponse<Ticket>(ConstantMessage.NotFound)),
-                    not null => Ok(new ItemResponse<TicketRequest>(ConstantMessage.Success, _mapper.Map<TicketRequest>(ticket.Item2)))
-                };
-            }
-            catch (Exception ex)
-            {
+        //        return ticket.Item2 switch
+        //        {
+        //            null => BadRequest(new ItemResponse<Ticket>(ConstantMessage.NotFound)),
+        //            not null => Ok(new ItemResponse<TicketRequest>(ConstantMessage.Success, _mapper.Map<TicketRequest>(ticket.Item2)))
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
 
-                return BadRequest(ex.Message);
-            };
-        }
+        //        return BadRequest(ex.Message);
+        //    };
+        //}
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetAnEventResgisById([FromRoute]Guid id)
+        public async Task<IActionResult> GetATicketById([FromRoute]Guid id)
             {
             try
             {

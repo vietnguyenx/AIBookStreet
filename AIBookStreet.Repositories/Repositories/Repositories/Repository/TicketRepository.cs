@@ -50,10 +50,11 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         public async Task<Ticket?> GetTicket(string email, string passcode)
         {
             var query = GetQueryable();
-            query = query.Include(t => t.EventRegistrations).ThenInclude(er => er.Event).ThenInclude(e => e.Zone).ThenInclude(z => z.Street);
+            query = query.Include(t => t.EventRegistrations).ThenInclude(er => er.Event).ThenInclude(e => e.Zone).ThenInclude(z => z.Street)
+                         .Include(t => t.EventRegistrations).ThenInclude(er => er.Event).ThenInclude(e => e.EventSchedules);
             if (query.Any())
             {
-                query = query.Where(t => t.EventRegistrations.FirstOrDefault().RegistrantEmail == email && t.SecretPasscode == passcode);
+                query = query.Where(t => t.EventRegistrations != null && t.EventRegistrations.FirstOrDefault() != null && t.EventRegistrations.FirstOrDefault().RegistrantEmail == email && t.SecretPasscode == passcode);
             }
             var ticket = await query.FirstOrDefaultAsync();
             return ticket;
@@ -62,7 +63,8 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         {
             var queryable = GetQueryable();
             queryable = queryable.Where(z => !z.IsDeleted);
-            queryable = queryable.Include(t => t.EventRegistrations).ThenInclude(er => er.Event).ThenInclude(e => e.Zone). ThenInclude(z => z.Street);
+            queryable = queryable.Include(t => t.EventRegistrations).ThenInclude(er => er.Event).ThenInclude(e => e.Zone). ThenInclude(z => z.Street)
+                                 .Include(t => t.EventRegistrations).ThenInclude(er => er.Event).ThenInclude(e => e.EventSchedules);
             queryable = queryable.Where(t => t.EventRegistrations.FirstOrDefault().EventId == eventId);
             var tickets = await queryable.ToListAsync();
             return tickets;

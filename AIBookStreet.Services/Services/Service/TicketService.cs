@@ -47,8 +47,7 @@ namespace AIBookStreet.Services.Services.Service
                     var isSuccess = await _repository.TicketRepository.Add(setTicket);
                     if (isSuccess)
                     {
-                        var detailTicket = await _repository.TicketRepository.GetByID(ticket.Id);
-                        return (2, detailTicket, null);
+                        return (2, setTicket, null);
                     }
                 }
                 return (1, null, "Không tạo được vé");

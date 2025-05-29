@@ -1,4 +1,5 @@
 ﻿using AIBookStreet.API.RequestModel;
+using AIBookStreet.API.ResponseModel;
 using AIBookStreet.API.SearchModel;
 using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Services.Model;
@@ -14,6 +15,7 @@ namespace AIBookStreet.API.Tool.Mapping
             CreateMap<EventModel, EventRequest>().ReverseMap();
             CreateMap<EventModel, EventSearchRequest>().ReverseMap();
             CreateMap<Event, EventRequest>().ReverseMap();
+            CreateMap<Event, EventResponse>().ReverseMap();
         }
     }
 }
