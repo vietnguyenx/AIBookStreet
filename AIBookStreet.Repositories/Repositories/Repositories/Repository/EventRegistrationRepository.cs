@@ -97,7 +97,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
                                             ReferenceSource = group.Key,
                                             Count = group.Count()
                                         }).ToListAsync();
-            var addressCount = dataList.GroupBy(er => er.RegistrantAddress.Split(",")[district != null ? 0 : province != null ? 1 : 2])
+            var addressCount = dataList.GroupBy(er => er.RegistrantAddress.Split(",")[district != null ? 2 : province != null ? 1 : 0])
                                         .Select(group => new
                                         {
                                             Address = group.Key,

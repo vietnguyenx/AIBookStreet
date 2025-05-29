@@ -12,8 +12,8 @@ namespace AIBookStreet.Services.Services.Service
 {
     public class EventRegiatrationQueueService : IEventRegistrationQueueService
     {
-        private readonly ConcurrentQueue<Ticket> _queue = new();
-        public void Enqueue(Ticket message) => _queue.Enqueue(message);
-        public bool TryDequeue(out Ticket message) => _queue.TryDequeue(out message);
+        private readonly ConcurrentQueue<Guid?> _queue = new();
+        public void Enqueue(Guid? message) => _queue.Enqueue(message);
+        public bool TryDequeue(out Guid? message) => _queue.TryDequeue(out message);
     }
 }
