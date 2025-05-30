@@ -307,8 +307,10 @@ namespace AIBookStreet.API.Controllers
                     foreach (var evt in events.Item1)
                     {
                         var evtCovert = _mapper.Map<EventRequest>(evt);
-                        evtCovert.StartDate = evt.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
-                        evtCovert.EndDate = evt.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                        var date = request.Result?.Date != null ? request.Result?.Date : DateTime.Now;
+                        var evtSchedule = evt.EventSchedules?.Where(es => es.EventDate == DateOnly.FromDateTime(date.Value.Date)).FirstOrDefault();
+                        evtCovert.StartDate = evtSchedule?.EventDate.ToString("yyyy-MM-dd") + " " + evtSchedule?.StartTime.ToString("HH:mm:ss");
+                        evtCovert.EndDate = evtSchedule?.EventDate.ToString("yyyy-MM-dd") + " " + evtSchedule?.EndTime.ToString("HH:mm:ss"); ;
                         resp.Add(evtCovert);
                     }
                 }

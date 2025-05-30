@@ -306,7 +306,7 @@ namespace AIBookStreet.Services.Services.Service
             var statistic = await _repository.EventRegistrationRepository.GetStatistic(id, null, null, null, null);
             return (evt, statistic.Item6);
         }
-        public async Task<(List<Event>?, long)> GetAllEventsPagination(string? key, bool? allowAds, DateTime? start, DateTime? end, Guid? streetID, int? pageNumber, int? pageSize, string? sortField, bool? desc)
+        public async Task<(List<Event>?, long)> GetAllEventsPagination(string? key, bool? allowAds, DateTime? start, DateTime? end, Guid? zoneId, int? pageNumber, int? pageSize, string? sortField, bool? desc)
         {
             var user = await GetUserInfo();
             var isAdmin = false;
@@ -321,22 +321,22 @@ namespace AIBookStreet.Services.Services.Service
                 }
             }
 
-            var events = isAdmin ? await _repository.EventRepository.GetAllPaginationForAdmin(key, allowAds, start, end, streetID, pageNumber, pageSize, sortField, desc)
-                                                   : await _repository.EventRepository.GetAllPagination(key, allowAds, streetID, pageNumber, pageSize, sortField, desc);
-            if (events.Item1?.Count > 0 && isAdmin)
+            var events = isAdmin ? await _repository.EventRepository.GetAllPaginationForAdmin(key, allowAds, start, end, zoneId, pageNumber, pageSize, sortField, desc)
+                                                   : await _repository.EventRepository.GetAllPagination(key, allowAds, zoneId, pageNumber, pageSize, sortField, desc);
+            if (events.Item1?.Count > 0)
             {
-                foreach (var evt in events.Item1)
-                {
-                    if (evt.EventSchedules?.OrderByDescending(es => es.EventDate).FirstOrDefault()?.EventDate < DateOnly.FromDateTime(DateTime.Now))
-                    {
-                        evt.IsOpen = false;
-                        var updateSuccess = await _repository.EventRepository.Update(evt);
-                        if (!updateSuccess)
-                        {
-                            return (null, 0); //update thành công
-                        }
-                    }
-                }
+                //foreach (var evt in events.Item1)
+                //{
+                //    if (evt.EventSchedules?.OrderByDescending(es => es.EventDate).FirstOrDefault()?.EventDate < DateOnly.FromDateTime(DateTime.Now))
+                //    {
+                //        evt.IsOpen = false;
+                //        var updateSuccess = await _repository.EventRepository.Update(evt);
+                //        if (!updateSuccess)
+                //        {
+                //            return (null, 0); //update thành công
+                //        }
+                //    }
+                //}
                 return (events.Item1, events.Item2);
             }
             return (null, 0);
