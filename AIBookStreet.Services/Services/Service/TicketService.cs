@@ -38,7 +38,7 @@ namespace AIBookStreet.Services.Services.Service
                     }
                     var model = new TicketModel
                     {
-                        TicketCode = ticketCode,
+                        TicketCode = ticketCode.ToString(),
                         SecretPasscode = secretPasscode.ToString(),
 
                     };
