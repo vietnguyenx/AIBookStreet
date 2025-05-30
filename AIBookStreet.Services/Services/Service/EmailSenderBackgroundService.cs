@@ -55,7 +55,7 @@ namespace AIBookStreet.Services.Services.Service
                 }
                 else
                 {
-                    await Task.Delay(10000, stoppingToken);
+                    await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
                 }
             }
 

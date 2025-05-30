@@ -8,6 +8,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using System.Security.Policy;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -35,6 +36,14 @@ namespace AIBookStreet.API.Controllers
                         var eventRegistrationQueue = HttpContext.RequestServices.GetRequiredService<IEventRegistrationQueueService>();
                         eventRegistrationQueue.Enqueue(result.Item2?.FirstOrDefault()?.TicketId);
                     }
+                    var dates = new List<object>();
+                    if (result.Item2 != null)
+                    {                        
+                        foreach (var item in result.Item2)
+                        {
+                            dates.Add(new { date = item.DateToAttend.ToString("yyyy-MM-dd") });
+                        }
+                    }
                     return Ok(new ItemResponse<object>(result.Item3, new
                     {
                         id = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.TicketId : null,
@@ -48,6 +57,7 @@ namespace AIBookStreet.API.Controllers
                         eventName = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null) ? result.Item2?.FirstOrDefault()?.Event?.EventName : null,
                         eventStartDate = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null && result.Item2?.FirstOrDefault()?.Event?.EventSchedules != null) ? result.Item2?.FirstOrDefault()?.Event?.EventSchedules?.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate : null,
                         eventEndDate = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null && result.Item2?.FirstOrDefault()?.Event?.EventSchedules != null) ? result.Item2?.FirstOrDefault()?.Event?.EventSchedules?.OrderByDescending(e => e.EventDate).FirstOrDefault()?.EventDate : null,
+                        registeredDates = dates,
                         zoneId = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null) ? result.Item2?.FirstOrDefault()?.Event?.ZoneId : null,
                         zoneName = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null && result.Item2?.FirstOrDefault()?.Event?.Zone != null) ? result.Item2?.FirstOrDefault()?.Event?.Zone?.ZoneName : null,
                         latitude = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null && result.Item2?.FirstOrDefault()?.Event?.Zone != null) ? result.Item2?.FirstOrDefault()?.Event?.Zone?.Latitude : null,

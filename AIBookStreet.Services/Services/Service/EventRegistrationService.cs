@@ -84,7 +84,7 @@ namespace AIBookStreet.Services.Services.Service
                     var isSuccess = await _repository.EventRegistrationRepository.Add(setEventRegistrationModel);
                     if (!isSuccess)
                     {
-                        if (resp.Count > 0)
+                        if (resp != null && resp.Count > 0)
                         {
                             foreach (var e in resp)
                             {
@@ -793,7 +793,7 @@ namespace AIBookStreet.Services.Services.Service
                     var addressIndex = 103;
                     foreach (var address in addressCount)
                     {
-                        worksheet2.Cells[addressIndex, 15].Value = address.Address.Trim().ToString();
+                        worksheet2.Cells[addressIndex, 15].Value = address.Address.Contains("Thành phố") ? address.Address.Replace("Thành phố", "TP.").Trim().ToString() : address.Address.Contains("Tỉnh") ? address.Address.Replace("Tỉnh", "").Trim().ToString() : address.Address.Trim().ToString();
                         using (ExcelRange headerRange = worksheet2.Cells[addressIndex, 15])
                         {
                             headerRange.Style.Font.Bold = true;

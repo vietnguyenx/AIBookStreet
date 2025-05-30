@@ -28,13 +28,41 @@ namespace AIBookStreet.API.Controllers
                 {
                     return BadRequest(new ItemResponse<Ticket>(ConstantMessage.NotFound));
                 }
-                var response = _mapper.Map<TicketResponse>(ticket);
-                response.EventRegistration = _mapper.Map<EventRegistrationResponse>(ticket.EventRegistrations?.FirstOrDefault());
-                response.EventRegistration.Event = _mapper.Map<EventResponse>(ticket.EventRegistrations?.FirstOrDefault()?.Event);
-                response.EventRegistration.Event.StartDate = ticket.EventRegistrations?.FirstOrDefault()?.Event?.EventSchedules?.OrderBy(es => es.EventDate).FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
-                response.EventRegistration.Event.EndDate = ticket.EventRegistrations?.FirstOrDefault()?.Event?.EventSchedules?.OrderByDescending(es => es.EventDate).FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                //var response = _mapper.Map<TicketResponse>(ticket);
+                //response.EventRegistration = _mapper.Map<EventRegistrationResponse>(ticket.EventRegistrations?.FirstOrDefault());
+                //response.EventRegistration.Event = _mapper.Map<EventResponse>(ticket.EventRegistrations?.FirstOrDefault()?.Event);
+                //response.EventRegistration.Event.StartDate = ticket.EventRegistrations?.FirstOrDefault()?.Event?.EventSchedules?.OrderBy(es => es.EventDate).FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                //response.EventRegistration.Event.EndDate = ticket.EventRegistrations?.FirstOrDefault()?.Event?.EventSchedules?.OrderByDescending(es => es.EventDate).FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
 
-                return Ok(new ItemResponse<TicketResponse>(ConstantMessage.Success, response));
+                var dates = new List<object>();
+                if (ticket.EventRegistrations != null)
+                {
+                    foreach (var item in ticket.EventRegistrations)
+                    {
+                        dates.Add(new { date = item.DateToAttend.ToString("yyyy-MM-dd") });
+                    }
+                }
+                var response = new
+                {
+                    id = ticket.EventRegistrations?.FirstOrDefault() != null ? ticket.EventRegistrations?.FirstOrDefault()?.TicketId : null,
+                    ticketCode = ticket.EventRegistrations?.FirstOrDefault() != null ? ticket.EventRegistrations?.FirstOrDefault()?.Ticket?.TicketCode : null,
+                    eventId = ticket.EventRegistrations?.FirstOrDefault() != null ? ticket.EventRegistrations?.FirstOrDefault()?.EventId : null,
+                    registrationId = ticket.EventRegistrations?.FirstOrDefault() != null ? ticket.EventRegistrations?.FirstOrDefault()?.Id : null,
+                    attendeeName = ticket.EventRegistrations?.FirstOrDefault() != null ? ticket.EventRegistrations?.FirstOrDefault()?.RegistrantName : null,
+                    attendeeEmail = ticket.EventRegistrations?.FirstOrDefault() != null ? ticket.EventRegistrations?.FirstOrDefault()?.RegistrantEmail : null,
+                    attendeePhone = ticket.EventRegistrations?.FirstOrDefault() != null ? ticket.EventRegistrations?.FirstOrDefault()?.RegistrantPhoneNumber : null,
+                    attendeeAddress = ticket.EventRegistrations?.FirstOrDefault() != null ? ticket.EventRegistrations?.FirstOrDefault()?.RegistrantAddress : null,
+                    eventName = (ticket.EventRegistrations?.FirstOrDefault() != null && ticket.EventRegistrations?.FirstOrDefault()?.Event != null) ? ticket.EventRegistrations?.FirstOrDefault()?.Event?.EventName : null,
+                    eventStartDate = (ticket.EventRegistrations?.FirstOrDefault() != null && ticket.EventRegistrations?.FirstOrDefault()?.Event != null && ticket.EventRegistrations?.FirstOrDefault()?.Event?.EventSchedules != null) ? ticket.EventRegistrations?.FirstOrDefault()?.Event?.EventSchedules?.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate : null,
+                    eventEndDate = (ticket.EventRegistrations?.FirstOrDefault() != null && ticket.EventRegistrations?.FirstOrDefault()?.Event != null && ticket.EventRegistrations?.FirstOrDefault()?.Event?.EventSchedules != null) ? ticket.EventRegistrations?.FirstOrDefault()?.Event?.EventSchedules?.OrderByDescending(e => e.EventDate).FirstOrDefault()?.EventDate : null,
+                    registeredDates = dates,
+                    zoneId = (ticket.EventRegistrations?.FirstOrDefault() != null && ticket.EventRegistrations?.FirstOrDefault()?.Event != null) ? ticket.EventRegistrations?.FirstOrDefault()?.Event?.ZoneId : null,
+                    zoneName = (ticket.EventRegistrations?.FirstOrDefault() != null && ticket.EventRegistrations?.FirstOrDefault()?.Event != null && ticket.EventRegistrations?.FirstOrDefault()?.Event?.Zone != null) ? ticket.EventRegistrations?.FirstOrDefault()?.Event?.Zone?.ZoneName : null,
+                    latitude = (ticket.EventRegistrations?.FirstOrDefault() != null && ticket.EventRegistrations?.FirstOrDefault()?.Event != null && ticket.EventRegistrations?.FirstOrDefault()?.Event?.Zone != null) ? ticket.EventRegistrations?.FirstOrDefault()?.Event?.Zone?.Latitude : null,
+                    longitude = (ticket.EventRegistrations?.FirstOrDefault() != null && ticket.EventRegistrations?.FirstOrDefault()?.Event != null && ticket.EventRegistrations?.FirstOrDefault()?.Event?.Zone != null) ? ticket.EventRegistrations?.FirstOrDefault()?.Event?.Zone?.Longitude : null,
+                    issuedAt = ticket.EventRegistrations?.FirstOrDefault() != null ? ticket.EventRegistrations?.FirstOrDefault()?.Ticket?.CreatedDate : null,
+                };
+                return Ok(new ItemResponse<object>(ConstantMessage.Success, response));
             }
             catch (Exception ex)
             {
