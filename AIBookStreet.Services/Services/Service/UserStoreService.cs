@@ -7,6 +7,7 @@ using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,15 +20,21 @@ namespace AIBookStreet.Services.Services.Service
     {
         private readonly IUserStoreRepository _userStoreRepository;
         private readonly IFirebaseStorageService _firebaseStorage;
+        private readonly IUserAccountEmailService _userAccountEmailService;
+        private readonly IConfiguration _configuration;
 
         public UserStoreService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             IHttpContextAccessor httpContextAccessor,
-            IFirebaseStorageService firebaseStorage) : base(mapper, unitOfWork, httpContextAccessor)
+            IFirebaseStorageService firebaseStorage,
+            IUserAccountEmailService userAccountEmailService,
+            IConfiguration configuration) : base(mapper, unitOfWork, httpContextAccessor)
         {
             _userStoreRepository = unitOfWork.UserStoreRepository;
             _firebaseStorage = firebaseStorage;
+            _userAccountEmailService = userAccountEmailService;
+            _configuration = configuration;
         }
 
         private async Task CheckAndUpdateExpiredContracts()
@@ -115,9 +122,80 @@ namespace AIBookStreet.Services.Services.Service
             var newUserStore = await SetBaseEntityToCreateFunc(mappedUserStore);
             bool result = await _userStoreRepository.Add(newUserStore);
             if (result)
+            {
+                // Gửi email thông báo hợp đồng
+                await SendContractNotificationEmail(userStoreModel);
                 return (true, "Tạo hợp đồng thành công.");
+            }
             else
                 return (false, "Tạo hợp đồng thất bại.");
+        }
+
+        private async Task SendContractNotificationEmail(UserStoreModel userStoreModel)
+        {
+            try
+            {
+                // Lấy thông tin user và store với relationships
+                var userStoreWithDetails = await _userStoreRepository.GetByUserIdAndStoreId(userStoreModel.UserId, userStoreModel.StoreId);
+                
+                if (userStoreWithDetails?.User == null || userStoreWithDetails?.Store == null)
+                {
+                    Console.WriteLine("Không thể lấy thông tin user hoặc store để gửi email");
+                    return;
+                }
+
+                var user = userStoreWithDetails.User;
+                var store = userStoreWithDetails.Store;
+
+                if (string.IsNullOrEmpty(user.Email))
+                {
+                    Console.WriteLine($"User {user.UserName} không có email để gửi thông báo hợp đồng");
+                    return;
+                }
+
+                Console.WriteLine($"Bắt đầu chuẩn bị email thông báo hợp đồng cho user {user.UserName} ({user.Email})");
+
+                var emailModel = new ContractNotificationEmailModel
+                {
+                    UserName = user.UserName,
+                    Email = user.Email,
+                    FullName = user.FullName ?? user.UserName,
+                    Phone = user.Phone ?? "Chưa cập nhật",
+                    Address = user.Address ?? "Chưa cập nhật",
+                    
+                    StoreName = store.StoreName,
+                    StoreAddress = store.Address ?? "Chưa cập nhật",
+                    StoreType = store.Type ?? "Chưa cập nhật",
+                    
+                    StartDate = userStoreModel.StartDate,
+                    EndDate = userStoreModel.EndDate,
+                    Status = userStoreModel.Status ?? "Active",
+                    ContractNumber = userStoreModel.ContractNumber ?? "Chưa có",
+                    ContractFileUrl = userStoreModel.ContractFileUrl ?? "",
+                    Notes = userStoreModel.Notes ?? "",
+                    
+                    CreatedDate = DateTime.Now,
+                    LoginUrl = _configuration["AppSettings:LoginUrl"] ?? "https://smart-book-street-next-aso3.vercel.app/login",
+                    BaseImgUrl = user.BaseImgUrl
+                };
+
+                Console.WriteLine($"Đã tạo email model, bắt đầu gửi email...");
+
+                var emailSent = await _userAccountEmailService.SendContractNotificationEmailAsync(emailModel);
+                if (emailSent)
+                {
+                    Console.WriteLine($"✅ Đã gửi email thông báo hợp đồng thuê store {store.StoreName} cho {user.Email} thành công");
+                }
+                else
+                {
+                    Console.WriteLine($"❌ Không thể gửi email thông báo hợp đồng thuê store {store.StoreName} cho {user.Email}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"💥 Lỗi khi gửi email thông báo hợp đồng: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            }
         }
 
         public async Task<bool> Delete(Guid userId, Guid storeId)

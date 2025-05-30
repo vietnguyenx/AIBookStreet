@@ -1,0 +1,371 @@
+@model AIBookStreet.Services.Model.ContractNotificationEmailModel
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <title>Thông báo hợp đồng thuê cửa hàng</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .header img {
+            height: 50px;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .welcome-message {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+
+        .contract-info {
+            background-color: #fff;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .contract-info h3 {
+            color: #495057;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 18px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #495057;
+            width: 160px;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            color: #212529;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .info-value.important {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+        }
+
+        .important-notes {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+
+        .important-notes h4 {
+            color: #856404;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .important-notes ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .important-notes li {
+            color: #856404;
+            margin-bottom: 8px;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .contact-info {
+            background-color: #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .contract-file-link {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .contract-file-link a {
+            color: #0c5460;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .contract-file-link a:hover {
+            text-decoration: underline;
+        }
+
+        .divider {
+            height: 2px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 30px 0;
+            border-radius: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            @if (!string.IsNullOrEmpty(Model.BaseImgUrl))
+            {
+                <img src="@Model.BaseImgUrl" alt="Profile Image" />
+            }
+            <h1>🏪 Hợp đồng thuê cửa hàng</h1>
+            <p>Thông báo tạo hợp đồng thành công</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Welcome Message -->
+            <div class="welcome-message">
+                <h2>🎉 Chúc mừng @Model.FullName!</h2>
+                <p>
+                    Hợp đồng thuê cửa hàng của bạn đã được tạo thành công trên hệ thống AIBookStreet.
+                    Dưới đây là thông tin chi tiết về hợp đồng của bạn.
+                </p>
+            </div>
+
+            <!-- User Information -->
+            <div class="contract-info">
+                <h3>👤 Thông tin người thuê</h3>
+                <div class="info-row">
+                    <div class="info-label">Tên đăng nhập:</div>
+                    <div class="info-value">@Model.UserName</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Họ và tên:</div>
+                    <div class="info-value">@Model.FullName</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Email:</div>
+                    <div class="info-value">@Model.Email</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Số điện thoại:</div>
+                    <div class="info-value">@Model.Phone</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Địa chỉ:</div>
+                    <div class="info-value">@Model.Address</div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Store Information -->
+            <div class="contract-info">
+                <h3>🏪 Thông tin cửa hàng</h3>
+                <div class="info-row">
+                    <div class="info-label">Tên cửa hàng:</div>
+                    <div class="info-value important">@Model.StoreName</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Địa chỉ cửa hàng:</div>
+                    <div class="info-value">@Model.StoreAddress</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Loại cửa hàng:</div>
+                    <div class="info-value">@Model.StoreType</div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Contract Details -->
+            <div class="contract-info">
+                <h3>📋 Chi tiết hợp đồng</h3>
+                <div class="info-row">
+                    <div class="info-label">Số hợp đồng:</div>
+                    <div class="info-value important">@Model.ContractNumber</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Ngày bắt đầu:</div>
+                    <div class="info-value">@Model.StartDate.ToString("dd/MM/yyyy")</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Ngày kết thúc:</div>
+                    <div class="info-value">
+                        @if (Model.EndDate.HasValue)
+                        {
+                            @Model.EndDate.Value.ToString("dd/MM/yyyy")
+                        }
+                        else
+                        {
+                            <span style="color: #6c757d;">Không giới hạn</span>
+                        }
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Trạng thái:</div>
+                    <div class="info-value">
+                        <span class="status-active">@Model.Status</span>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <div class="info-row">
+                        <div class="info-label">Ghi chú:</div>
+                        <div class="info-value">@Model.Notes</div>
+                    </div>
+                }
+                <div class="info-row">
+                    <div class="info-label">Ngày tạo hợp đồng:</div>
+                    <div class="info-value">@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm:ss")</div>
+                </div>
+            </div>
+
+            <!-- Contract File Download -->
+            @if (!string.IsNullOrEmpty(Model.ContractFileUrl))
+            {
+                <div class="contract-file-link">
+                    <h4>📄 Tải file hợp đồng</h4>
+                    <p>
+                        <a href="@Model.ContractFileUrl" target="_blank">
+                            🔗 Nhấp vào đây để xem và tải xuống file hợp đồng
+                        </a>
+                    </p>
+                    <small style="color: #6c757d;">
+                        Vui lòng lưu trữ file hợp đồng để tiện theo dõi và tra cứu sau này.
+                    </small>
+                </div>
+            }
+
+            <!-- Important Notes -->
+            <div class="important-notes">
+                <h4>⚠️ Lưu ý quan trọng</h4>
+                <ul>
+                    <li>Vui lòng lưu trữ email này để làm bằng chứng về hợp đồng thuê cửa hàng.</li>
+                    <li>Hợp đồng sẽ có hiệu lực từ ngày @Model.StartDate.ToString("dd/MM/yyyy").</li>
+                    @if (Model.EndDate.HasValue)
+                    {
+                        <li>Hợp đồng sẽ hết hạn vào ngày @Model.EndDate.Value.ToString("dd/MM/yyyy").</li>
+                    }
+                    <li>Mọi thay đổi về hợp đồng sẽ được thông báo qua email này.</li>
+                    <li>Để quản lý cửa hàng, vui lòng đăng nhập vào hệ thống AIBookStreet.</li>
+                </ul>
+            </div>
+
+            <!-- Login Button -->
+            <div style="text-align: center;">
+                <a href="@Model.LoginUrl" class="button">🔑 Đăng nhập vào hệ thống</a>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="contact-info">
+                <h4>📞 Liên hệ hỗ trợ</h4>
+                <p>
+                    Nếu bạn có bất kỳ câu hỏi nào về hợp đồng này, vui lòng liên hệ với chúng tôi qua:
+                </p>
+                <p>
+                    <strong>Email:</strong> support@aibookstreet.com<br>
+                    <strong>Hotline:</strong> 1900-xxxx<br>
+                    <strong>Thời gian hỗ trợ:</strong> 8:00 - 22:00 (Thứ 2 - Chủ nhật)
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>
+                <strong>AIBookStreet</strong> - Hệ thống quản lý cửa hàng sách thông minh<br>
+                Email này được gửi tự động, vui lòng không trả lời email này.
+            </p>
+            <p style="font-size: 12px; color: #999;">
+                © 2024 AIBookStreet. Tất cả các quyền được bảo lưu.
+            </p>
+        </div>
+    </div>
+</body>
+</html> 
