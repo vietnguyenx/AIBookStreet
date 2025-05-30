@@ -229,6 +229,130 @@ namespace AIBookStreet.Services.Services.Service
             return true;
         }
 
+        public async Task<(int totalSent, string message)> SendExpirationWarningEmails()
+        {
+            try
+            {
+                var now = DateTime.Now;
+                var oneWeekFromNow = now.AddDays(7);
+                
+                // Lấy tất cả hợp đồng đang hoạt động có ngày hết hạn trong vòng 7 ngày tới
+                var contractsNearExpiration = await _userStoreRepository.GetAll();
+                contractsNearExpiration = contractsNearExpiration.Where(x => 
+                    x.EndDate.HasValue && 
+                    x.EndDate.Value.Date >= now.Date && 
+                    x.EndDate.Value.Date <= oneWeekFromNow.Date &&
+                    x.Status == "Active").ToList();
+
+                var totalSent = 0;
+                var successList = new List<string>();
+                var failureList = new List<string>();
+
+                foreach (var contract in contractsNearExpiration)
+                {
+                    try
+                    {
+                        // Lấy thông tin chi tiết với relationships
+                        var contractWithDetails = await _userStoreRepository.GetByUserIdAndStoreId(contract.UserId, contract.StoreId);
+                        
+                        if (contractWithDetails?.User == null || contractWithDetails?.Store == null)
+                        {
+                            Console.WriteLine($"Không thể lấy thông tin user hoặc store cho hợp đồng {contract.ContractNumber}");
+                            continue;
+                        }
+
+                        if (string.IsNullOrEmpty(contractWithDetails.User.Email))
+                        {
+                            Console.WriteLine($"User {contractWithDetails.User.UserName} không có email để gửi thông báo");
+                            continue;
+                        }
+
+                        var daysUntilExpiration = (int)(contract.EndDate.Value.Date - now.Date).TotalDays;
+                        
+                        await SendContractExpirationEmail(contractWithDetails, daysUntilExpiration);
+                        
+                        totalSent++;
+                        successList.Add($"{contractWithDetails.Store.StoreName} - {contractWithDetails.User.Email}");
+                        
+                        Console.WriteLine($"✅ Đã gửi email thông báo hết hạn cho {contractWithDetails.User.Email} - Store: {contractWithDetails.Store.StoreName}");
+                    }
+                    catch (Exception ex)
+                    {
+                        failureList.Add($"{contract.ContractNumber} - {ex.Message}");
+                        Console.WriteLine($"❌ Lỗi khi gửi email cho hợp đồng {contract.ContractNumber}: {ex.Message}");
+                    }
+                }
+
+                var message = $"Đã gửi thành công {totalSent} email thông báo hết hạn hợp đồng.";
+                if (failureList.Any())
+                {
+                    message += $" Có {failureList.Count} email gửi thất bại.";
+                }
+
+                Console.WriteLine($"📊 Tổng kết: Gửi thành công {totalSent}/{contractsNearExpiration.Count} email thông báo hết hạn");
+                
+                return (totalSent, message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"💥 Lỗi khi kiểm tra và gửi email hợp đồng sắp hết hạn: {ex.Message}");
+                return (0, $"Lỗi: {ex.Message}");
+            }
+        }
+
+        private async Task SendContractExpirationEmail(UserStore userStoreWithDetails, int daysUntilExpiration)
+        {
+            try
+            {
+                var user = userStoreWithDetails.User;
+                var store = userStoreWithDetails.Store;
+
+                Console.WriteLine($"Bắt đầu chuẩn bị email thông báo hết hạn cho user {user.UserName} ({user.Email}) - Store: {store.StoreName}");
+
+                var emailModel = new ContractExpirationEmailModel
+                {
+                    UserName = user.UserName,
+                    Email = user.Email,
+                    FullName = user.FullName ?? user.UserName,
+                    Phone = user.Phone ?? "Chưa cập nhật",
+                    Address = user.Address ?? "Chưa cập nhật",
+                    
+                    StoreName = store.StoreName,
+                    StoreAddress = store.Address ?? "Chưa cập nhật",
+                    StoreType = store.Type ?? "Chưa cập nhật",
+                    
+                    StartDate = userStoreWithDetails.StartDate,
+                    EndDate = userStoreWithDetails.EndDate.Value,
+                    DaysUntilExpiration = daysUntilExpiration,
+                    Status = userStoreWithDetails.Status ?? "Active",
+                    ContractNumber = userStoreWithDetails.ContractNumber ?? "Chưa có",
+                    ContractFileUrl = userStoreWithDetails.ContractFileUrl ?? "",
+                    Notes = userStoreWithDetails.Notes ?? "",
+                    
+                    NotificationDate = DateTime.Now,
+                    LoginUrl = _configuration["AppSettings:LoginUrl"] ?? "https://smart-book-street-next-aso3.vercel.app/login",
+                    BaseImgUrl = user.BaseImgUrl,
+                    ContactEmail = _configuration["AppSettings:ContactEmail"] ?? "support@aibookstreet.com",
+                    ContactPhone = _configuration["AppSettings:ContactPhone"] ?? "1900-xxxx"
+                };
+
+                Console.WriteLine($"Đã tạo email model, bắt đầu gửi email thông báo hết hạn...");
+
+                var emailSent = await _userAccountEmailService.SendContractExpirationEmailAsync(emailModel);
+                if (!emailSent)
+                {
+                    throw new Exception("Email service trả về false");
+                }
+
+                Console.WriteLine($"✅ Đã gửi email thông báo hết hạn hợp đồng cho {user.Email} thành công");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"💥 Lỗi khi gửi email thông báo hết hạn hợp đồng: {ex.Message}");
+                throw;
+            }
+        }
+
         public async Task<(byte[] fileData, string contentType, string fileName)?> DownloadContractFile(Guid userId, Guid storeId)
         {
             try

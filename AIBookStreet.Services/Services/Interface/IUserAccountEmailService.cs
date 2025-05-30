@@ -12,6 +12,7 @@ namespace AIBookStreet.Services.Services.Interface
         Task<bool> SendAccountCreatedEmailAsync(UserAccountEmailModel userAccountInfo);
         Task<bool> SendRoleApprovalEmailAsync(RoleApprovalEmailModel roleApprovalInfo);
         Task<bool> SendContractNotificationEmailAsync(ContractNotificationEmailModel contractInfo);
+        Task<bool> SendContractExpirationEmailAsync(ContractExpirationEmailModel contractExpirationInfo);
         Task<bool> SendEmailWithRetryAsync(Func<Task> emailSendAction, string recipientEmail, string emailType);
     }
 } 

@@ -129,6 +129,7 @@ builder.Services.AddScoped<IUserAccountEmailService, UserAccountEmailService>();
 builder.Services.AddSingleton<IEventRegistrationQueueService, EventRegiatrationQueueService>();
 builder.Services.AddSingleton<IExportEventStatisticQueueService, ExportEventStatisticQueueService>();
 builder.Services.AddHostedService<EmailSenderBackgroundService>();
+builder.Services.AddHostedService<ContractExpirationBackgroundService>();
 
 // Add HttpClient for Google Books API
 builder.Services.AddHttpClient<IGoogleBookService, GoogleBookService>();
