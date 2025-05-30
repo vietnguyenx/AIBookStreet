@@ -83,7 +83,7 @@ namespace AIBookStreet.Repositories.Repositories.Utils
     public static class PersonApiHelper
     {
         private static readonly HttpClient _httpClient = new HttpClient();
-        private static readonly string _apiUrl = "https://unitrack-production.up.railway.app/api/persons/";
+        private static readonly string _apiUrl = "https://midge-noted-tuna.ngrok-free.app/statistics";
         private const int MaxRetries = 3;
         private const int RetryDelayMilliseconds = 1000;
 
