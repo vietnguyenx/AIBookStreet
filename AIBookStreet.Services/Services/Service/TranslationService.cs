@@ -37,6 +37,11 @@ namespace AIBookStreet.Services.Services.Service
 
         public async Task<string?> TranslateToVietnameseAsync(string text)
         {
+            return await TranslateTextAsync(text, "vi", "en");
+        }
+
+        public async Task<string?> TranslateTextAsync(string text, string targetLanguage, string sourceLanguage = "auto")
+        {
             if (string.IsNullOrEmpty(text))
             {
                 return text;
@@ -50,10 +55,13 @@ namespace AIBookStreet.Services.Services.Service
 
             try
             {
+                var targetLangCode = GetLanguageCode(targetLanguage);
+                var sourceLangCode = sourceLanguage == "auto" ? null : GetLanguageCode(sourceLanguage);
+
                 var response = await Task.FromResult(_translationClient.TranslateText(
                     text,
-                    LanguageCodes.Vietnamese,
-                    LanguageCodes.English));
+                    targetLangCode,
+                    sourceLangCode));
 
                 return response.TranslatedText;
             }
@@ -62,6 +70,24 @@ namespace AIBookStreet.Services.Services.Service
                 _logger.LogError(ex, "Translation failed for text: {Text}", text);
                 return text; // Return original text in case of failure
             }
+        }
+
+        /// <summary>
+        /// Chuyển đổi language code thành Google Translation language code
+        /// </summary>
+        private string GetLanguageCode(string language)
+        {
+            return language?.ToLower() switch
+            {
+                "vi" or "vie" or "vietnamese" => LanguageCodes.Vietnamese,
+                "en" or "eng" or "english" => LanguageCodes.English,
+                "fr" or "fra" or "french" => LanguageCodes.French,
+                "de" or "deu" or "german" => LanguageCodes.German,
+                "es" or "spa" or "spanish" => LanguageCodes.Spanish,
+                "ja" or "jpn" or "japanese" => LanguageCodes.Japanese,
+                "ko" or "kor" or "korean" => LanguageCodes.Korean,
+                _ => language ?? LanguageCodes.English
+            };
         }
     }
 } 
