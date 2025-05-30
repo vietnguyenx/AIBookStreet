@@ -102,6 +102,76 @@ namespace AIBookStreet.Services.Services.Service
             }, roleApprovalInfo.Email, "Role Approval");
         }
 
+        public async Task<bool> SendContractNotificationEmailAsync(ContractNotificationEmailModel contractInfo)
+        {
+            return await SendEmailWithRetryAsync(async () =>
+            {
+                _logger.LogInformation($"Bắt đầu gửi email thông báo hợp đồng thuê store cho {contractInfo.Email}");
+
+                // Tạo nội dung email từ template
+                var htmlBody = await _razorTemplateEngine.RenderAsync("ResponseModel/ContractNotification.cshtml", contractInfo);
+
+                // Tạo email
+                var from = new MailAddress(_smtpSettings.From);
+                var to = new MailAddress(contractInfo.Email);
+
+                var mail = new MailMessage(from, to)
+                {
+                    Subject = "[AIBookStreet] Hợp đồng thuê cửa hàng đã được tạo thành công",
+                    IsBodyHtml = true
+                };
+
+                // Thêm nội dung HTML
+                var view = AlternateView.CreateAlternateViewFromString(htmlBody, null, MediaTypeNames.Text.Html);
+                mail.AlternateViews.Add(view);
+
+                // Gửi email
+                await _smtpClient.SendMailAsync(mail);
+                
+                // Dispose mail object
+                mail.Dispose();
+
+                _logger.LogInformation($"Đã gửi email thông báo hợp đồng thuê store thành công cho {contractInfo.Email}");
+            }, contractInfo.Email, "Contract Notification");
+        }
+
+        public async Task<bool> SendContractExpirationEmailAsync(ContractExpirationEmailModel contractExpirationInfo)
+        {
+            return await SendEmailWithRetryAsync(async () =>
+            {
+                _logger.LogInformation($"Bắt đầu gửi email thông báo hợp đồng sắp hết hạn cho {contractExpirationInfo.Email}");
+
+                // Tạo nội dung email từ template
+                var htmlBody = await _razorTemplateEngine.RenderAsync("ResponseModel/ContractExpiration.cshtml", contractExpirationInfo);
+
+                // Tạo email
+                var from = new MailAddress(_smtpSettings.From);
+                var to = new MailAddress(contractExpirationInfo.Email);
+
+                var subject = contractExpirationInfo.DaysUntilExpiration == 1 
+                    ? "[AIBookStreet] ⚠️ Hợp đồng thuê cửa hàng sẽ hết hạn vào ngày mai!"
+                    : $"[AIBookStreet] ⚠️ Hợp đồng thuê cửa hàng sẽ hết hạn trong {contractExpirationInfo.DaysUntilExpiration} ngày";
+
+                var mail = new MailMessage(from, to)
+                {
+                    Subject = subject,
+                    IsBodyHtml = true
+                };
+
+                // Thêm nội dung HTML
+                var view = AlternateView.CreateAlternateViewFromString(htmlBody, null, MediaTypeNames.Text.Html);
+                mail.AlternateViews.Add(view);
+
+                // Gửi email
+                await _smtpClient.SendMailAsync(mail);
+                
+                // Dispose mail object
+                mail.Dispose();
+
+                _logger.LogInformation($"Đã gửi email thông báo hợp đồng sắp hết hạn thành công cho {contractExpirationInfo.Email}");
+            }, contractExpirationInfo.Email, "Contract Expiration");
+        }
+
         public async Task<bool> SendEmailWithRetryAsync(Func<Task> emailSendAction, string recipientEmail, string emailType)
         {
             var maxRetries = _smtpSettings.MaxRetryAttempts;

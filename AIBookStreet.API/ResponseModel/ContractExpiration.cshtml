@@ -1,0 +1,433 @@
+@model AIBookStreet.Services.Model.ContractExpirationEmailModel
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <title>Thông báo hợp đồng sắp hết hạn</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .header img {
+            height: 50px;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .warning-message {
+            background-color: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .warning-icon {
+            font-size: 48px;
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .countdown-box {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin: 25px 0;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .countdown-number {
+            font-size: 48px;
+            font-weight: bold;
+            display: block;
+        }
+
+        .countdown-text {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+
+        .contract-info {
+            background-color: #fff;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .contract-info h3 {
+            color: #495057;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 18px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #495057;
+            width: 160px;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            color: #212529;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .info-value.expiring {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+            font-weight: bold;
+        }
+
+        .info-value.important {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            font-weight: bold;
+        }
+
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .button {
+            display: inline-block;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .button-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);
+            color: #212529;
+        }
+
+        .urgent-notes {
+            background-color: #f8d7da;
+            border: 2px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+
+        .urgent-notes h4 {
+            color: #721c24;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .urgent-notes ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .urgent-notes li {
+            color: #721c24;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .contact-info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .contact-info h4 {
+            color: #0c5460;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .contact-info p {
+            color: #0c5460;
+            margin: 5px 0;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .contract-file-link {
+            background-color: #e2e3e5;
+            border: 1px solid #d1d3d4;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .contract-file-link a {
+            color: #495057;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .contract-file-link a:hover {
+            text-decoration: underline;
+        }
+
+        .divider {
+            height: 2px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            margin: 30px 0;
+            border-radius: 1px;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @@keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            @if (!string.IsNullOrEmpty(Model.BaseImgUrl))
+            {
+                <img src="@Model.BaseImgUrl" alt="Profile Image" />
+            }
+            <h1>⚠️ Hợp đồng sắp hết hạn</h1>
+            <p>Thông báo quan trọng về hợp đồng thuê cửa hàng</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Warning Message -->
+            <div class="warning-message">
+                <div class="warning-icon pulse">⚠️</div>
+                <h2 style="color: #856404; margin: 10px 0;">THÔNG BÁO QUAN TRỌNG!</h2>
+                <p style="color: #856404; font-size: 16px; margin: 0;">
+                    Hợp đồng thuê cửa hàng <strong>@Model.StoreName</strong> của bạn sắp hết hạn.
+                </p>
+            </div>
+
+            <!-- Countdown -->
+            <div class="countdown-box pulse">
+                <span class="countdown-number">@Model.DaysUntilExpiration</span>
+                <div class="countdown-text">
+                    @if (Model.DaysUntilExpiration == 1)
+                    {
+                        <span>Ngày còn lại</span>
+                    }
+                    else
+                    {
+                        <span>Ngày còn lại</span>
+                    }
+                </div>
+            </div>
+
+            <!-- User Information -->
+            <div class="contract-info">
+                <h3>👤 Thông tin người thuê</h3>
+                <div class="info-row">
+                    <div class="info-label">Tên đăng nhập:</div>
+                    <div class="info-value">@Model.UserName</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Họ và tên:</div>
+                    <div class="info-value">@Model.FullName</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Email:</div>
+                    <div class="info-value">@Model.Email</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Số điện thoại:</div>
+                    <div class="info-value">@Model.Phone</div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Store Information -->
+            <div class="contract-info">
+                <h3>🏪 Thông tin cửa hàng</h3>
+                <div class="info-row">
+                    <div class="info-label">Tên cửa hàng:</div>
+                    <div class="info-value important">@Model.StoreName</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Địa chỉ:</div>
+                    <div class="info-value">@Model.StoreAddress</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Loại cửa hàng:</div>
+                    <div class="info-value">@Model.StoreType</div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Contract Details -->
+            <div class="contract-info">
+                <h3>📋 Chi tiết hợp đồng</h3>
+                <div class="info-row">
+                    <div class="info-label">Số hợp đồng:</div>
+                    <div class="info-value important">@Model.ContractNumber</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Ngày bắt đầu:</div>
+                    <div class="info-value">@Model.StartDate.ToString("dd/MM/yyyy")</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Ngày hết hạn:</div>
+                    <div class="info-value expiring">@Model.EndDate.ToString("dd/MM/yyyy")</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Trạng thái:</div>
+                    <div class="info-value">@Model.Status</div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <div class="info-row">
+                        <div class="info-label">Ghi chú:</div>
+                        <div class="info-value">@Model.Notes</div>
+                    </div>
+                }
+            </div>
+
+            <!-- Contract File Download -->
+            @if (!string.IsNullOrEmpty(Model.ContractFileUrl))
+            {
+                <div class="contract-file-link">
+                    <h4>📄 Hợp đồng hiện tại</h4>
+                    <p>
+                        <a href="@Model.ContractFileUrl" target="_blank">
+                            🔗 Nhấp vào đây để xem hợp đồng hiện tại
+                        </a>
+                    </p>
+                </div>
+            }
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="@Model.LoginUrl" class="button button-primary">🔑 Đăng nhập để gia hạn</a>
+                <a href="tel:@Model.ContactPhone" class="button button-warning">📞 Gọi ngay để được hỗ trợ</a>
+            </div>
+
+            <!-- Urgent Notes -->
+            <div class="urgent-notes">
+                <h4>🚨 Các bước cần thực hiện ngay:</h4>
+                <ul>
+                    <li><strong>Liên hệ ngay</strong> với chúng tôi để gia hạn hợp đồng trước ngày @Model.EndDate.ToString("dd/MM/yyyy").</li>
+                    <li><strong>Chuẩn bị giấy tờ</strong> cần thiết cho việc gia hạn hợp đồng.</li>
+                    <li><strong>Đăng nhập</strong> vào hệ thống để kiểm tra tình trạng hợp đồng.</li>
+                    @if (Model.DaysUntilExpiration <= 3)
+                    {
+                        <li style="color: #dc3545;"><strong>⚠️ CẤP BÁO:</strong> Chỉ còn @Model.DaysUntilExpiration ngày! Vui lòng liên hệ ngay!</li>
+                    }
+                    <li>Nếu không gia hạn, hợp đồng sẽ tự động hết hiệu lực vào <strong>@Model.EndDate.ToString("dd/MM/yyyy")</strong>.</li>
+                </ul>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="contact-info">
+                <h4>📞 Liên hệ gia hạn hợp đồng</h4>
+                <p>
+                    <strong>Hotline:</strong> @Model.ContactPhone<br>
+                    <strong>Email:</strong> @Model.ContactEmail<br>
+                    <strong>Thời gian hỗ trợ:</strong> 8:00 - 22:00 (Thứ 2 - Chủ nhật)
+                </p>
+                <p style="margin-top: 15px; font-weight: bold; color: #dc3545;">
+                    🔥 Gọi ngay để được tư vấn và gia hạn hợp đồng!
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>
+                <strong>AIBookStreet</strong> - Hệ thống quản lý cửa hàng sách thông minh<br>
+                Email này được gửi tự động vào ngày @Model.NotificationDate.ToString("dd/MM/yyyy HH:mm:ss")
+            </p>
+            <p style="font-size: 12px; color: #999;">
+                © 2024 AIBookStreet. Tất cả các quyền được bảo lưu.
+            </p>
+        </div>
+    </div>
+</body>
+</html> 

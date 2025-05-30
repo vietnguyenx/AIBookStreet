@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -83,42 +85,144 @@ namespace AIBookStreet.Services.Services.Service
                     }
                 }
 
-                // Kiểm tra xem tiêu đề sách có chứa ký tự tiếng Việt không
-                bool isTitleVietnamese = !string.IsNullOrEmpty(book.Title) && IsVietnameseText(book.Title);
-                
-                string? description = book.Description;
-                
-                // Nếu tiêu đề là tiếng Việt nhưng mô tả không phải tiếng Việt, dịch sang tiếng Việt
-                if (isTitleVietnamese && !string.IsNullOrEmpty(description) && !IsVietnameseText(description))
+                // Xác định ngôn ngữ cần dịch dựa vào trường languages hoặc title
+                string? targetLanguage = null;
+                bool shouldTranslate = false;
+
+                // Ưu tiên kiểm tra trường languages trước
+                if (!string.IsNullOrEmpty(book.Language))
+                {
+                    var language = book.Language.ToLower();
+                    if (language.Contains("vi") || language.Contains("vietnamese"))
+                    {
+                        targetLanguage = "vi";
+                        shouldTranslate = true;
+                        _logger.LogInformation($"Book language is Vietnamese ({book.Language}). Will translate all book information to Vietnamese.");
+                    }
+                    else if (language.Contains("en") || language.Contains("english"))
+                    {
+                        targetLanguage = "en";
+                        shouldTranslate = true;
+                        _logger.LogInformation($"Book language is English ({book.Language}). Will translate all book information to English.");
+                    }
+                    // Có thể thêm các ngôn ngữ khác ở đây
+                }
+                else
+                {
+                    // Nếu không có trường languages, dùng logic cũ (kiểm tra title)
+                    bool isTitleVietnamese = !string.IsNullOrEmpty(book.Title) && IsVietnameseText(book.Title);
+                    if (isTitleVietnamese)
+                    {
+                        targetLanguage = "vi";
+                        shouldTranslate = true;
+                        _logger.LogInformation("No language field found. Book title contains Vietnamese characters. Will translate to Vietnamese.");
+                    }
+                }
+
+                // Dịch các thông tin của sách nếu cần
+                string? translatedTitle = book.Title;
+                string? translatedDescription = book.Description;
+                List<BookAuthorModel>? translatedAuthors = null;
+                PublisherModel? translatedPublisher = null;
+                List<BookCategoryModel>? translatedCategories = null;
+
+                if (shouldTranslate && !string.IsNullOrEmpty(targetLanguage))
                 {
                     try
                     {
-                        _logger.LogInformation("Book title contains Vietnamese characters. Translating description to Vietnamese.");
-                        description = await _translationService.TranslateToVietnameseAsync(description);
+                        // Dịch title nếu cần
+                        if (!string.IsNullOrEmpty(book.Title) && 
+                            (targetLanguage == "vi" ? !IsVietnameseText(book.Title) : IsVietnameseText(book.Title)))
+                        {
+                            translatedTitle = await _translationService.TranslateTextAsync(book.Title, targetLanguage);
+                        }
+
+                        // Dịch description nếu cần
+                        if (!string.IsNullOrEmpty(book.Description) && 
+                            (targetLanguage == "vi" ? !IsVietnameseText(book.Description) : IsVietnameseText(book.Description)))
+                        {
+                            translatedDescription = await _translationService.TranslateTextAsync(book.Description, targetLanguage);
+                        }                    
+
+                        // Dịch authors nếu có
+                        if (book.Authors?.Any() == true)
+                        {
+                            translatedAuthors = new List<BookAuthorModel>();
+                            foreach (var author in book.Authors)
+                            {
+                                string translatedAuthorName = author;
+                                if (targetLanguage == "vi" ? !IsVietnameseText(author) : IsVietnameseText(author))
+                                {
+                                    translatedAuthorName = await _translationService.TranslateTextAsync(author, targetLanguage) ?? author;
+                                }
+                                translatedAuthors.Add(new BookAuthorModel { AuthorName = translatedAuthorName });
+                            }
+                        }
+
+                        // Dịch publisher nếu có
+                        if (!string.IsNullOrEmpty(book.Publisher))
+                        {
+                            string translatedPublisherName = book.Publisher;
+                            if (targetLanguage == "vi" ? !IsVietnameseText(book.Publisher) : IsVietnameseText(book.Publisher))
+                            {
+                                translatedPublisherName = await _translationService.TranslateTextAsync(book.Publisher, targetLanguage) ?? book.Publisher;
+                            }
+                            translatedPublisher = new PublisherModel { PublisherName = translatedPublisherName };
+                        }
+
+                        // Dịch categories nếu có
+                        if (book.Categories?.Any() == true)
+                        {
+                            translatedCategories = new List<BookCategoryModel>();
+                            foreach (var category in book.Categories)
+                            {
+                                string translatedCategoryName = category;
+                                if (targetLanguage == "vi" ? !IsVietnameseText(category) : IsVietnameseText(category))
+                                {
+                                    translatedCategoryName = await _translationService.TranslateTextAsync(category, targetLanguage) ?? category;
+                                }
+                                translatedCategories.Add(new BookCategoryModel { CategoryName = translatedCategoryName });
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Failed to translate description. Using original description.");
+                        _logger.LogError(ex, "Failed to translate book information. Using original data.");
+                        // Nếu dịch thất bại, sử dụng dữ liệu gốc
+                        translatedTitle = book.Title;
+                        translatedDescription = book.Description;
+                        translatedAuthors = book.Authors?.Select(author => new BookAuthorModel { AuthorName = author }).ToList();
+                        translatedPublisher = !string.IsNullOrEmpty(book.Publisher) 
+                            ? new PublisherModel { PublisherName = book.Publisher } 
+                            : null;
+                        translatedCategories = book.Categories?.Select(category => new BookCategoryModel { CategoryName = category }).ToList();
                     }
+                }
+                else
+                {
+                    // Không cần dịch, sử dụng dữ liệu gốc
+                    translatedAuthors = book.Authors?.Select(author => new BookAuthorModel { AuthorName = author }).ToList();
+                    translatedPublisher = !string.IsNullOrEmpty(book.Publisher) 
+                        ? new PublisherModel { PublisherName = book.Publisher } 
+                        : null;
+                    translatedCategories = book.Categories?.Select(category => new BookCategoryModel { CategoryName = category }).ToList();
                 }
 
                 var bookModel = new GoogleBookResponseModel
                 {
                     ISBN = isbn,
-                    Title = book.Title,
+                    Title = translatedTitle,
                     PublicationDate = publishedDate,
                     Price = book.Price,
                     Languages = book.Language,
-                    Description = description,                                     
+                    Description = translatedDescription,                                     
                     Size = book.Dimensions?.Height != null
                         ? $"{book.Dimensions.Height}x{book.Dimensions.Width}x{book.Dimensions.Thickness}"
                         : null,
                     Status = "New",
-                    BookAuthors = book.Authors?.Select(author => new BookAuthorModel { AuthorName = author }).ToList(),
-                    BookCategories = book.Categories?.Select(category => new BookCategoryModel { CategoryName = category }).ToList(),
-                    Publisher = !string.IsNullOrEmpty(book.Publisher) 
-                        ? new PublisherModel { PublisherName = book.Publisher } 
-                        : null,
+                    BookAuthors = translatedAuthors,
+                    BookCategories = translatedCategories,
+                    Publisher = translatedPublisher,
                     CreatedBy = "System",
                     CreatedDate = DateTime.UtcNow,
                     IsDeleted = false
