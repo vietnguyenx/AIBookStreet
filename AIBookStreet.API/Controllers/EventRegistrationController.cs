@@ -47,7 +47,7 @@ namespace AIBookStreet.API.Controllers
                     return Ok(new ItemResponse<object>(result.Item3, new
                     {
                         id = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.TicketId : null,
-                        ticketCode = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.Ticket?.TicketCode : null,
+                        ticketCode = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.Ticket?.TicketCode.ToString() : null,
                         eventId = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.EventId : null,
                         registrationId = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.Id : null,
                         attendeeName = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.RegistrantName : null,
@@ -55,8 +55,8 @@ namespace AIBookStreet.API.Controllers
                         attendeePhone = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.RegistrantPhoneNumber : null,
                         attendeeAddress = result.Item2?.FirstOrDefault() != null ? result.Item2?.FirstOrDefault()?.RegistrantAddress : null,
                         eventName = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null) ? result.Item2?.FirstOrDefault()?.Event?.EventName : null,
-                        eventStartDate = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null && result.Item2?.FirstOrDefault()?.Event?.EventSchedules != null) ? result.Item2?.FirstOrDefault()?.Event?.EventSchedules?.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate : null,
-                        eventEndDate = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null && result.Item2?.FirstOrDefault()?.Event?.EventSchedules != null) ? result.Item2?.FirstOrDefault()?.Event?.EventSchedules?.OrderByDescending(e => e.EventDate).FirstOrDefault()?.EventDate : null,
+                        eventStartDate = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null && result.Item2?.FirstOrDefault()?.Event?.EventSchedules != null) ? result.Item2?.FirstOrDefault()?.Event?.EventSchedules?.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd") : null,
+                        eventEndDate = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null && result.Item2?.FirstOrDefault()?.Event?.EventSchedules != null) ? result.Item2?.FirstOrDefault()?.Event?.EventSchedules?.OrderByDescending(e => e.EventDate).FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd") : null,
                         registeredDates = dates,
                         zoneId = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null) ? result.Item2?.FirstOrDefault()?.Event?.ZoneId : null,
                         zoneName = (result.Item2?.FirstOrDefault() != null && result.Item2?.FirstOrDefault()?.Event != null && result.Item2?.FirstOrDefault()?.Event?.Zone != null) ? result.Item2?.FirstOrDefault()?.Event?.Zone?.ZoneName : null,
