@@ -138,13 +138,25 @@ namespace AIBookStreet.Services.Services.Service
                 {
                     return (0, null, "Sự kiện không hợp lệ");
                 }
-                if (evt.EventSchedules?.OrderBy(es => es.EventDate).FirstOrDefault()?.EventDate > DateOnly.FromDateTime(DateTime.Now.Date))
+                //if (evt.EventSchedules?.OrderBy(es => es.EventDate).FirstOrDefault()?.EventDate > DateOnly.FromDateTime(DateTime.Now.Date))
+                //{
+                //    return (0, null, "Chỉ có thể điểm danh trong ngày diễn ra sự kiện");
+                //}
+                //if (evt.EventSchedules?.OrderByDescending(es => es.EventDate).FirstOrDefault()?.EventDate < DateOnly.FromDateTime(DateTime.Now))
+                //{
+                //    return (0, null, "Chỉ có thể điểm danh trong ngày diễn ra sự kiện");
+                //}
+                var eventSchedules = new List<string>();
+                if (evt.EventSchedules != null)
                 {
-                    return (0, null, "Chỉ có thể điểm danh trong ngày diễn ra sự kiện");
+                    foreach (var schedule in evt.EventSchedules)
+                    {
+                        eventSchedules.Add(schedule.EventDate.ToString("yyyy-MM-dd"));
+                    }
                 }
-                if (evt.EventSchedules?.OrderByDescending(es => es.EventDate).FirstOrDefault()?.EventDate < DateOnly.FromDateTime(DateTime.Now))
+                if (!eventSchedules.Contains(DateTime.Now.ToString("yyyy-MM-dd")))
                 {
-                    return (0, null, "Chỉ có thể điểm danh trong ngày diễn ra sự kiện");
+                    return (0, null, "Sự kiện '" + evt.EventName +"' không diễn ra trong hôm nay ("+ DateTime.Now.ToString("dd/MM/yyyy") + ")!");
                 }
 
                 var resp = new List<EventRegistration>();
@@ -793,7 +805,7 @@ namespace AIBookStreet.Services.Services.Service
                     var addressIndex = 103;
                     foreach (var address in addressCount)
                     {
-                        worksheet2.Cells[addressIndex, 15].Value = address.Address.Contains("Thành phố") ? address.Address.Replace("Thành phố", "TP.").Trim().ToString() : address.Address.Contains("Tỉnh") ? address.Address.Replace("Tỉnh", "").Trim().ToString() : address.Address.Trim().ToString();
+                        worksheet2.Cells[addressIndex, 15].Value = address.Address.Contains("Thành phố") ? address.Address.Replace("Thành phố", "TP.").Trim() : address.Address.Contains("Tỉnh") ? address.Address.Replace("Tỉnh", "").Trim() : address.Address.Trim();
                         using (ExcelRange headerRange = worksheet2.Cells[addressIndex, 15])
                         {
                             headerRange.Style.Font.Bold = true;

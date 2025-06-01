@@ -130,6 +130,7 @@ builder.Services.AddSingleton<IEventRegistrationQueueService, EventRegiatrationQ
 builder.Services.AddSingleton<IExportEventStatisticQueueService, ExportEventStatisticQueueService>();
 builder.Services.AddHostedService<EmailSenderBackgroundService>();
 builder.Services.AddHostedService<ContractExpirationBackgroundService>();
+builder.Services.AddHostedService<CheckEventExpireBackgroundService>();
 
 // Add HttpClient for Google Books API
 builder.Services.AddHttpClient<IGoogleBookService, GoogleBookService>();

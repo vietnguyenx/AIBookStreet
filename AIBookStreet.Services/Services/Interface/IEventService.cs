@@ -25,5 +25,6 @@ namespace AIBookStreet.Services.Services.Interface
         Task<(long, Event?, string)> OpenState(Guid id);
         Task<(long, List<Event>?)> GetHistory(Guid eventId);
         Task<(long, List<Event>?, string?)> GetCreationHistory(int? pageNumber, int? pageSize);
+        Task<List<Event>?> GetExpireEvents();
     }
 }

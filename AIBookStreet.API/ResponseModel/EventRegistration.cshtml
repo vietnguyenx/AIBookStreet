@@ -16,6 +16,7 @@
             list-style-type: disc;
             padding-left: 0;
             margin-left: 0;
+            margin-top: 0;
         }
 
         .container {
@@ -316,18 +317,10 @@
 
             <div class="footer">
                 Trân trọng, <br>
-                <strong>Ban tổ chức sự kiện</strong>
+                <strong>Ban tổ chức sự kiện</strong>           
 
-                <div>
-                    <a href="https://duongsachtphcm.com/">Website</a> |
-                    <a href="https://www.facebook.com/duongsachtphcmvn">Facebook</a>
-                </div>
-
-                <div class="contact">
-                    © 2017 - Đường Sách TP.HCM. Tất cả các quyền được bảo lưu.<br>
-                    Địa chỉ: 161B, Lý Chính Thắng, Phường 7, Quận 3, TP.HCM |
-                    Email: ctyduongsachtphcm@gmail.com |
-                    Hotline: (08) 39 316 211 ext 286
+                <div class="contact">                    
+                    Email: @Model?.EventRegistrations?.FirstOrDefault()?.Event?.OrganizerEmail.ToString()
                 </div>
             </div>
         </div>

@@ -393,7 +393,27 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
             var events = await queryable.OrderByDescending(e => e.CreatedDate)
                                         .Include(e => e.Zone)
                                             .ThenInclude(z => z.Street)
+                                        .Include(e => e.EventSchedules)
                                         .ToListAsync();
+            return events;
+        }
+        public async Task<List<Event>?> GetExpiredEvent()
+        {
+            var queryable = GetQueryable();
+            queryable = queryable.Include(e => e.EventSchedules);
+
+            if (queryable.Any())
+            {
+                queryable = queryable.Where(ev => ev.EventSchedules.OrderByDescending(es => es.EventDate).FirstOrDefault().EventDate < DateOnly.FromDateTime(DateTime.Now)
+                                                  && ev.IsApprove.HasValue
+                                                  && ev.IsApprove == true
+                                                  && ev.IsOpen == true);
+            }
+
+            var events = await queryable
+                .Include(at => at.Images)
+                .Include(ev => ev.Zone).ToListAsync();
+
             return events;
         }
     }

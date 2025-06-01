@@ -425,8 +425,19 @@ namespace AIBookStreet.API.Controllers
                 {
                     return BadRequest(events.Item3);
                 }
+                var response = new List<EventRequest>();
+                if (events.Item2 != null)
+                {
+                    foreach (var evt in events.Item2)
+                    {
+                        var evtCovert = _mapper.Map<EventRequest>(evt);
+                        evtCovert.StartDate = evt.EventSchedules?.OrderBy(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                        evtCovert.EndDate = evt.EventSchedules?.OrderByDescending(e => e.EventDate)?.FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
+                        response.Add(evtCovert);
+                    }
+                }
 
-                return Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, _mapper.Map<List<EventRequest>>(events.Item2), events.Item2 != null ?events.Item2.Count : 0, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? 1 : -1));
+                return Ok(new PaginatedListResponse<EventRequest>(ConstantMessage.Success, response, events.Item2 != null ?events.Item2.Count : 0, request != null ? request.PageNumber : 1, request != null ? request.PageSize : 10, request != null ? request.SortField : "CreatedDate", request != null && request.SortOrder != -1 ? 1 : -1));
             }
             catch (Exception ex)
             {

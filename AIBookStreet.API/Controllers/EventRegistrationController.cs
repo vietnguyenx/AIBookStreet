@@ -38,10 +38,17 @@ namespace AIBookStreet.API.Controllers
                     }
                     var dates = new List<object>();
                     if (result.Item2 != null)
-                    {                        
+                    {
                         foreach (var item in result.Item2)
                         {
-                            dates.Add(new { date = item.DateToAttend.ToString("yyyy-MM-dd") });
+                            var schedule = result.Item2?.FirstOrDefault()?.Event?.EventSchedules?.Where(e => e.EventDate == item.DateToAttend).FirstOrDefault();
+                            dates.Add(
+                                new
+                                {
+                                    date = item.DateToAttend.ToString("yyyy-MM-dd"),
+                                    startTime = schedule?.StartTime.ToString("HH:mm:ss"),
+                                    endTime = schedule?.EndTime.ToString("HH:mm:ss")
+                                });
                         }
                     }
                     return Ok(new ItemResponse<object>(result.Item3, new
@@ -199,6 +206,19 @@ namespace AIBookStreet.API.Controllers
                         var emailQueue = HttpContext.RequestServices.GetRequiredService<IEventRegistrationQueueService>();
                         emailQueue.Enqueue(eventRegistration.TicketId);
                     }
+                    var dates = new List<object>();
+                    if (eventRegistration != null)
+                    {
+                            var schedule = eventRegistration?.Event?.EventSchedules?.Where(e => e.EventDate == eventRegistration.DateToAttend).FirstOrDefault();
+                            dates.Add(
+                                new
+                                {
+                                    date = eventRegistration?.DateToAttend.ToString("yyyy-MM-dd"),
+                                    startTime = schedule?.StartTime.ToString("HH:mm:ss"),
+                                    endTime = schedule?.EndTime.ToString("HH:mm:ss")
+                                });
+                        
+                    }
                     return Ok(new ItemResponse<object>("Đã thêm!", new
                     {
                         id = eventRegistration?.TicketId,
@@ -212,6 +232,7 @@ namespace AIBookStreet.API.Controllers
                         eventName = eventRegistration?.Event?.EventName,
                         eventStartDate = eventRegistration?.Event?.EventSchedules?.OrderBy(e => e.EventDate).FirstOrDefault()?.EventDate,
                         eventEndDate = eventRegistration?.Event?.EventSchedules?.OrderByDescending(e => e.EventDate).FirstOrDefault()?.EventDate,
+                        registeredDates = dates,
                         zoneId = eventRegistration?.Event?.ZoneId,
                         zoneName = eventRegistration?.Event?.Zone?.ZoneName,
                         latitude = eventRegistration?.Event?.Zone?.Latitude,

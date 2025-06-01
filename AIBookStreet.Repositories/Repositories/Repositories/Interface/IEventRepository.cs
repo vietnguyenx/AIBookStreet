@@ -24,5 +24,6 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Interface
         Task<Event?> GetLastEventByOrganizerEmail(string email);
         Task<List<Event>?> GetHistory(Guid? eventId);
         Task<List<Event>?> GetCreationHistory(string? email, int? pageNumber, int? pageSize);
+        Task<List<Event>?> GetExpiredEvent();
     }
 }

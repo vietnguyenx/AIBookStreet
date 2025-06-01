@@ -2,6 +2,7 @@
 using AIBookStreet.API.ResponseModel;
 using AIBookStreet.API.Tool.Constant;
 using AIBookStreet.Repositories.Data.Entities;
+using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AIBookStreet.Services.Services.Service;
 using AutoMapper;
@@ -34,12 +35,37 @@ namespace AIBookStreet.API.Controllers
                 //response.EventRegistration.Event.StartDate = ticket.EventRegistrations?.FirstOrDefault()?.Event?.EventSchedules?.OrderBy(es => es.EventDate).FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
                 //response.EventRegistration.Event.EndDate = ticket.EventRegistrations?.FirstOrDefault()?.Event?.EventSchedules?.OrderByDescending(es => es.EventDate).FirstOrDefault()?.EventDate.ToString("yyyy-MM-dd");
 
+                //var dates = new List<object>();
+                //if (ticket.EventRegistrations != null)
+                //{
+                //    foreach (var item in ticket.EventRegistrations)
+                //    {
+                //        dates.Add(new { date = item.DateToAttend.ToString("yyyy-MM-dd") });
+                //    }
+                //}
+                //var dates = new List<object>();
+                //if (ticket.EventRegistrations != null)
+                //{
+                //    foreach (var item in ticket.EventRegistrations)
+                //    {
+                //        var schedule = ticket.EventRegistrations?.FirstOrDefault()?.Event?.EventSchedules?.Where(e => e.EventDate == item.DateToAttend).FirstOrDefault();
+                //        dates.Add(new { date = item.DateToAttend.ToString("yyyy-MM-dd") + " " + schedule?.StartTime.ToString("HH:mm") + "-" + schedule?.EndTime.ToString("HH:mm") });
+                //    }
+                //}
+
                 var dates = new List<object>();
                 if (ticket.EventRegistrations != null)
                 {
                     foreach (var item in ticket.EventRegistrations)
                     {
-                        dates.Add(new { date = item.DateToAttend.ToString("yyyy-MM-dd") });
+                        var schedule = ticket.EventRegistrations?.FirstOrDefault()?.Event?.EventSchedules?.Where(e => e.EventDate == item.DateToAttend).FirstOrDefault();
+                        dates.Add(
+                            new
+                            {
+                                date = item.DateToAttend.ToString("yyyy-MM-dd"),
+                                startTime = schedule?.StartTime.ToString("HH:mm:ss"),
+                                endTime = schedule?.EndTime.ToString("HH:mm:ss")
+                            });
                     }
                 }
                 var response = new

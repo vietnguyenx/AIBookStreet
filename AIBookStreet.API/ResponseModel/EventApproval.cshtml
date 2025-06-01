@@ -1,0 +1,375 @@
+﻿@model AIBookStreet.Repositories.Data.Entities.Event
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <title>Thông báo về yêu cầu tạo sự kiện</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f9f9f9;
+          margin: 0;
+          padding: 0;
+          line-height: 1.6;
+        }
+
+        ul {
+            list-style-type: disc;
+            padding-left: 0;
+            margin-left: 0;
+        }
+
+        .container {
+          max-width: 600px;
+          margin: 30px auto;
+          background: #fff;
+          border: 1px solid #ccc;
+          border-radius: 10px;
+          overflow: hidden;
+          box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-success {
+          background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+          color: white;
+          text-align: center;
+          padding: 30px 20px;
+        }
+        .header-fail {
+          background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+          color: white;
+          text-align: center;
+          padding: 30px 20px;
+        }
+
+        .header img {
+          height: 50px;
+          margin-bottom: 15px;
+        }
+
+        .header h1 {
+          margin: 0;
+          font-size: 24px;
+          font-weight: bold;
+        }
+
+        .content {
+          padding: 30px;
+        }
+
+        .acceptance-message {
+          background-color: #d4edda;
+          border: 2px solid #c3e6cb;
+          border-radius: 8px;
+          padding: 25px;
+          margin-bottom: 25px;
+          text-align: center;
+        }
+
+        .acceptance-icon {
+          font-size: 48px;
+          color: #155724;
+          margin-bottom: 15px;
+        }
+
+        .rejection-message {
+          background-color: #f8d7da;
+          border: 2px solid #f5c6cb;
+          border-radius: 8px;
+          padding: 25px;
+          margin-bottom: 25px;
+          text-align: center;
+        }
+
+        .rejection-icon {
+          font-size: 48px;
+          color: #721c24;
+          margin-bottom: 15px;
+        }
+
+        .reason-box {
+          background-color: #fff;
+          border: 2px solid #e9ecef;
+          border-radius: 8px;
+          padding: 25px;
+          margin: 25px 0;
+        }
+
+        .reason-box h3 {
+          color: #495057;
+          margin-top: 0;
+          margin-bottom: 20px;
+          font-size: 18px;
+          border-bottom: 2px solid #e9ecef;
+          padding-bottom: 10px;
+        }
+
+        .reason-list {
+          padding-left: 20px;
+          margin-bottom: 20px;
+        }
+
+        .reason-item {
+          color: #212529;
+          margin-bottom: 10px;
+          list-style-type: disc;
+        }
+
+        .event-info-box {
+          background-color: #fff;
+          border: 2px solid #e9ecef;
+          border-radius: 8px;
+          padding: 25px;
+          margin: 25px 0;
+        }
+
+        .event-info-box h3 {
+          color: #495057;
+          margin-top: 0;
+          margin-bottom: 20px;
+          font-size: 18px;
+          border-bottom: 2px solid #e9ecef;
+          padding-bottom: 10px;
+        }
+
+        .info-row {
+          display: flex;
+          margin-bottom: 15px;
+          align-items: flex-start;
+        }
+
+        .info-label {
+          font-weight: bold;
+          color: #495057;
+          width: 120px;
+          flex-shrink: 0;
+        }
+
+        .info-value {
+          color: #212529;
+          flex: 1;
+          word-break: break-word;
+        }
+
+        .action-buttons {
+          text-align: center;
+          margin: 30px 0;
+        }
+
+        .button {
+          display: inline-block;
+          color: white;
+          padding: 15px 30px;
+          text-decoration: none;
+          border-radius: 5px;
+          font-weight: bold;
+          text-align: center;
+          margin: 10px;
+          box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+          transition: transform 0.2s;
+        }
+
+        .button:hover {
+          transform: translateY(-2px);
+        }
+
+        .button-primary {
+          background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        }
+
+        .button-secondary {
+          background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+        }
+
+        .contact-info {
+          background-color: #d1ecf1;
+          border: 1px solid #bee5eb;
+          border-radius: 8px;
+          padding: 20px;
+          margin-top: 25px;
+          text-align: center;
+        }
+
+        .contact-info h4 {
+          color: #0c5460;
+          margin-top: 0;
+          margin-bottom: 15px;
+        }
+
+        .contact-info p {
+          color: #0c5460;
+          margin: 5px 0;
+        }
+        .footer {
+          background-color: #f8f9fa;
+          text-align: center;
+          padding: 20px;
+          color: #6c757d;
+          font-size: 14px;
+        }
+
+        .footer a {
+          color: #007bff;
+          text-decoration: none;
+          margin: 0 5px;
+        }
+
+        .footer a:hover {
+          text-decoration: underline;
+        }
+
+        .contact {
+          margin: 10px 0;
+        }
+
+        .wish-message {
+          margin-top: 30px;
+          font-style: italic;
+          color: #555;
+          text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+
+        @if (Model.IsApprove == true)
+        {
+            <div class="header header-success">
+                <img src="https://th.bing.com/th/id/OIP.Hysz-KWv7FXNrBEvEWn3agHaHa?rs=1&pid=ImgDetMain" alt="AIBookStreet Logo" />
+                <h1>✅ Yêu cầu tạo sự kiện được chấp nhận</h1>
+                <p>Thông báo về yêu cầu tạo sự kiện của bạn</p>
+            </div>
+        } else if (Model.IsApprove == false)
+        {
+            <div class="header header-fail">
+                <img src="https://th.bing.com/th/id/OIP.Hysz-KWv7FXNrBEvEWn3agHaHa?rs=1&pid=ImgDetMain" alt="AIBookStreet Logo" />
+                <h1>🚫 Yêu cầu tạo sự kiện bị từ chối</h1>
+                <p>Thông báo về yêu cầu tạo sự kiện của bạn</p>
+            </div>
+        }
+
+        <div class="content">
+            @if (Model.IsApprove == true)
+            {
+                <div class="acceptance-message">
+                    <div class="acceptance-icon">✔️</div>
+                    <h2 style="color: #155724; margin: 10px 0">
+                        Chúc mừng! Yêu cầu của bạn đã được chấp thuận.
+                    </h2>
+                    <p style="color: #155724; font-size: 16px; margin: 0">
+                        Yêu cầu tạo sự kiện <strong>"@Model.EventName"</strong> của bạn đã
+                        được phê duyệt thành công.
+                    </p>
+                </div>
+            }
+            else if (Model.IsApprove == false)
+            {
+                <div class="rejection-message">
+                    <div class="rejection-icon">❌</div>
+                    <h2 style="color: #721c24; margin: 10px 0">
+                        Rất tiếc, yêu cầu của bạn không được chấp thuận.
+                    </h2>
+                    <p style="color: #721c24; font-size: 16px; margin: 0">
+                        Chúng tôi rất tiếc phải thông báo rằng yêu cầu tạo sự kiện
+                        <strong>"@Model.EventName"</strong> của bạn đã không được chấp thuận
+                        vào lúc này.
+                    </p>
+                </div>
+            }
+            
+           
+
+            <div class="event-info-box">
+                <h3>ℹ️ Chi tiết sự kiện</h3>
+                <div class="info-row">
+                    <div class="info-label">Tên sự kiện:</div>
+                    <div class="info-value">@Model.EventName</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Thời gian:</div>
+                    <div class="info-value">
+                        <ul>
+                            @foreach (var schedule in Model?.EventSchedules?.OrderBy(e => e.EventDate))
+                            {
+                                <li>
+                                    @schedule.EventDate.ToString("dd/MM/yyyy")
+                                    @schedule.StartTime.ToString("HH:mm")
+                                    -
+                                    @schedule.EndTime.ToString("HH:mm")
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Địa điểm:</div>
+                    <div class="info-value">@Model?.Zone?.ZoneName.ToString()</div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model?.Description))
+                {
+                    <div class="info-row">
+                        <div class="info-label">Mô tả:</div>
+                        <div class="info-value">@Model.Description</div>
+                    </div>
+                }
+            </div>
+
+            @if (Model?.IsApprove == true)
+            {
+                <div class="action-buttons">
+                    <a href="https://smart-book-street-next-aso3.vercel.app/event-creation-history" class="button button-primary">Quản lý sự kiện của bạn</a>
+                </div>
+
+                <p class="wish-message">
+                    Hy vọng bạn sẽ chuẩn bị thật kỹ và chúc sự kiện diễn ra thành công tốt
+                    đẹp!
+                </p>
+            } else if (Model?.IsApprove == false)
+            {
+                <div class="reason-box">
+                    <h3>⚠️ Lý do từ chối</h3>
+                    <ul class="reason-list">
+                            <li class="reason-item">@Model.Message</li>
+                    </ul>
+                    <p>
+                        Vui lòng xem xét các lý do trên và điều chỉnh thông tin sự kiện của
+                        bạn cho phù hợp. Sau đó, bạn có thể gửi lại yêu cầu.
+                    </p>
+                </div>
+                <div class="contact-info">
+                    <h4>📞 Cần hỗ trợ?</h4>
+                    <p>
+                        Vui lòng liên hệ với Ban quản lý đường sách Thành phố Hồ Chí Minh để
+                        được giải đáp thắc mắc hoặc biết thêm chi tiết về lý do từ chối.
+                    </p>
+                    <p>
+                        <strong>Email:</strong> ctyduongsachtphcm@gmail.com<br />
+                        <strong>Hotline:</strong> (08) 39 316 211 ext 286
+                    </p>
+                </div>
+            }
+            
+
+            
+        </div>
+
+        <div class="footer">
+            Trân trọng, <br />
+            <strong>Ban quản lý đường sách Thành phố Hồ Chí Minh</strong>
+
+            <div>
+                <a href="https://duongsachtphcm.com/">Website</a> |
+                <a href="https://www.facebook.com/duongsachtphcmvn">Facebook</a>
+            </div>
+
+            <div class="contact">
+                © 2017 - Đường Sách TP.HCM. Tất cả các quyền được bảo lưu.<br />
+                Địa chỉ: 161B, Lý Chính Thắng, Phường 7, Quận 3, TP.HCM | Email:
+                ctyduongsachtphcm@gmail.com | Hotline: (08) 39 316 211 ext 286
+            </div>
+        </div>
+    </div>
+</body>
+</html>

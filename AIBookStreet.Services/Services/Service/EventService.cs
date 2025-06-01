@@ -5,20 +5,28 @@ using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
+using Razor.Templating.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
+using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AIBookStreet.Services.Services.Service
 {
-    public class EventService(IUnitOfWork repository, IMapper mapper, IHttpContextAccessor httpContextAccessor, IFirebaseStorageService firebaseStorageService, IImageService imageService) : BaseService<Event>(mapper, repository, httpContextAccessor), IEventService
+    public class EventService(IUnitOfWork repository, IMapper mapper, IHttpContextAccessor httpContextAccessor, IFirebaseStorageService firebaseStorageService, IImageService imageService, IUserAccountEmailService userAccountEmailService, SmtpClient smtpClient, IOptions<SmtpSettings> smtpSettings, IRazorTemplateEngine razorTemplateEngine) : BaseService<Event>(mapper, repository, httpContextAccessor), IEventService
     {
         private readonly IUnitOfWork _repository = repository;
         private readonly IFirebaseStorageService _firebaseStorageService = firebaseStorageService;
         private readonly IImageService _imageService = imageService;
+        private readonly IUserAccountEmailService _userAccountEmailService = userAccountEmailService;
+        private readonly SmtpClient _smtpClient = smtpClient;
+        private readonly SmtpSettings _smtpSettings = smtpSettings.Value;
+        private readonly IRazorTemplateEngine _razorTemplateEngine =razorTemplateEngine;
         public async Task<(long, Event?, string?)> AddAnEvent(EventModel model, List<EventScheduleModel> schedules)
         {         
             try
@@ -79,7 +87,7 @@ namespace AIBookStreet.Services.Services.Service
                     EventName = model.EventName,
                     Description = model.Description ?? null,
                     VideoLink = !string.IsNullOrEmpty(videoUrl) ? videoUrl : null,
-                    IsOpen = model.IsOpen,
+                    IsOpen = isAdmin,
                     AllowAds = model.AllowAds,
                     ZoneId = model.ZoneId,
                     OrganizerEmail = user.Email,
@@ -224,6 +232,7 @@ namespace AIBookStreet.Services.Services.Service
                 var updateSuccess = await _repository.EventRepository.Update(existed);
                 if (updateSuccess)
                 {
+                    await SendEventProccessedEmailAsync(existed);
                     return (2, existed, "Đã xử lý sự kiện"); //update thành công
                 }
                 return (3, null, "Đã xảy ra lỗi, vui lòng thử lại sau"); //update fail
@@ -519,6 +528,48 @@ namespace AIBookStreet.Services.Services.Service
             {
                 throw;
             }
+        }
+        public async Task<List<Event>?> GetExpireEvents()
+        {
+            try
+            {
+                var events = await _repository.EventRepository.GetExpiredEvent();
+                return events;
+            } catch
+            {
+                throw;
+            }
+        }
+        public async Task<bool> SendEventProccessedEmailAsync(Event evt)
+        {
+            return await _userAccountEmailService.SendEmailWithRetryAsync(async () =>
+            {
+                var htmlBody = await _razorTemplateEngine.RenderAsync("ResponseModel/EventApproval.cshtml", evt);
+
+                var from = new MailAddress (_smtpSettings.From);
+                var to = new MailAddress(evt.OrganizerEmail);
+
+                var subject = evt.IsApprove.HasValue && evt.IsApprove == true
+                    ? $"[AIBookStreet] Yêu cầu tạo sự kiện '{evt.EventName}' đã được chấp nhận!"
+                    : $"[AIBookStreet] Yêu cầu tạo sự kiện '{evt.EventName}' đã bị từ chối";
+
+                var mail = new MailMessage(from, to)
+                {
+                    Subject = subject,
+                    IsBodyHtml = true
+                };
+
+                // Thêm nội dung HTML
+                var view = AlternateView.CreateAlternateViewFromString(htmlBody, null, MediaTypeNames.Text.Html);
+                mail.AlternateViews.Add(view);
+
+                // Gửi email
+                await _smtpClient.SendMailAsync(mail);
+
+                // Dispose mail object
+                mail.Dispose();
+
+            }, evt.OrganizerEmail, "Event Approval");
         }
     }
 }

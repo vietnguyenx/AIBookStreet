@@ -24,13 +24,14 @@ namespace AIBookStreet.Services.Services.Service
             while (!stoppingToken.IsCancellationRequested)
             {
                 if (_eventRegistrationQueue.TryDequeue(out var message))
-                {
-                    _logger.LogInformation($"Đang xử lý email cho RegistrationId: {message}");
-                    using var scope = _serviceScopeFactory.CreateScope();
-                    var emailRegistrationService = scope.ServiceProvider.GetRequiredService<IEventRegistrationService>();
-                    var ticketService = scope.ServiceProvider.GetRequiredService<ITicketService>();
+                {                    
                     try
                     {
+                        _logger.LogInformation($"Đang xử lý email cho RegistrationId: {message}");
+                        using var scope = _serviceScopeFactory.CreateScope();
+                        var emailRegistrationService = scope.ServiceProvider.GetRequiredService<IEventRegistrationService>();
+                        var ticketService = scope.ServiceProvider.GetRequiredService<ITicketService>();
+
                         var ticket = await ticketService.GetTicketById(message);
                         await emailRegistrationService.SendRegistrationEmai(ticket);
                         _logger.LogInformation($"Đã gửi email thành công cho RegistrationId: {message}");
@@ -39,12 +40,14 @@ namespace AIBookStreet.Services.Services.Service
                     {
                         _logger.LogError($"Lỗi khi gửi email cho RegistrationId: {message}");
                     }
-                } else if (_exportEventStatisticQueue.TryDequeue(out var model)){
-                    _logger.LogInformation($"Đang gửi số liệu đến {model.Email} cho EventId: {model.EventId}");
-                    using var scope = _serviceScopeFactory.CreateScope();
-                    var emailStatistcService = scope.ServiceProvider.GetRequiredService<IEventRegistrationService>(); 
+                } 
+                if (_exportEventStatisticQueue.TryDequeue(out var model)){                    
                     try
                     {
+                        _logger.LogInformation($"Đang gửi số liệu đến {model.Email} cho EventId: {model.EventId}");
+                        using var scope = _serviceScopeFactory.CreateScope();
+                        var emailStatistcService = scope.ServiceProvider.GetRequiredService<IEventRegistrationService>();
+
                         await emailStatistcService.ExportStatisticReport(model);
                         _logger.LogInformation($"Đã gửi số liệu đến {model.Email} thành công cho EventId: {model.EventId}");
                     }
@@ -55,11 +58,16 @@ namespace AIBookStreet.Services.Services.Service
                 }
                 else
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
+                    await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
                 }
             }
 
             _logger.LogInformation("Email Sender Background Service đã dừng.");
+        }
+        public override async Task StopAsync(CancellationToken stoppingToken)
+        {
+            _logger.LogInformation("Email Sender Background Service đang dừng...");
+            await base.StopAsync(stoppingToken);
         }
     }
 }
