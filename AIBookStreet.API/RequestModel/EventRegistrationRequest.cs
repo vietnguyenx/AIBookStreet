@@ -1,4 +1,5 @@
-﻿using AIBookStreet.Repositories.Data.Entities;
+﻿using AIBookStreet.API.ResponseModel;
+using AIBookStreet.Repositories.Data.Entities;
 
 namespace AIBookStreet.API.RequestModel
 {
@@ -17,7 +18,7 @@ namespace AIBookStreet.API.RequestModel
         public bool IsAttended { get; set; }
         public string? LastUpdatedBy { get; set; }
         public DateTime? LastUpdatedDate { get; set; }
+        public List<DateResponse>? RegisteredDates { get; set; }
         public EventRequest? Event { get; set; }
-        public TicketRequest? Ticket { get; set; }
     }
 }
