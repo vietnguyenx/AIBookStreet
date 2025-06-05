@@ -157,7 +157,7 @@ namespace AIBookStreet.Repositories.Repositories.Repositories.Repository
         public async Task<EventRegistration?> GetByIDForCheckIn(Guid? id)
         {
             var query = GetQueryable(z => z.Id == id);
-            var eventRegistration = await query.Include(er => er.Ticket)
+            var eventRegistration = await query
                                   .SingleOrDefaultAsync();
 
             return eventRegistration;

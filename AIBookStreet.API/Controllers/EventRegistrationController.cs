@@ -5,6 +5,7 @@ using AIBookStreet.Repositories.Data.Entities;
 using AIBookStreet.Services.Model;
 using AIBookStreet.Services.Services.Interface;
 using AutoMapper;
+using Google.Api.Gax;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -16,10 +17,11 @@ namespace AIBookStreet.API.Controllers
 {
     [Route("api/event-registrations")]
     [ApiController]
-    public class EventRegistrationController(IEventRegistrationService service, IMapper mapper, ITicketService ticketService) : ControllerBase
+    public class EventRegistrationController(IEventRegistrationService service, IMapper mapper, ITicketService ticketService, IEventService eventService) : ControllerBase
     {
         private readonly IEventRegistrationService _service = service;
         private readonly ITicketService _ticketService = ticketService;
+        private readonly IEventService _eventService = eventService;
         private readonly IMapper _mapper = mapper;
         [AllowAnonymous]
         [HttpPost("")]
@@ -151,13 +153,29 @@ namespace AIBookStreet.API.Controllers
             try
             {
                 var eventRegistrations = await _service.GetAllActiveEventRegistrationsInAnEvent(eventId, searchKey, date);
-
-                return eventRegistrations.Item1 switch
+                if (eventRegistrations.Item1 == 0)
                 {
-                    0 => BadRequest("Hãy đăng nhập với vai trò Người tổ chức sự kiện"),
-                    1 => Ok(new ItemListResponse<EventRegistrationRequest>(ConstantMessage.Success, null)),
-                    _ => Ok(new ItemListResponse<EventRegistrationRequest>(ConstantMessage.Success, _mapper.Map<List<EventRegistrationRequest>>(eventRegistrations.Item2)))
-                };
+                    return BadRequest("Hãy đăng nhập với vai trò Người tổ chức sự kiện");
+                } else if (eventRegistrations.Item1 == 1)
+                {
+                    return Ok(new ItemListResponse<EventRegistrationRequest>(ConstantMessage.Success, null));
+                }
+                var evt = await _eventService.GetAnEventById(eventId);
+                var response = _mapper.Map<List<EventRegistrationRequest>>(eventRegistrations.Item2);
+                var dates = new List<DateResponse>();
+                var schedule = evt.Item1?.EventSchedules?.Where(es => es.EventDate == DateOnly.FromDateTime(DateTime.Now)).FirstOrDefault();
+                dates.Add(new DateResponse
+                {
+                    Date = DateOnly.FromDateTime(DateTime.Now).ToString("yyyy-MM-dd"),
+                    StartTime = schedule?.StartTime.ToString("HH:mm:ss"),
+                    EndTime = schedule?.EndTime.ToString("HH:mm:ss")
+                });
+                foreach (var item in response)
+                {
+                    
+                    item.RegisteredDates = dates;
+                }
+                return Ok(new ItemListResponse<EventRegistrationRequest>(ConstantMessage.Success, response));
             }
             catch (Exception ex)
             {
